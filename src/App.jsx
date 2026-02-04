@@ -48,16 +48,58 @@ function App() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation
     if (!formData.name || !formData.email || !formData.whatsapp) {
       toast({
         title: "Access Denied",
-        description: "All fields are mandatory for vault entry.",
+        description: "All fields are mandatory.",
         variant: "destructive"
       });
       return;
     }
+
+    // Show loading state (Optional: Add a loading state variable)
+    toast({ title: "Encrypting Transmission...", description: "Please wait." });
+
+    try {
+      // Use Web3Forms or similar simple endpoint
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          // GO TO web3forms.com to get your free access_key
+          access_key: "YOUR_ACCESS_KEY_HERE", 
+          name: formData.name,
+          email: formData.email,
+          message: `WhatsApp: ${formData.whatsapp} - Requesting Vault Access`
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast({
+          title: "Access Request Sent",
+          description: "You are now in the queue. Await signal.",
+        });
+        setFormData({ name: '', email: '', whatsapp: '' });
+      } else {
+        throw new Error("Transmission failed");
+      }
+    } catch (error) {
+      toast({
+        title: "Connection Error",
+        description: "Secure uplink failed. Try again later.",
+        variant: "destructive"
+      });
+    }
+  };
     
     // 🔴 CRITICAL TODO: Connect this to EmailJS, Firebase, or Supabase.
     // localStorage is NOT a backend. This console log demonstrates the data payload.
