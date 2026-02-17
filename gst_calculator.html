@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GST Tax Engine | SilenVault</title>
     <meta name="description" content="Instant GST and VAT calculator with Reverse Charge Mechanism (RCM) support. Calculate tax inclusive and exclusive amounts.">
-    <!-- Favicon: Ensure this matches your file name exactly -->
     <link rel="icon" type="image/png" href="assets/img/SILENVAULT_LOGO.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="assets/js/layout.js" defer></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
@@ -16,12 +17,11 @@
         .sv-input { background-color: #0f172a; border: 1px solid #334155; transition: all 0.2s; }
         .sv-input:focus { border-color: #10b981; outline: none; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
         .ad-placeholder { background: repeating-linear-gradient(45deg, #0f172a, #0f172a 10px, #1e293b 10px, #1e293b 20px); border: 1px dashed #475569; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.75rem; text-transform: uppercase; }
-        .dropdown:hover .dropdown-menu { display: block; }
         
-        /* Print Styles */
+        /* ARCHITECT FIX: Global Print Styles intercepting Web Components */
         @media print {
             body { background-color: white; color: black; }
-            header, aside, footer, .ad-placeholder, .print-hidden, .seo-content { display: none !important; }
+            sv-header, sv-footer, aside, .ad-placeholder, .print-hidden, .seo-content { display: none !important; }
             main { padding: 0; width: 100%; max-width: 100%; display: block; margin: 0; }
             .bg-slate-900 { background-color: white; border: 1px solid #ccc; box-shadow: none; padding: 0; }
             .bg-slate-950 { background-color: #f9f9f9; border: 1px solid #ddd; }
@@ -29,63 +29,26 @@
             .text-white { color: black; }
             .text-emerald-400 { color: #059669; }
             input, select { border: 1px solid #ccc; color: black; }
-            .rate-btn { border: 1px solid #ccc; color: black; }
-            #res-net, #res-tax, #res-total { color: black; font-weight: bold; }
-            /* Force show result container */
             .result-container { border: 1px solid #000 !important; margin-bottom: 20px; }
         }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <!-- Header (Consistent with Hub) -->
-    <header class="h-14 border-b border-slate-800 flex items-center justify-between px-4 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50 print-hidden">
-        <div class="flex items-center gap-4">
-             <!-- Vault Navigator -->
-            <div class="relative dropdown group">
-                <button class="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg>
-                </button>
-                <div class="dropdown-menu hidden absolute top-10 left-0 w-64 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl z-50 p-2">
-                    <div class="grid grid-cols-2 gap-2">
-                        <a href="index.html" class="block p-3 hover:bg-slate-700 rounded-lg text-center transition-colors">
-                            <div class="text-blue-400 mb-1 mx-auto">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                            </div>
-                            <span class="text-xs font-bold text-white">Hub</span>
-                        </a>
-                        <a href="html_viewer.html" class="block p-3 hover:bg-slate-700 rounded-lg text-center transition-colors">
-                            <div class="text-purple-400 mb-1 mx-auto"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg></div>
-                            <span class="text-xs font-bold text-white">Architect</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
+    <sv-header base-path="."></sv-header>
 
-            <div class="flex items-center gap-2 border-l border-slate-700 pl-4">
-                <img src="assets/img/SILENVAULT_LOGO.png" class="h-6 w-auto object-contain" onerror="this.style.display='none'">
-                <span class="text-sm font-bold text-slate-300">GST Engine</span>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Tool -->
     <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-12 flex flex-col lg:flex-row gap-8">
         
-        <!-- Calculator -->
         <section class="flex-1 max-w-2xl">
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl result-container">
-                
                 <h1 class="text-2xl font-bold text-white mb-6 hidden print:block">SilenVault Tax Report</h1>
 
                 <div class="space-y-6">
-                    <!-- Toggle -->
                     <div class="flex justify-center bg-slate-950 p-1 rounded-xl border border-slate-800 print-hidden">
                         <button onclick="setMode('exclusive')" id="btn-exclusive" class="flex-1 py-2 rounded-lg text-sm font-semibold transition-all bg-emerald-600 text-white shadow-lg">Add Tax (Exclusive)</button>
                         <button onclick="setMode('inclusive')" id="btn-inclusive" class="flex-1 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white transition-all">Remove Tax (Inclusive)</button>
                     </div>
 
-                    <!-- Input -->
                     <div>
                         <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Base Amount / Price</label>
                         <div class="relative">
@@ -94,11 +57,9 @@
                         </div>
                     </div>
 
-                    <!-- Rates -->
                     <div class="print-hidden">
                         <div class="flex justify-between items-center mb-2">
                             <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider">Tax Rate (%)</label>
-                            <!-- Restored Country Dropdown with Theme Styling -->
                             <select id="country-select" onchange="applyPreset()" class="bg-slate-800 text-xs text-slate-300 border border-slate-700 rounded px-3 py-1.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors cursor-pointer">
                                 <option value="custom">Custom Rate</option>
                                 <option value="18" selected>India (GST 18%)</option>
@@ -123,7 +84,6 @@
 
                 <div class="my-8 border-t border-slate-800 border-dashed"></div>
 
-                <!-- Results -->
                 <div class="space-y-4">
                     <div class="flex justify-between items-center p-4 bg-slate-950/50 rounded-xl border border-slate-800">
                         <span class="text-slate-400 text-sm">Net Amount</span>
@@ -139,7 +99,6 @@
                     </div>
                 </div>
                 
-                <!-- Action Buttons -->
                 <div class="mt-6 flex justify-between gap-4 print-hidden">
                     <button onclick="copyResults()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium px-4 py-3 rounded-lg flex items-center justify-center gap-2 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
@@ -153,7 +112,6 @@
             </div>
         </section>
 
-        <!-- Sidebar / Ad -->
         <aside class="w-full lg:w-80 flex flex-col gap-6 print-hidden">
             <div class="ad-placeholder h-64 w-full rounded-2xl">Ad Slot</div>
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
@@ -161,7 +119,6 @@
                 <p class="text-sm text-slate-400">Use "Exclusive" to generate invoices. Use "Inclusive" to check if a vendor overcharged you.</p>
             </div>
             
-            <!-- Quick History -->
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex-1">
                 <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Recent Calculations</h3>
                 <div id="history-list" class="space-y-3">
@@ -171,41 +128,15 @@
         </aside>
     </main>
 
-    <!-- SEO Content Section (AdSense Requirement) -->
     <section class="bg-[#0b1120] border-t border-slate-800 py-12 px-6 seo-content print-hidden">
         <div class="max-w-4xl mx-auto prose prose-invert prose-slate">
             <h2 class="text-2xl font-bold text-white mb-6">Mastering GST: A Business Owner's Guide for 2026</h2>
             <div class="space-y-8 text-slate-400 leading-relaxed">
-                <div>
-                    <h3 class="text-xl font-semibold text-emerald-400 mb-3">Current GST Rates in India 2026</h3>
-                    <p>Understanding the tax slabs is crucial for compliance. The current structure is as follows:</p>
-                    <ul class="list-disc pl-5 mt-2 space-y-2">
-                        <li><strong>0% (Nil):</strong> Essential goods like unbranded grains, fresh vegetables, milk, and salt.</li>
-                        <li><strong>5%:</strong> Household necessities, life-saving medicines, and economy class air travel.</li>
-                        <li><strong>12%:</strong> Processed food, computers, and mobile phones.</li>
-                        <li><strong>18% (Standard):</strong> Most manufactured goods, capital goods, services, hair oil, and soap.</li>
-                        <li><strong>28% (Luxury):</strong> Luxury cars, tobacco products, and aerated drinks.</li>
-                    </ul>
                 </div>
-                <div>
-                    <h3 class="text-xl font-semibold text-emerald-400 mb-3">Understanding Reverse Charge Mechanism (RCM)</h3>
-                    <p>Normally, the supplier collects tax from the buyer and pays the government. Under RCM, the liability to pay tax shifts to the recipient.</p>
-                    <div class="bg-slate-900 p-4 rounded-lg border border-slate-800 mt-4">
-                        <strong class="text-white">When does RCM apply?</strong>
-                        <ul class="list-disc pl-5 mt-2 text-sm">
-                            <li>Buying goods/services from an unregistered dealer.</li>
-                            <li>Services by Goods Transport Agencies (GTA).</li>
-                            <li>Legal services provided by advocates to a business entity.</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
         </div>
     </section>
 
-    <footer class="bg-slate-950 border-t border-slate-900 py-8 text-center text-xs text-slate-600 print-hidden">
-        &copy; 2026 SilenVault LLP.
-    </footer>
+    <sv-footer base-path="."></sv-footer>
 
     <script>
         let mode = 'exclusive';
@@ -229,13 +160,10 @@
                 }
             });
             
-            // Also sync the dropdown if possible
             const dropdown = document.getElementById('country-select');
-            // This is a simple visual sync, might not match all cases if preset values differ
             Array.from(dropdown.options).forEach(opt => {
                 if(opt.value == rate) dropdown.value = rate;
             });
-            
             calculate();
         }
 
@@ -265,6 +193,7 @@
             document.getElementById('res-total').innerText = total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         }
 
+        // ARCHITECT FIX: Upgraded Clipboard Security
         function copyResults() {
             const net = document.getElementById('res-net').innerText;
             const tax = document.getElementById('res-tax').innerText;
@@ -272,22 +201,31 @@
             
             const txt = `SilenVault GST Estimate\n-----------------------\nBase: ${net}\nTax (${rate}%): ${tax}\nTotal: ${total}\n\nGenerated at silenvault.com`;
             
-            // Robust fallback for iframes
-            const textArea = document.createElement("textarea");
-            textArea.value = txt;
-            textArea.style.position = "fixed";
-            textArea.style.left = "-9999px";
-            document.body.appendChild(textArea);
-            textArea.select();
-            
-            try {
-                document.execCommand('copy');
-                alert('Breakdown copied to clipboard!');
-                addToHistory(total, tax);
-            } catch (err) {
-                alert('Copy failed. Please manually copy the values.');
+            if (navigator.clipboard && window.isSecureContext) {
+                // Modern Async Clipboard API
+                navigator.clipboard.writeText(txt).then(() => {
+                    alert('Breakdown copied to clipboard!');
+                    addToHistory(total, tax);
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                });
+            } else {
+                // Fallback for older browsers
+                const textArea = document.createElement("textarea");
+                textArea.value = txt;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-9999px";
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    alert('Breakdown copied to clipboard!');
+                    addToHistory(total, tax);
+                } catch (err) {
+                    alert('Copy failed. Please manually copy the values.');
+                }
+                document.body.removeChild(textArea);
             }
-            document.body.removeChild(textArea);
         }
 
         function addToHistory(total, tax) {
