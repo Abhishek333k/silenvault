@@ -47,9 +47,9 @@ class SVFooter extends HTMLElement {
                         <div>
                             <h4 class="text-white font-semibold mb-4">Legal Operations</h4>
                             <ul class="space-y-2 text-sm text-slate-500">
-                                <li><a href="${basePath}/main/policies/terms.html" class="hover:text-blue-400 transition-colors">Terms of Service</a></li>
-                                <li><a href="${basePath}/main/policies/privacy.html" class="hover:text-blue-400 transition-colors">Privacy Policy</a></li>
-                                <li><a href="${basePath}/main/policies/disclaimer.html" class="hover:text-blue-400 transition-colors">Disclaimer</a></li>
+                                <li><a href="${basePath}/policies/terms.html" class="hover:text-blue-400 transition-colors">Terms of Service</a></li>
+                                <li><a href="${basePath}/policies/privacy.html" class="hover:text-blue-400 transition-colors">Privacy Policy</a></li>
+                                <li><a href="${basePath}/policies/disclaimer.html" class="hover:text-blue-400 transition-colors">Disclaimer</a></li>
                             </ul>
                         </div>
                         <div>
