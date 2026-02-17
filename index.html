@@ -285,17 +285,20 @@
         }
 
         // Bookmark Prompt
-        function bookmarkSite() {
-            if (window.sidebar && window.sidebar.addPanel) { // Mozilla Firefox Bookmark
-                window.sidebar.addPanel(document.title, window.location.href, "");
-            } else if (window.external && ('AddFavorite' in window.external)) { // IE Favorite
-                window.external.AddFavorite(location.href, document.title);
-            } else if (window.opera && window.print) { // Opera Hotlist
-                this.title = document.title;
-                return true;
-            } else { // webkit - safari/chrome
-                alert('Press ' + (navigator.userAgent.toLowerCase().indexOf('mac') != -1 ? 'Command/Cmd' : 'CTRL') + ' + D to bookmark SilenVault.');
-            }
+       function bookmarkSite() {
+            const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+            const hotkey = isMac ? 'Cmd + D' : 'Ctrl + D';
+            
+            // Simple Toast Notification (You can style this better)
+            const toast = document.createElement('div');
+            toast.className = "fixed bottom-4 right-4 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-xl z-50 animate-bounce";
+            toast.innerText = `Press ${hotkey} to bookmark SilenVault`;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 4000);
         }
     </script>
 </body>
