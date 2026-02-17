@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GST Tax Engine | SilenVault</title>
     <meta name="description" content="Instant GST and VAT calculator with Reverse Charge Mechanism (RCM) support. Calculate tax inclusive and exclusive amounts.">
+    <!-- Favicon: Ensure this matches your file name exactly -->
     <link rel="icon" type="image/png" href="assets/img/SILENVAULT_LOGO.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;600;700&display=swap');
@@ -15,12 +17,29 @@
         .sv-input:focus { border-color: #10b981; outline: none; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
         .ad-placeholder { background: repeating-linear-gradient(45deg, #0f172a, #0f172a 10px, #1e293b 10px, #1e293b 20px); border: 1px dashed #475569; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.75rem; text-transform: uppercase; }
         .dropdown:hover .dropdown-menu { display: block; }
+        
+        /* Print Styles */
+        @media print {
+            body { background-color: white; color: black; }
+            header, aside, footer, .ad-placeholder, .print-hidden, .seo-content { display: none !important; }
+            main { padding: 0; width: 100%; max-width: 100%; display: block; margin: 0; }
+            .bg-slate-900 { background-color: white; border: 1px solid #ccc; box-shadow: none; padding: 0; }
+            .bg-slate-950 { background-color: #f9f9f9; border: 1px solid #ddd; }
+            .text-slate-400 { color: #666; }
+            .text-white { color: black; }
+            .text-emerald-400 { color: #059669; }
+            input, select { border: 1px solid #ccc; color: black; }
+            .rate-btn { border: 1px solid #ccc; color: black; }
+            #res-net, #res-tax, #res-total { color: black; font-weight: bold; }
+            /* Force show result container */
+            .result-container { border: 1px solid #000 !important; margin-bottom: 20px; }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
     <!-- Header (Consistent with Hub) -->
-    <header class="h-14 border-b border-slate-800 flex items-center justify-between px-4 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
+    <header class="h-14 border-b border-slate-800 flex items-center justify-between px-4 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50 print-hidden">
         <div class="flex items-center gap-4">
              <!-- Vault Navigator -->
             <div class="relative dropdown group">
@@ -44,7 +63,7 @@
             </div>
 
             <div class="flex items-center gap-2 border-l border-slate-700 pl-4">
-                <img src="assets/img/SILENVAULT_LOGO.png" class="h-6 w-auto object-contain">
+                <img src="assets/img/SILENVAULT_LOGO.png" class="h-6 w-auto object-contain" onerror="this.style.display='none'">
                 <span class="text-sm font-bold text-slate-300">GST Engine</span>
             </div>
         </div>
@@ -55,17 +74,20 @@
         
         <!-- Calculator -->
         <section class="flex-1 max-w-2xl">
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl result-container">
+                
+                <h1 class="text-2xl font-bold text-white mb-6 hidden print:block">SilenVault Tax Report</h1>
+
                 <div class="space-y-6">
                     <!-- Toggle -->
-                    <div class="flex justify-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+                    <div class="flex justify-center bg-slate-950 p-1 rounded-xl border border-slate-800 print-hidden">
                         <button onclick="setMode('exclusive')" id="btn-exclusive" class="flex-1 py-2 rounded-lg text-sm font-semibold transition-all bg-emerald-600 text-white shadow-lg">Add Tax (Exclusive)</button>
                         <button onclick="setMode('inclusive')" id="btn-inclusive" class="flex-1 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white transition-all">Remove Tax (Inclusive)</button>
                     </div>
 
                     <!-- Input -->
                     <div>
-                        <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Base Amount</label>
+                        <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Base Amount / Price</label>
                         <div class="relative">
                             <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-lg">₹</span>
                             <input type="number" id="input-amount" placeholder="0.00" class="sv-input w-full pl-10 pr-4 py-4 rounded-xl text-2xl font-bold text-white placeholder-slate-600" oninput="calculate()">
@@ -73,8 +95,23 @@
                     </div>
 
                     <!-- Rates -->
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">GST Rate</label>
+                    <div class="print-hidden">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider">Tax Rate (%)</label>
+                            <!-- Restored Country Dropdown with Theme Styling -->
+                            <select id="country-select" onchange="applyPreset()" class="bg-slate-800 text-xs text-slate-300 border border-slate-700 rounded px-3 py-1.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors cursor-pointer">
+                                <option value="custom">Custom Rate</option>
+                                <option value="18" selected>India (GST 18%)</option>
+                                <option value="5">India (GST 5%)</option>
+                                <option value="12">India (GST 12%)</option>
+                                <option value="28">India (GST 28%)</option>
+                                <option value="20">UK (VAT 20%)</option>
+                                <option value="10">Australia (GST 10%)</option>
+                                <option value="5">UAE (VAT 5%)</option>
+                                <option value="15">New Zealand (GST 15%)</option>
+                                <option value="7">Singapore (GST 7%)</option>
+                            </select>
+                        </div>
                         <div class="grid grid-cols-4 gap-2 mb-3">
                             <button onclick="setRate(5)" class="rate-btn bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 py-2 rounded-lg text-sm font-mono">5%</button>
                             <button onclick="setRate(12)" class="rate-btn bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 py-2 rounded-lg text-sm font-mono">12%</button>
@@ -97,25 +134,45 @@
                         <span class="text-2xl font-mono text-emerald-400 font-bold" id="res-tax">0.00</span>
                     </div>
                     <div class="flex justify-between items-center p-6 bg-slate-800 rounded-xl border border-slate-700 shadow-inner">
-                        <span class="text-slate-300 font-semibold">Final Total</span>
+                        <span class="text-slate-300 font-semibold">Final Invoice Total</span>
                         <span class="text-3xl font-mono text-white font-bold" id="res-total">0.00</span>
                     </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="mt-6 flex justify-between gap-4 print-hidden">
+                    <button onclick="copyResults()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium px-4 py-3 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                        Copy Breakdown
+                    </button>
+                    <button onclick="window.print()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-3 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                        Print PDF
+                    </button>
                 </div>
             </div>
         </section>
 
         <!-- Sidebar / Ad -->
-        <aside class="w-full lg:w-80 flex flex-col gap-6">
+        <aside class="w-full lg:w-80 flex flex-col gap-6 print-hidden">
             <div class="ad-placeholder h-64 w-full rounded-2xl">Ad Slot</div>
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
                 <h3 class="font-bold text-white mb-2">OpsCode Tip</h3>
                 <p class="text-sm text-slate-400">Use "Exclusive" to generate invoices. Use "Inclusive" to check if a vendor overcharged you.</p>
             </div>
+            
+            <!-- Quick History -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex-1">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Recent Calculations</h3>
+                <div id="history-list" class="space-y-3">
+                    <p class="text-xs text-slate-600 italic text-center py-4">History empty</p>
+                </div>
+            </div>
         </aside>
     </main>
 
-    <!-- SEO Content Section -->
-    <section class="bg-[#0b1120] border-t border-slate-800 py-12 px-6">
+    <!-- SEO Content Section (AdSense Requirement) -->
+    <section class="bg-[#0b1120] border-t border-slate-800 py-12 px-6 seo-content print-hidden">
         <div class="max-w-4xl mx-auto prose prose-invert prose-slate">
             <h2 class="text-2xl font-bold text-white mb-6">Mastering GST: A Business Owner's Guide for 2026</h2>
             <div class="space-y-8 text-slate-400 leading-relaxed">
@@ -146,13 +203,14 @@
         </div>
     </section>
 
-    <footer class="bg-slate-950 border-t border-slate-900 py-8 text-center text-xs text-slate-600">
+    <footer class="bg-slate-950 border-t border-slate-900 py-8 text-center text-xs text-slate-600 print-hidden">
         &copy; 2026 SilenVault LLP.
     </footer>
 
     <script>
         let mode = 'exclusive';
         let rate = 18;
+        const historyList = document.getElementById('history-list');
 
         function setMode(newMode) {
             mode = newMode;
@@ -170,7 +228,22 @@
                     btn.className = "rate-btn bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 py-2 rounded-lg text-sm font-mono";
                 }
             });
+            
+            // Also sync the dropdown if possible
+            const dropdown = document.getElementById('country-select');
+            // This is a simple visual sync, might not match all cases if preset values differ
+            Array.from(dropdown.options).forEach(opt => {
+                if(opt.value == rate) dropdown.value = rate;
+            });
+            
             calculate();
+        }
+
+        function applyPreset() {
+            const select = document.getElementById('country-select');
+            if(select.value !== 'custom') {
+                setRate(parseFloat(select.value));
+            }
         }
 
         function calculate() {
@@ -190,6 +263,47 @@
             document.getElementById('res-net').innerText = net.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('res-tax').innerText = tax.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('res-total').innerText = total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+        function copyResults() {
+            const net = document.getElementById('res-net').innerText;
+            const tax = document.getElementById('res-tax').innerText;
+            const total = document.getElementById('res-total').innerText;
+            
+            const txt = `SilenVault GST Estimate\n-----------------------\nBase: ${net}\nTax (${rate}%): ${tax}\nTotal: ${total}\n\nGenerated at silenvault.com`;
+            
+            // Robust fallback for iframes
+            const textArea = document.createElement("textarea");
+            textArea.value = txt;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                alert('Breakdown copied to clipboard!');
+                addToHistory(total, tax);
+            } catch (err) {
+                alert('Copy failed. Please manually copy the values.');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function addToHistory(total, tax) {
+            const item = document.createElement('div');
+            item.className = "flex justify-between items-center text-sm border-b border-slate-800 pb-2";
+            item.innerHTML = `
+                <span class="text-slate-400">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                <div class="text-right">
+                    <div class="text-white font-mono">${total}</div>
+                    <div class="text-xs text-emerald-500">+${tax} Tax</div>
+                </div>
+            `;
+            
+            if(historyList.children[0]?.innerText === 'History empty') historyList.innerHTML = '';
+            historyList.prepend(item);
+            if(historyList.children.length > 5) historyList.lastChild.remove();
         }
         
         window.onload = calculate;
