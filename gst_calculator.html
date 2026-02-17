@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GST Tax Engine | SilenVault</title>
+    <meta name="description" content="Instant GST and VAT calculator with Reverse Charge Mechanism (RCM) support. Calculate tax inclusive and exclusive amounts.">
+    <link rel="icon" type="image/png" href="assets/img/SILENVAULT_LOGO.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .mono { font-family: 'Fira Code', monospace; }
+        .sv-input { background-color: #0f172a; border: 1px solid #334155; transition: all 0.2s; }
+        .sv-input:focus { border-color: #10b981; outline: none; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
+        .ad-placeholder { background: repeating-linear-gradient(45deg, #0f172a, #0f172a 10px, #1e293b 10px, #1e293b 20px); border: 1px dashed #475569; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.75rem; text-transform: uppercase; }
+        .dropdown:hover .dropdown-menu { display: block; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header (Consistent with Hub) -->
+    <header class="h-14 border-b border-slate-800 flex items-center justify-between px-4 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
+        <div class="flex items-center gap-4">
+             <!-- Vault Navigator -->
+            <div class="relative dropdown group">
+                <button class="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg>
+                </button>
+                <div class="dropdown-menu hidden absolute top-10 left-0 w-64 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl z-50 p-2">
+                    <div class="grid grid-cols-2 gap-2">
+                        <a href="index.html" class="block p-3 hover:bg-slate-700 rounded-lg text-center transition-colors">
+                            <div class="text-blue-400 mb-1 mx-auto">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                            </div>
+                            <span class="text-xs font-bold text-white">Hub</span>
+                        </a>
+                        <a href="html_viewer.html" class="block p-3 hover:bg-slate-700 rounded-lg text-center transition-colors">
+                            <div class="text-purple-400 mb-1 mx-auto"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg></div>
+                            <span class="text-xs font-bold text-white">Architect</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 border-l border-slate-700 pl-4">
+                <img src="assets/img/SILENVAULT_LOGO.png" class="h-6 w-auto object-contain">
+                <span class="text-sm font-bold text-slate-300">GST Engine</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Tool -->
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-12 flex flex-col lg:flex-row gap-8">
+        
+        <!-- Calculator -->
+        <section class="flex-1 max-w-2xl">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
+                <div class="space-y-6">
+                    <!-- Toggle -->
+                    <div class="flex justify-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+                        <button onclick="setMode('exclusive')" id="btn-exclusive" class="flex-1 py-2 rounded-lg text-sm font-semibold transition-all bg-emerald-600 text-white shadow-lg">Add Tax (Exclusive)</button>
+                        <button onclick="setMode('inclusive')" id="btn-inclusive" class="flex-1 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white transition-all">Remove Tax (Inclusive)</button>
+                    </div>
+
+                    <!-- Input -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Base Amount</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-lg">₹</span>
+                            <input type="number" id="input-amount" placeholder="0.00" class="sv-input w-full pl-10 pr-4 py-4 rounded-xl text-2xl font-bold text-white placeholder-slate-600" oninput="calculate()">
+                        </div>
+                    </div>
+
+                    <!-- Rates -->
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">GST Rate</label>
+                        <div class="grid grid-cols-4 gap-2 mb-3">
+                            <button onclick="setRate(5)" class="rate-btn bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 py-2 rounded-lg text-sm font-mono">5%</button>
+                            <button onclick="setRate(12)" class="rate-btn bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 py-2 rounded-lg text-sm font-mono">12%</button>
+                            <button onclick="setRate(18)" class="rate-btn bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 py-2 rounded-lg text-sm font-mono">18%</button>
+                            <button onclick="setRate(28)" class="rate-btn bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 py-2 rounded-lg text-sm font-mono">28%</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="my-8 border-t border-slate-800 border-dashed"></div>
+
+                <!-- Results -->
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center p-4 bg-slate-950/50 rounded-xl border border-slate-800">
+                        <span class="text-slate-400 text-sm">Net Amount</span>
+                        <span class="text-xl font-mono text-white" id="res-net">0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center p-4 bg-emerald-500/10 rounded-xl border border-emerald-500/30">
+                        <span class="text-emerald-400 text-sm font-medium">Total Tax</span>
+                        <span class="text-2xl font-mono text-emerald-400 font-bold" id="res-tax">0.00</span>
+                    </div>
+                    <div class="flex justify-between items-center p-6 bg-slate-800 rounded-xl border border-slate-700 shadow-inner">
+                        <span class="text-slate-300 font-semibold">Final Total</span>
+                        <span class="text-3xl font-mono text-white font-bold" id="res-total">0.00</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sidebar / Ad -->
+        <aside class="w-full lg:w-80 flex flex-col gap-6">
+            <div class="ad-placeholder h-64 w-full rounded-2xl">Ad Slot</div>
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                <h3 class="font-bold text-white mb-2">OpsCode Tip</h3>
+                <p class="text-sm text-slate-400">Use "Exclusive" to generate invoices. Use "Inclusive" to check if a vendor overcharged you.</p>
+            </div>
+        </aside>
+    </main>
+
+    <!-- SEO Content Section -->
+    <section class="bg-[#0b1120] border-t border-slate-800 py-12 px-6">
+        <div class="max-w-4xl mx-auto prose prose-invert prose-slate">
+            <h2 class="text-2xl font-bold text-white mb-6">Mastering GST: A Business Owner's Guide for 2026</h2>
+            <div class="space-y-8 text-slate-400 leading-relaxed">
+                <div>
+                    <h3 class="text-xl font-semibold text-emerald-400 mb-3">Current GST Rates in India 2026</h3>
+                    <p>Understanding the tax slabs is crucial for compliance. The current structure is as follows:</p>
+                    <ul class="list-disc pl-5 mt-2 space-y-2">
+                        <li><strong>0% (Nil):</strong> Essential goods like unbranded grains, fresh vegetables, milk, and salt.</li>
+                        <li><strong>5%:</strong> Household necessities, life-saving medicines, and economy class air travel.</li>
+                        <li><strong>12%:</strong> Processed food, computers, and mobile phones.</li>
+                        <li><strong>18% (Standard):</strong> Most manufactured goods, capital goods, services, hair oil, and soap.</li>
+                        <li><strong>28% (Luxury):</strong> Luxury cars, tobacco products, and aerated drinks.</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-emerald-400 mb-3">Understanding Reverse Charge Mechanism (RCM)</h3>
+                    <p>Normally, the supplier collects tax from the buyer and pays the government. Under RCM, the liability to pay tax shifts to the recipient.</p>
+                    <div class="bg-slate-900 p-4 rounded-lg border border-slate-800 mt-4">
+                        <strong class="text-white">When does RCM apply?</strong>
+                        <ul class="list-disc pl-5 mt-2 text-sm">
+                            <li>Buying goods/services from an unregistered dealer.</li>
+                            <li>Services by Goods Transport Agencies (GTA).</li>
+                            <li>Legal services provided by advocates to a business entity.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-slate-950 border-t border-slate-900 py-8 text-center text-xs text-slate-600">
+        &copy; 2026 SilenVault LLP.
+    </footer>
+
+    <script>
+        let mode = 'exclusive';
+        let rate = 18;
+
+        function setMode(newMode) {
+            mode = newMode;
+            document.getElementById('btn-exclusive').className = mode === 'exclusive' ? "flex-1 py-2 rounded-lg text-sm font-semibold transition-all bg-emerald-600 text-white shadow-lg" : "flex-1 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white transition-all";
+            document.getElementById('btn-inclusive').className = mode === 'inclusive' ? "flex-1 py-2 rounded-lg text-sm font-semibold transition-all bg-emerald-600 text-white shadow-lg" : "flex-1 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white transition-all";
+            calculate();
+        }
+
+        function setRate(newRate) {
+            rate = newRate;
+            document.querySelectorAll('.rate-btn').forEach(btn => {
+                if(btn.innerText.includes(rate)) {
+                    btn.className = "rate-btn bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 py-2 rounded-lg text-sm font-mono";
+                } else {
+                    btn.className = "rate-btn bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 py-2 rounded-lg text-sm font-mono";
+                }
+            });
+            calculate();
+        }
+
+        function calculate() {
+            const amount = parseFloat(document.getElementById('input-amount').value) || 0;
+            let net, tax, total;
+
+            if (mode === 'exclusive') {
+                net = amount;
+                tax = amount * (rate / 100);
+                total = net + tax;
+            } else {
+                total = amount;
+                net = total / (1 + (rate / 100));
+                tax = total - net;
+            }
+
+            document.getElementById('res-net').innerText = net.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('res-tax').innerText = tax.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('res-total').innerText = total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+        
+        window.onload = calculate;
+    </script>
+</body>
+</html>
