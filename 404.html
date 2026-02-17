@@ -9,58 +9,57 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
         .mono { font-family: 'Fira Code', monospace; }
-        .scanline {
-            width: 100%; height: 1px; background: rgba(59, 130, 246, 0.3);
-            position: absolute; animation: scan 3s linear infinite; z-index: 10;
-        }
-        @keyframes scan {
-            0% { top: 0%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; }
+        .grid-bg {
+            background-image: radial-gradient(circle at 2px 2px, rgba(59, 130, 246, 0.1) 1px, transparent 0);
+            background-size: 40px 40px;
         }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden relative">
-
-    <div class="scanline"></div>
-
-    <nav class="absolute top-0 w-full p-6 flex justify-between items-center z-20">
-        <a href="/index.html" class="flex items-center gap-2 group">
-            <div class="bg-blue-600 p-1.5 rounded-lg group-hover:bg-blue-500 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
-            </div>
-            <span class="text-slate-300 font-bold group-hover:text-white transition-colors">Return to Base</span>
-        </a>
-    </nav>
+<body class="h-screen flex flex-col overflow-hidden relative grid-bg">
 
     <main class="flex-1 flex flex-col items-center justify-center text-center px-4 relative z-10">
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[100px] -z-10"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] -z-10"></div>
 
-        <h1 class="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-b from-slate-700 to-slate-900 select-none mb-4">404</h1>
+        <div class="mb-8">
+            <span class="mono text-blue-500 text-sm font-bold tracking-widest uppercase mb-2 block">Status Code: 404</span>
+            <h1 class="text-6xl md:text-8xl font-black text-white tracking-tighter">Object <span class="text-slate-700">Not Found</span></h1>
+        </div>
         
-        <div class="space-y-6 max-w-lg mx-auto">
-            <h2 class="text-3xl md:text-4xl font-bold text-white tracking-tight">
-                <span class="text-blue-500 mr-2">&lt;Error&gt;</span>Vault Not Found<span class="text-blue-500 ml-2">/&gt;</span>
-            </h2>
-            <p class="text-slate-400 text-lg">The file you are looking for has been moved, deleted, or sequestered in a secure sector.</p>
+        <p class="text-slate-400 text-lg max-w-md mx-auto mb-10 leading-relaxed">
+            The requested resource is missing or moved. Please select a department to resume operations.
+        </p>
 
-            <div class="bg-slate-900 border border-slate-800 rounded-lg p-4 text-left font-mono text-xs text-emerald-400 shadow-2xl mx-auto w-full max-w-md overflow-hidden">
-                <div class="flex gap-2 mb-3">
-                    <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div><div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div><div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl mx-auto">
+            
+            <a href="/index.html#business" class="group p-6 bg-slate-900/50 border border-slate-800 rounded-2xl hover:border-emerald-500/50 transition-all text-left">
+                <div class="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center mb-4 text-emerald-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 </div>
-                <p class="mb-1"><span class="text-blue-400">user@silenvault:~$</span> ping target_url</p>
-                <p class="mb-1">Pinging target... <span class="text-red-400">Destination Host Unreachable</span></p>
-            </div>
+                <h3 class="text-white font-bold mb-1 group-hover:text-emerald-400 transition-colors">Business Tools</h3>
+                <p class="text-xs text-slate-500 leading-normal">Invoices, GST Calculators, and Financial Utilities.</p>
+            </a>
 
-            <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-                <a href="/index.html" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-lg font-semibold transition-all shadow-lg flex items-center justify-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                    Go Home
-                </a>
-                <a href="/html_viewer.html" class="bg-slate-800 hover:bg-slate-700 text-white px-8 py-3 rounded-lg font-semibold transition-all border border-slate-700 flex items-center justify-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-                    Open Console
-                </a>
-            </div>
+            <a href="/index.html#dev-tools" class="group p-6 bg-slate-900/50 border border-slate-800 rounded-2xl hover:border-blue-500/50 transition-all text-left">
+                <div class="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center mb-4 text-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                </div>
+                <h3 class="text-white font-bold mb-1 group-hover:text-blue-400 transition-colors">Dev Utilities</h3>
+                <p class="text-xs text-slate-500 leading-normal">HTML Sandboxes, JSON Tools, and Code Viewers.</p>
+            </a>
+
+        </div>
+
+        <div class="mt-12">
+            <a href="/index.html" class="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors text-sm font-medium border-b border-transparent hover:border-white pb-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                Back to Global Hub
+            </a>
         </div>
     </main>
+
+    <footer class="p-6 text-center">
+        <span class="mono text-[10px] text-slate-700 tracking-[0.2em] uppercase">SilenVault Infrastructure Protection Engine // v2.6.0</span>
+    </footer>
+
 </body>
 </html>
