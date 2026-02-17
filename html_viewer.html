@@ -16,10 +16,9 @@
             height: 100vh;
         }
 
-        .editor-font {
-            font-family: 'Fira Code', monospace;
-        }
+        .editor-font { font-family: 'Fira Code', monospace; }
 
+        /* Optimized Ad Placeholder */
         .ad-placeholder {
             background: repeating-linear-gradient(45deg, #1e293b, #1e293b 10px, #334155 10px, #334155 20px);
             display: flex;
@@ -38,45 +37,36 @@
             outline: none;
         }
 
-        .legal-footer {
-            font-size: 0.65rem;
-            color: #64748b;
-        }
-
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
+        /* Custom Scrollbar for sleek look */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
     </style>
 </head>
 <body class="flex flex-col">
 
-    <!-- Top Navigation / Ad Slot -->
+    <!-- Top Navigation -->
     <header class="h-16 border-b border-slate-800 flex items-center justify-between px-6 bg-slate-900/50 backdrop-blur-md">
         <div class="flex items-center gap-3">
-            <div class="bg-blue-600 p-2 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg>
-            </div>
-            <h1 class="text-lg font-bold tracking-tight">OpsCode <span class="text-blue-500 underline decoration-2 underline-offset-4">Architect</span></h1>
+            <a href="index.html" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                <div class="bg-blue-600 p-2 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 16 4-4-4-4"></path><path d="m6 8-4 4 4 4"></path><path d="m14.5 4-5 16"></path></svg>
+                </div>
+                <h1 class="text-lg font-bold tracking-tight">OpsCode <span class="text-blue-500 underline decoration-2 underline-offset-4">Architect</span></h1>
+            </a>
         </div>
 
-        <!-- Leaderboard Ad Slot (Hidden on mobile) -->
+        <!-- Leaderboard Ad Slot -->
         <div class="hidden md:flex ad-placeholder h-12 w-96 rounded">
-            Leaderboard Ad (728x90 Recommended)
+            Leaderboard Ad (728x90)
         </div>
 
         <div class="flex items-center gap-4">
-            <button onclick="downloadCode()" class="bg-slate-800 hover:bg-slate-700 text-sm px-4 py-2 rounded-md transition-all flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <button id="btn-export" class="bg-slate-800 hover:bg-slate-700 text-sm px-4 py-2 rounded-md transition-all flex items-center gap-2 border border-slate-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 Export
             </button>
-            <button onclick="clearAll()" class="text-slate-400 hover:text-white text-sm">Clear</button>
+            <button id="btn-clear" class="text-slate-400 hover:text-white text-sm transition-colors">Clear</button>
         </div>
     </header>
 
@@ -89,17 +79,22 @@
         </aside>
 
         <!-- Editor Pane -->
-        <section class="flex-1 flex flex-col border-r border-slate-800">
-            <div class="bg-slate-900/80 px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-widest flex justify-between">
+        <section class="flex-1 flex flex-col border-r border-slate-800 relative">
+            <div class="bg-slate-900/80 px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-widest flex justify-between border-b border-slate-800">
                 <span>Source (HTML/CSS)</span>
                 <span id="char-count">0 chars</span>
             </div>
             <textarea id="editor" class="flex-1 p-6 editor-font text-blue-100 text-sm leading-relaxed" placeholder="<!-- Paste your HTML here... -->" spellcheck="false"></textarea>
+            
+            <!-- Typing Indicator -->
+            <div id="status-indicator" class="absolute bottom-4 right-4 text-xs text-slate-500 bg-slate-900/80 px-2 py-1 rounded opacity-0 transition-opacity">
+                Rendering...
+            </div>
         </section>
 
         <!-- Preview Pane -->
         <section class="flex-1 flex flex-col bg-white">
-            <div class="bg-slate-200 px-4 py-2 text-xs font-bold text-slate-600 uppercase tracking-widest flex justify-between items-center">
+            <div class="bg-slate-200 px-4 py-2 text-xs font-bold text-slate-600 uppercase tracking-widest flex justify-between items-center border-b border-slate-300">
                 <span>Live Preview (Sandboxed)</span>
                 <div class="flex gap-1">
                     <div class="w-2 h-2 rounded-full bg-red-400"></div>
@@ -107,135 +102,167 @@
                     <div class="w-2 h-2 rounded-full bg-green-400"></div>
                 </div>
             </div>
-            <iframe id="preview" class="flex-1 w-full h-full border-none shadow-inner" sandbox="allow-scripts allow-modals"></iframe>
+            <!-- Added 'allow-forms' to sandbox for basic HTML testing -->
+            <iframe id="preview" class="flex-1 w-full h-full border-none shadow-inner" sandbox="allow-scripts allow-modals allow-forms"></iframe>
         </section>
     </main>
 
-    <!-- Footer & Legal -->
+    <!-- Footer -->
     <footer class="bg-slate-900 border-t border-slate-800 px-6 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div class="legal-footer flex flex-wrap gap-4 justify-center md:justify-start">
+        <div class="text-[0.65rem] text-slate-500 flex gap-4">
             <span>&copy; 2026 Architect Systems.</span>
-            <button onclick="showTerms()" class="hover:text-blue-400">Terms of Service</button>
-            <button onclick="showTerms()" class="hover:text-blue-400">Privacy & Ads</button>
-            <span class="hidden sm:inline">|</span>
+            <button id="btn-terms" class="hover:text-blue-400 transition-colors">Terms of Service</button>
             <span class="text-emerald-500 flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> System Ready
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> System Ready
             </span>
         </div>
-        
-        <!-- Bottom Ad Slot (Mobile Friendly) -->
         <div class="ad-placeholder h-10 w-full md:w-80 rounded text-[10px]">
             Footer Ad (Banner)
         </div>
     </footer>
 
-    <!-- Modal for Legal -->
-    <div id="modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-6 z-50">
-        <div class="bg-slate-800 max-w-2xl w-full rounded-xl p-8 border border-slate-700">
+    <!-- Legal Modal -->
+    <div id="modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-6 z-50 backdrop-blur-sm">
+        <div class="bg-slate-800 max-w-2xl w-full rounded-xl p-8 border border-slate-700 shadow-2xl transform transition-all">
             <h2 class="text-xl font-bold mb-4">Commercial Legal Disclaimer</h2>
             <div class="text-slate-300 text-sm space-y-4 max-h-96 overflow-y-auto pr-4">
-                <p><strong>1. Usage:</strong> This viewer is provided "as is" for preview purposes. The Architect AI does not act as a legal counsel. Any generated invoices or documents should be verified by a human professional.</p>
-                <p><strong>2. Ads & Monetization:</strong> By using this tool, you acknowledge that advertisement content may be displayed. Your data remains local (in-browser) and is not shared with advertisers unless you click an external link.</p>
-                <p><strong>3. Security:</strong> We use an <iframe> sandbox to prevent execution of malicious code. However, never paste sensitive API keys or credentials into the editor.</p>
-                <p><strong>4. Compliance:</strong> Ensure all HTML generated complies with your local jurisdictional tax laws regarding electronic signatures and transaction logging.</p>
+                <p><strong>1. Usage:</strong> This viewer is provided "as is" for preview purposes.</p>
+                <p><strong>2. Data Privacy:</strong> Code execution occurs locally within your browser. No code is transmitted to our servers unless explicitly stated.</p>
+                <p><strong>3. Liability:</strong> Architect Systems is not liable for generated content.</p>
             </div>
-            <button onclick="toggleModal()" class="mt-6 w-full bg-blue-600 py-2 rounded-lg font-bold hover:bg-blue-500 transition-colors">I Accept & Close</button>
+            <button id="btn-close-modal" class="mt-6 w-full bg-blue-600 py-2 rounded-lg font-bold hover:bg-blue-500 transition-colors">I Accept & Close</button>
         </div>
     </div>
 
     <script>
-        const editor = document.getElementById('editor');
-        const preview = document.getElementById('preview');
-        const charCount = document.getElementById('char-count');
-        const modal = document.getElementById('modal');
+        // --- Architecture: State Management & Constants ---
+        const ELEMENTS = {
+            editor: document.getElementById('editor'),
+            preview: document.getElementById('preview'),
+            charCount: document.getElementById('char-count'),
+            modal: document.getElementById('modal'),
+            status: document.getElementById('status-indicator'),
+            btns: {
+                export: document.getElementById('btn-export'),
+                clear: document.getElementById('btn-clear'),
+                terms: document.getElementById('btn-terms'),
+                closeModal: document.getElementById('btn-close-modal')
+            }
+        };
 
-        // Initial Boilerplate
-        const initialHTML = `<!DOCTYPE html>
+        const INITIAL_TEMPLATE = `<!DOCTYPE html>
 <html>
 <head>
     <style>
-        body { font-family: sans-serif; padding: 40px; color: #333; }
-        .invoice { border: 1px solid #ddd; padding: 30px; border-radius: 8px; max-width: 500px; margin: auto; }
-        .header { display: flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 10px; }
-        .total { font-size: 24px; font-weight: bold; color: #2563eb; margin-top: 20px; text-align: right; }
-        .legal { font-size: 10px; color: #777; margin-top: 30px; line-height: 1.4; }
+        body { font-family: sans-serif; padding: 2rem; color: #1e293b; }
+        .card { border: 1px solid #e2e8f0; padding: 2rem; border-radius: 0.5rem; max-width: 500px; margin: 0 auto; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .header { border-bottom: 2px solid #0f172a; padding-bottom: 1rem; margin-bottom: 1rem; }
+        h1 { font-size: 1.5rem; font-weight: bold; margin: 0; }
+        .total { font-size: 1.5rem; font-weight: bold; color: #2563eb; text-align: right; margin-top: 1.5rem; }
     </style>
 </head>
 <body>
-    <div class="invoice">
+    <div class="card">
         <div class="header">
-            <div><strong>OpsCode Partner</strong><br>ID: INV-2026-001</div>
-            <div>Date: Feb 17, 2026</div>
+            <h1>Invoice #2026-001</h1>
+            <p>Date: Feb 17, 2026</p>
         </div>
-        <p>Client: Technical Co-Founder</p>
-        <hr>
-        <p>Service: Architecture Consultation - $500.00</p>
+        <p><strong>Billed To:</strong> OpsCode Client</p>
+        <p>Service: Architecture Review</p>
         <div class="total">Total: $500.00</div>
-        <div class="legal">
-            * Goods once sold cannot be returned.<br>
-            * Payments are due within 15 days of issue.<br>
-            * Jurisdiction: Palo Alto, CA.
-        </div>
     </div>
 </body>
 </html>`;
 
-        // Update Logic
-        function updatePreview() {
-            const code = editor.value;
-            charCount.innerText = `${code.length} chars`;
-            
-            // Create Blob for security (Same-Origin isolation)
-            const blob = new Blob([code], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            preview.src = url;
+        // State for Memory Management
+        let state = {
+            blobUrl: null,
+            timeoutId: null
+        };
 
-            // Audit Log
-            console.log(`[Architect-Audit] Rerendered at ${new Date().toLocaleTimeString()}`);
+        // --- Core Logic ---
+
+        /**
+         * Debounced rendering engine. 
+         * Prevents UI freezing and reduces memory churn.
+         */
+        function handleInput() {
+            ELEMENTS.status.style.opacity = '1';
+            clearTimeout(state.timeoutId);
+            
+            // Wait 500ms after user stops typing to render
+            state.timeoutId = setTimeout(() => {
+                updatePreview();
+                ELEMENTS.status.style.opacity = '0';
+            }, 500);
+            
+            ELEMENTS.charCount.innerText = `${ELEMENTS.editor.value.length} chars`;
+        }
+
+        /**
+         * Renders the iframe.
+         * CRITICAL: Revokes old ObjectURLs to prevent memory leaks.
+         */
+        function updatePreview() {
+            const code = ELEMENTS.editor.value;
+
+            // Memory Cleanup: Revoke previous URL
+            if (state.blobUrl) {
+                URL.revokeObjectURL(state.blobUrl);
+            }
+
+            const blob = new Blob([code], { type: 'text/html' });
+            state.blobUrl = URL.createObjectURL(blob);
+            ELEMENTS.preview.src = state.blobUrl;
+            
+            console.info(`[Architect] Render cycle complete. Memory freed.`);
         }
 
         function downloadCode() {
-            const code = editor.value;
-            const blob = new Blob([code], { type: 'text/html' });
+            const blob = new Blob([ELEMENTS.editor.value], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = `architect_export_${Date.now()}.html`;
             a.click();
+            URL.revokeObjectURL(url); // Clean up immediately
         }
 
-        function clearAll() {
-            if(confirm('Are you sure you want to wipe the current code?')) {
-                editor.value = '';
+        function clearEditor() {
+            if(confirm('Wipe all code? This cannot be undone.')) {
+                ELEMENTS.editor.value = '';
                 updatePreview();
             }
         }
 
-        function toggleModal() {
-            modal.classList.toggle('hidden');
-            modal.classList.toggle('flex');
+        function toggleModal(show) {
+            ELEMENTS.modal.classList.toggle('hidden', !show);
+            ELEMENTS.modal.classList.toggle('flex', show);
         }
 
-        function showTerms() {
-            toggleModal();
-        }
-
-        // Listeners
-        editor.addEventListener('input', updatePreview);
+        // --- Event Listeners ---
         
-        // Init
-        window.onload = () => {
-            editor.value = initialHTML;
-            updatePreview();
-        };
+        ELEMENTS.editor.addEventListener('input', handleInput);
+        
+        ELEMENTS.btns.export.addEventListener('click', downloadCode);
+        ELEMENTS.btns.clear.addEventListener('click', clearEditor);
+        ELEMENTS.btns.terms.addEventListener('click', () => toggleModal(true));
+        ELEMENTS.btns.closeModal.addEventListener('click', () => toggleModal(false));
 
-        // Hotkey: Ctrl+S to export
+        // Hotkey: Ctrl/Cmd + S to Export
         window.addEventListener('keydown', (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === 's') {
                 e.preventDefault();
                 downloadCode();
             }
         });
+
+        // Init
+        window.onload = () => {
+            ELEMENTS.editor.value = INITIAL_TEMPLATE;
+            updatePreview();
+        };
+
     </script>
 </body>
 </html>
