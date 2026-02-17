@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 | Lost in the Vault</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
+        .mono { font-family: 'Fira Code', monospace; }
+        .glitch {
+            position: relative;
+            animation: glitch 1s linear infinite;
+        }
+        @keyframes glitch {
+            2%, 64% { transform: translate(2px,0) skew(0deg); }
+            4%, 60% { transform: translate(-2px,0) skew(0deg); }
+            62% { transform: translate(0,0) skew(5deg); }
+        }
+        .scanline {
+            width: 100%;
+            height: 1px;
+            background: rgba(59, 130, 246, 0.3);
+            position: absolute;
+            animation: scan 3s linear infinite;
+            z-index: 10;
+        }
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden relative">
+
+    <div class="scanline"></div>
+
+    <!-- Navigation (Minimal) -->
+    <nav class="absolute top-0 w-full p-6 flex justify-between items-center z-20">
+        <a href="index.html" class="flex items-center gap-2 group">
+            <div class="bg-blue-600 p-1.5 rounded-lg group-hover:bg-blue-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+            </div>
+            <span class="text-slate-300 font-bold group-hover:text-white transition-colors">Return to Base</span>
+        </a>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col items-center justify-center text-center px-4 relative z-10">
+        
+        <!-- Ambient Background Glow -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[100px] -z-10"></div>
+
+        <h1 class="text-9xl font-black text-transparent bg-clip-text bg-gradient-to-b from-slate-700 to-slate-900 select-none mb-4">404</h1>
+        
+        <div class="space-y-6 max-w-lg mx-auto">
+            <h2 class="text-3xl md:text-4xl font-bold text-white tracking-tight">
+                <span class="text-blue-500 mr-2">&lt;Error&gt;</span>Vault Not Found<span class="text-blue-500 ml-2">/&gt;</span>
+            </h2>
+            
+            <p class="text-slate-400 text-lg">
+                The file you are looking for has been moved, deleted, or sequestered in a secure sector.
+            </p>
+
+            <!-- Terminal Output -->
+            <div class="bg-slate-900 border border-slate-800 rounded-lg p-4 text-left font-mono text-xs text-emerald-400 shadow-2xl mx-auto w-full max-w-md overflow-hidden">
+                <div class="flex gap-2 mb-3">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                </div>
+                <p class="mb-1"><span class="text-blue-400">user@silenvault:~$</span> ping target_url</p>
+                <p class="mb-1">Pinging target... <span class="text-red-400">Destination Host Unreachable</span></p>
+                <p class="mb-1"><span class="text-blue-400">user@silenvault:~$</span> trace_route</p>
+                <p class="mb-1">Tracing... <span class="animate-pulse">_</span></p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+                <a href="index.html" class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-lg font-semibold transition-all shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    Go Home
+                </a>
+                <a href="html_viewer.html" class="bg-slate-800 hover:bg-slate-700 text-white px-8 py-3 rounded-lg font-semibold transition-all border border-slate-700 flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                    Open Console
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="p-6 text-center text-xs text-slate-600 z-20">
+        Error Code: 0x404_PAGE_MISSING | SilenVault System
+    </footer>
+
+</body>
+</html>
