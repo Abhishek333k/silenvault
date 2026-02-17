@@ -6,22 +6,20 @@
     <title>SilenVault | Enterprise Local-First Utilities</title>
     <meta name="description" content="Secure, offline-capable developer tools and business utilities. No data leaves your browser.">
     
-    <!-- Favicon: Ensure you rename your file to 'silenvault-logo.png' -->
-    <link rel="icon" type="image/png" href="assets/img/silenvault-logo.png">
+    <!-- Favicon: branding consistency -->
+    <link rel="icon" type="image/png" href="assets/img/SILENVAULT_LOGO.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
         
-        /* Layout Grid */
         .bento-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 1.5rem;
         }
 
-        /* Card Effects */
         .tool-card {
             background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
             border: 1px solid #334155;
@@ -33,35 +31,18 @@
             box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.15);
         }
 
-        /* Ad Container Logic */
         .ad-slot {
             background-color: #0f172a;
             border: 1px dashed #475569;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #64748b;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            position: relative;
-            overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            color: #64748b; font-size: 0.75rem; text-transform: uppercase;
+            position: relative; overflow: hidden;
         }
-        .ad-slot::after {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%;
-            width: 50%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
-            animation: scan 3s infinite;
-        }
-        @keyframes scan { 100% { left: 200%; } }
-
-        .badge { font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 9999px; font-weight: 700; letter-spacing: 0.05em; }
+        
+        .badge { font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 9999px; font-weight: 700; }
         .badge-hot { background: #f59e0b; color: #020617; }
         .badge-new { background: #10b981; color: #020617; }
         
-        /* Search Focus State */
         .search-wrapper:focus-within {
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
             border-color: #3b82f6;
@@ -73,19 +54,16 @@
     <!-- Navigation -->
     <nav class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <a href="#" class="flex items-center gap-3 group">
-                <!-- IMPORTANT: Rename your file 'SILENVAULT LOGO.png' to 'silenvault-logo.png' -->
-                <img src="assets/img/silenvault-logo.png" alt="SilenVault" class="h-8 w-auto object-contain transition-transform group-hover:scale-105" onerror="this.style.display='none'">
+            <a href="index.html" class="flex items-center gap-3 group">
+                <!-- FIXED: Updated to underscore filename -->
+                <img src="assets/img/SILENVAULT_LOGO.png" alt="SilenVault" class="h-8 w-auto object-contain transition-transform group-hover:scale-105">
                 <span class="text-xl font-bold tracking-tight text-white hidden sm:block">Silen<span class="text-blue-500">Vault</span></span>
             </a>
             
             <div class="flex items-center gap-6 text-sm font-medium text-slate-400">
-                <!-- Hidden on mobile -->
                 <div class="hidden md:flex gap-6">
                     <a href="#business" class="hover:text-white transition-colors">Tools</a>
-                    <!-- Temporarily disabled until file exists
                     <a href="legal.html" class="hover:text-white transition-colors">Legal</a>
-                    -->
                 </div>
                 
                 <button onclick="bookmarkSite()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-full border border-slate-700 flex items-center gap-2 transition-all hover:border-slate-500">
@@ -98,12 +76,10 @@
 
     <!-- Hero Section -->
     <header class="relative pt-20 pb-12 px-4 text-center overflow-hidden">
-        <!-- Background Ambient Light -->
         <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-blue-600/10 rounded-[100%] blur-3xl -z-10 pointer-events-none"></div>
 
-        <!-- Banner Image -->
-        <!-- IMPORTANT: Rename 'Banner with CREST.png' to 'silenvault-banner.png' -->
-        <img src="assets/img/silenvault-banner.png" alt="SilenVault Security Crest" class="mx-auto h-24 mb-8 opacity-90 object-contain drop-shadow-2xl" onerror="this.style.display='none'">
+        <!-- FIXED: Updated to underscore filename -->
+        <img src="assets/img/Banner_with_CREST.png" alt="SilenVault Security Crest" class="mx-auto h-24 mb-8 opacity-90 object-contain drop-shadow-2xl">
 
         <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 tracking-tight">
             Professional Utilities.<br>
@@ -114,7 +90,6 @@
             Data processing happens entirely within your browser.
         </p>
         
-        <!-- Search Bar -->
         <div class="max-w-xl mx-auto relative search-wrapper border border-slate-700 rounded-2xl bg-slate-900/50 backdrop-blur-sm transition-all">
             <svg class="absolute left-4 top-3.5 w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             <input type="text" id="toolSearch" placeholder="Search tools (e.g. 'Invoice', 'HTML', 'Tax')..." class="w-full bg-transparent border-none text-white px-12 py-3 focus:outline-none rounded-2xl placeholder-slate-500 h-12">
@@ -125,58 +100,53 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col lg:flex-row gap-12">
         <div class="flex-1">
             
-            <!-- Business Tools Section -->
             <div class="mb-12" id="business">
                 <div class="flex items-center gap-3 mb-6">
                     <span class="w-1.5 h-8 bg-emerald-500 rounded-full"></span>
-                    <h2 class="text-2xl font-bold text-white">Business Operations</h2>
+                    <h2 class="text-2xl font-bold text-white">Operational Tools</h2>
                 </div>
 
                 <div class="bento-grid">
                     
                     <!-- HTML Architect -->
                     <a href="html_viewer.html" class="tool-card p-6 rounded-2xl group relative flex flex-col h-full">
-                        <div class="absolute top-4 right-4 badge badge-hot">HOT</div>
+                        <div class="absolute top-4 right-4 badge badge-hot">POPULAR</div>
                         <div class="bg-blue-500/10 w-12 h-12 rounded-xl flex items-center justify-center mb-4 text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
                         </div>
-                        <h3 class="text-lg font-semibold text-white mb-2">HTML Invoice Architect</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">Design, preview, and export audit-ready HTML invoices with local rendering.</p>
+                        <h3 class="text-lg font-semibold text-white mb-2">Code Vault</h3>
+                        <p class="text-sm text-slate-400 leading-relaxed">Secure HTML/CSS/JS sandbox. Design invoices and UI components locally.</p>
                     </a>
 
                     <!-- GST Engine -->
-                    <!-- Note: Ensure gst_calculator.html exists -->
                     <a href="gst_calculator.html" class="tool-card p-6 rounded-2xl group relative flex flex-col h-full">
                          <div class="absolute top-4 right-4 badge badge-new">NEW</div>
                          <div class="bg-emerald-500/10 w-12 h-12 rounded-xl flex items-center justify-center mb-4 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
-                        <h3 class="text-lg font-semibold text-white mb-2">Global GST Engine</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">Calculate inclusive/exclusive tax rates instantly. Supports 50+ jurisdictions.</p>
+                        <h3 class="text-lg font-semibold text-white mb-2">Global Tax Engine</h3>
+                        <p class="text-sm text-slate-400 leading-relaxed">Calculate inclusive/exclusive GST & VAT. Supports 50+ jurisdictions.</p>
                     </a>
 
                     <!-- In-Grid Ad Slot -->
                     <div class="ad-slot rounded-2xl min-h-[200px]">
-                        <span class="z-10">Google Ad (Responsive)</span>
+                        <span class="z-10">Sponsor / Ad Space</span>
                     </div>
                 </div>
             </div>
         </div>
         
-        <!-- Sidebar Ad Column -->
         <aside class="w-full lg:w-80 flex flex-col gap-6 shrink-0">
             <div class="ad-slot h-[600px] rounded-2xl sticky top-24">
-                <span class="z-10">Skyscraper Ad (160x600)</span>
+                <span class="z-10">Skyscraper Ad</span>
             </div>
         </aside>
     </main>
 
-    <!-- Footer -->
     <footer class="bg-slate-950 border-t border-slate-900 py-12 mt-auto text-center">
         <div class="flex justify-center gap-8 mb-6 text-sm text-slate-400 font-medium">
-            <button class="hover:text-white transition-colors">Terms of Service</button>
-            <button class="hover:text-white transition-colors">Privacy Policy</button>
-            <button class="hover:text-white transition-colors">Contact</button>
+            <a href="legal.html" class="hover:text-white transition-colors">Terms of Service</a>
+            <a href="legal.html" class="hover:text-white transition-colors">Privacy Policy</a>
         </div>
         <div class="text-xs text-slate-600">
             &copy; 2026 SilenVault LLP. All rights reserved.<br>
@@ -185,40 +155,22 @@
     </footer>
 
     <script>
-        // Performance Optimized Search Logic
-        const searchInput = document.getElementById('toolSearch');
-        const cards = document.querySelectorAll('.tool-card');
-
-        // Use 'input' instead of 'keyup' to catch mouse pastes
-        searchInput.addEventListener('input', (e) => {
+        // FIXED: Use 'input' event to catch pastes
+        document.getElementById('toolSearch').addEventListener('input', (e) => {
             const filter = e.target.value.toUpperCase();
-            
-            // Batch DOM updates are unnecessary here due to low element count,
-            // but direct style manipulation is faster than class toggling.
-            cards.forEach(card => {
-                const title = card.querySelector('h3').innerText.toUpperCase();
-                const desc = card.querySelector('p').innerText.toUpperCase();
-                const isMatch = title.includes(filter) || desc.includes(filter);
-                
-                card.style.display = isMatch ? "flex" : "none";
+            document.querySelectorAll('.tool-card').forEach(card => {
+                const txt = card.innerText.toUpperCase();
+                card.style.display = txt.includes(filter) ? "flex" : "none";
             });
         });
 
-        // Robust Bookmark Logic
         function bookmarkSite() {
             const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-            const hotkey = isMac ? 'Cmd + D' : 'Ctrl + D';
-            
             const toast = document.createElement('div');
             toast.className = "fixed bottom-6 right-6 bg-blue-600 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-bounce cursor-pointer";
-            toast.innerHTML = `
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
-                <span>Press <strong>${hotkey}</strong> to bookmark</span>
-            `;
-            
+            toast.innerHTML = `<span>Press <strong>${isMac ? 'Cmd+D' : 'Ctrl+D'}</strong> to bookmark</span>`;
             toast.onclick = () => toast.remove();
             document.body.appendChild(toast);
-            
             setTimeout(() => toast.remove(), 5000);
         }
     </script>
