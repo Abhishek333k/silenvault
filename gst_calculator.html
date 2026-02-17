@@ -8,17 +8,18 @@
     <link rel="icon" type="image/png" href="assets/img/SILENVAULT_LOGO.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="assets/js/layout.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
+    <script src="assets/js/layout.js" defer></script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
         .mono { font-family: 'Fira Code', monospace; }
         .sv-input { background-color: #0f172a; border: 1px solid #334155; transition: all 0.2s; }
         .sv-input:focus { border-color: #10b981; outline: none; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
-        .ad-placeholder { background: repeating-linear-gradient(45deg, #0f172a, #0f172a 10px, #1e293b 10px, #1e293b 20px); border: 1px dashed #475569; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.75rem; text-transform: uppercase; }
+        .ad-placeholder { background: repeating-linear-gradient(45deg, #0f172a, #0f172a 10px, #1e293b 10px, #1e293b 20px); border: 1px dashed #475569; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.75rem; text-transform: uppercase; border-radius: 0.5rem; }
         
-        /* ARCHITECT FIX: Global Print Styles intercepting Web Components */
+        /* Print Architecture: Ensuring professional document output */
         @media print {
             body { background-color: white; color: black; }
             sv-header, sv-footer, aside, .ad-placeholder, .print-hidden, .seo-content { display: none !important; }
@@ -29,7 +30,9 @@
             .text-white { color: black; }
             .text-emerald-400 { color: #059669; }
             input, select { border: 1px solid #ccc; color: black; }
-            .result-container { border: 1px solid #000 !important; margin-bottom: 20px; }
+            .rate-btn { border: 1px solid #ccc; color: black; }
+            #res-net, #res-tax, #res-total { color: black; font-weight: bold; }
+            .result-container { border: 2px solid #000 !important; padding: 20px; border-radius: 0; }
         }
     </style>
 </head>
@@ -37,11 +40,17 @@
 
     <sv-header base-path="."></sv-header>
 
-    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-12 flex flex-col lg:flex-row gap-8">
+    <div class="max-w-7xl mx-auto w-full px-4 pt-8 pb-4 flex items-center gap-3 print-hidden">
+        <h1 class="text-3xl font-bold text-white">Tax & GST Engine</h1>
+        <span class="text-xs font-mono text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded">V2.6 Stable</span>
+    </div>
+
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-8 flex flex-col lg:flex-row gap-8">
         
         <section class="flex-1 max-w-2xl">
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl result-container">
-                <h1 class="text-2xl font-bold text-white mb-6 hidden print:block">SilenVault Tax Report</h1>
+                
+                <h1 class="text-2xl font-bold text-white mb-6 hidden print:block">SilenVault Official Tax Report</h1>
 
                 <div class="space-y-6">
                     <div class="flex justify-center bg-slate-950 p-1 rounded-xl border border-slate-800 print-hidden">
@@ -74,10 +83,10 @@
                             </select>
                         </div>
                         <div class="grid grid-cols-4 gap-2 mb-3">
-                            <button onclick="setRate(5)" class="rate-btn bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 py-2 rounded-lg text-sm font-mono">5%</button>
-                            <button onclick="setRate(12)" class="rate-btn bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 py-2 rounded-lg text-sm font-mono">12%</button>
-                            <button onclick="setRate(18)" class="rate-btn bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 py-2 rounded-lg text-sm font-mono">18%</button>
-                            <button onclick="setRate(28)" class="rate-btn bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 py-2 rounded-lg text-sm font-mono">28%</button>
+                            <button onclick="setRate(5)" data-rate="5" class="rate-btn bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 py-2 rounded-lg text-sm font-mono">5%</button>
+                            <button onclick="setRate(12)" data-rate="12" class="rate-btn bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 py-2 rounded-lg text-sm font-mono">12%</button>
+                            <button onclick="setRate(18)" data-rate="18" class="rate-btn bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 py-2 rounded-lg text-sm font-mono">18%</button>
+                            <button onclick="setRate(28)" data-rate="28" class="rate-btn bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 py-2 rounded-lg text-sm font-mono">28%</button>
                         </div>
                     </div>
                 </div>
@@ -113,14 +122,14 @@
         </section>
 
         <aside class="w-full lg:w-80 flex flex-col gap-6 print-hidden">
-            <div class="ad-placeholder h-64 w-full rounded-2xl">Ad Slot</div>
+            <div class="ad-placeholder h-64 w-full rounded-2xl">Targeted Ad Slot</div>
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-                <h3 class="font-bold text-white mb-2">OpsCode Tip</h3>
-                <p class="text-sm text-slate-400">Use "Exclusive" to generate invoices. Use "Inclusive" to check if a vendor overcharged you.</p>
+                <h3 class="font-bold text-white mb-2">OpsCode Business Logic</h3>
+                <p class="text-sm text-slate-400 leading-relaxed">Use <strong>Exclusive</strong> to calculate tax on top of your service fee. Use <strong>Inclusive</strong> when you receive a flat payment and need to back out the tax for your ledger.</p>
             </div>
             
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex-1">
-                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Recent Calculations</h3>
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Session History</h3>
                 <div id="history-list" class="space-y-3">
                     <p class="text-xs text-slate-600 italic text-center py-4">History empty</p>
                 </div>
@@ -128,11 +137,36 @@
         </aside>
     </main>
 
-    <section class="bg-[#0b1120] border-t border-slate-800 py-12 px-6 seo-content print-hidden">
+    <section class="bg-[#0b1120] border-t border-slate-800 py-16 px-6 seo-content print-hidden">
         <div class="max-w-4xl mx-auto prose prose-invert prose-slate">
             <h2 class="text-2xl font-bold text-white mb-6">Mastering GST: A Business Owner's Guide for 2026</h2>
             <div class="space-y-8 text-slate-400 leading-relaxed">
+                <div>
+                    <h3 class="text-xl font-semibold text-emerald-400 mb-3">Current GST Rates in India 2026</h3>
+                    <p>Understanding the tax slabs is crucial for compliance. The current structure is as follows:</p>
+                    <ul class="list-disc pl-5 mt-2 space-y-2">
+                        <li><strong>0% (Nil):</strong> Essential goods like unbranded grains, fresh vegetables, milk, and salt.</li>
+                        <li><strong>5%:</strong> Household necessities, life-saving medicines, and economy class air travel.</li>
+                        <li><strong>12%:</strong> Processed food, computers, and mobile phones.</li>
+                        <li><strong>18% (Standard):</strong> Most manufactured goods, capital goods, services, hair oil, and soap.</li>
+                        <li><strong>28% (Luxury):</strong> Luxury cars, tobacco products, and aerated drinks like sodas.</li>
+                    </ul>
                 </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-emerald-400 mb-3">Understanding Reverse Charge Mechanism (RCM)</h3>
+                    <p>Normally, the supplier collects tax from the buyer and pays the government. Under RCM, the liability to pay tax shifts to the recipient.</p>
+                    <div class="bg-slate-900 p-6 rounded-xl border border-slate-800 mt-4">
+                        <strong class="text-white block mb-2 underline">When does RCM apply?</strong>
+                        <ul class="list-disc pl-5 space-y-2 text-sm">
+                            <li>Purchase of goods or services from an unregistered dealer (URD).</li>
+                            <li>Specific services provided by Goods Transport Agencies (GTA).</li>
+                            <li>Legal advisory services provided by individual advocates or firms to a business entity.</li>
+                            <li>Import of services from outside the domestic jurisdiction.</li>
+                        </ul>
+                    </div>
+                </div>
+                <p>By using the SilenVault Tax Engine, you ensure your invoices are audit-ready and mathematically accurate. Always consult with a certified tax professional for jurisdictional specifics.</p>
+            </div>
         </div>
     </section>
 
@@ -153,7 +187,8 @@
         function setRate(newRate) {
             rate = newRate;
             document.querySelectorAll('.rate-btn').forEach(btn => {
-                if(btn.innerText.includes(rate)) {
+                // ARCHITECT FIX: Strict comparison via data-rate attribute
+                if(parseInt(btn.getAttribute('data-rate')) === rate) {
                     btn.className = "rate-btn bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 py-2 rounded-lg text-sm font-mono";
                 } else {
                     btn.className = "rate-btn bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 py-2 rounded-lg text-sm font-mono";
@@ -164,6 +199,7 @@
             Array.from(dropdown.options).forEach(opt => {
                 if(opt.value == rate) dropdown.value = rate;
             });
+            
             calculate();
         }
 
@@ -193,7 +229,7 @@
             document.getElementById('res-total').innerText = total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         }
 
-        // ARCHITECT FIX: Upgraded Clipboard Security
+        // ARCHITECT FIX: Modernized Secure Clipboard API with DOM Fallback
         function copyResults() {
             const net = document.getElementById('res-net').innerText;
             const tax = document.getElementById('res-tax').innerText;
@@ -202,35 +238,38 @@
             const txt = `SilenVault GST Estimate\n-----------------------\nBase: ${net}\nTax (${rate}%): ${tax}\nTotal: ${total}\n\nGenerated at silenvault.com`;
             
             if (navigator.clipboard && window.isSecureContext) {
-                // Modern Async Clipboard API
                 navigator.clipboard.writeText(txt).then(() => {
                     alert('Breakdown copied to clipboard!');
                     addToHistory(total, tax);
                 }).catch(err => {
-                    console.error('Failed to copy: ', err);
+                    console.error('Modern copy failed, attempting fallback...', err);
+                    fallbackCopy(txt);
                 });
             } else {
-                // Fallback for older browsers
-                const textArea = document.createElement("textarea");
-                textArea.value = txt;
-                textArea.style.position = "fixed";
-                textArea.style.left = "-9999px";
-                document.body.appendChild(textArea);
-                textArea.select();
-                try {
-                    document.execCommand('copy');
-                    alert('Breakdown copied to clipboard!');
-                    addToHistory(total, tax);
-                } catch (err) {
-                    alert('Copy failed. Please manually copy the values.');
-                }
-                document.body.removeChild(textArea);
+                fallbackCopy(txt);
             }
+        }
+
+        function fallbackCopy(txt) {
+            const textArea = document.createElement("textarea");
+            textArea.value = txt;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                alert('Breakdown copied to clipboard!');
+                addToHistory(document.getElementById('res-total').innerText, document.getElementById('res-tax').innerText);
+            } catch (err) {
+                alert('Copy failed. Please manually copy the values.');
+            }
+            document.body.removeChild(textArea);
         }
 
         function addToHistory(total, tax) {
             const item = document.createElement('div');
-            item.className = "flex justify-between items-center text-sm border-b border-slate-800 pb-2";
+            item.className = "flex justify-between items-center text-sm border-b border-slate-800 pb-2 animate-pulse";
             item.innerHTML = `
                 <span class="text-slate-400">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                 <div class="text-right">
@@ -242,6 +281,8 @@
             if(historyList.children[0]?.innerText === 'History empty') historyList.innerHTML = '';
             historyList.prepend(item);
             if(historyList.children.length > 5) historyList.lastChild.remove();
+            
+            setTimeout(() => item.classList.remove('animate-pulse'), 1000);
         }
         
         window.onload = calculate;
