@@ -146,3 +146,57 @@ window.bookmarkSite = function() {
     document.body.appendChild(toast);
     setTimeout(removeToast, 5000);
 };
+
+
+// [ARCHITECT] Smart Ad System
+// Only reveals ad containers if Google actually serves a banner.
+document.addEventListener("DOMContentLoaded", () => {
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === "attributes" && mutation.attributeName === "data-ad-status") {
+                const ins = mutation.target;
+                if (ins.getAttribute("data-ad-status") === "filled") {
+                    revealAdContainer(ins.closest('.smart-ad-unit'));
+                }
+            }
+        });
+    });
+
+    // Watch all existing ad slots
+    document.querySelectorAll('ins.adsbygoogle').forEach((ins) => {
+        observer.observe(ins, { attributes: true });
+        // Double check if already loaded (race condition)
+        if (ins.getAttribute("data-ad-status") === "filled") {
+            revealAdContainer(ins.closest('.smart-ad-unit'));
+        }
+    });
+});
+
+function revealAdContainer(container) {
+    if (!container || container.dataset.revealed) return;
+    
+    // 1. Mark as revealed to prevent duplicate renders
+    container.dataset.revealed = "true";
+
+    // 2. Inject the "Sponsored" Label (Dynamic)
+    const label = document.createElement('span');
+    label.className = "text-[10px] uppercase tracking-widest text-slate-600 block mb-2";
+    label.innerText = "Sponsored";
+    container.insertBefore(label, container.firstChild);
+
+    // 3. Apply the "Glass Card" Styling
+    // We add these classes ONLY when content exists
+    container.classList.add(
+        "rounded-2xl", 
+        "border", 
+        "border-slate-800", 
+        "bg-slate-900/50", 
+        "p-4", 
+        "min-h-[250px]",
+        "flex",
+        "flex-col",
+        "justify-center",
+        "items-center",
+        "my-8"
+    );
+}
