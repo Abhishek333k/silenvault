@@ -1,10 +1,9 @@
 class SVHeader extends HTMLElement {
     connectedCallback() {
         const basePath = this.getAttribute('base-path') || '.';
-        // ARCHITECT FIX: Pointing to internal donation hub
         const sponsorLink = `${basePath}/donate`; 
 
-        // Automated Favicon Injection
+        // 1. Automated Favicon Injection
         let favicon = document.querySelector("link[rel~='icon']");
         if (!favicon) {
             favicon = document.createElement('link');
@@ -12,12 +11,14 @@ class SVHeader extends HTMLElement {
             document.head.appendChild(favicon);
         }
         favicon.href = `${basePath}/assets/img/SILENVAULT_CREST.png`;
-        
+
+        // 2. ARCHITECT LOGIC: Global AdSense Injection (The Money Script)
+        // This activates Auto-Ads immediately on all pages.
         if (!document.getElementById('sv-adsense')) {
             const adScript = document.createElement('script');
             adScript.id = 'sv-adsense';
             adScript.async = true;
-            // Your Publisher ID from ads.txt
+            // Your Personal Publisher ID
             adScript.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610";
             adScript.crossOrigin = "anonymous";
             document.head.appendChild(adScript);
