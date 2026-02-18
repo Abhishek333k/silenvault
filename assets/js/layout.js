@@ -2,7 +2,7 @@ class SVHeader extends HTMLElement {
     connectedCallback() {
         const basePath = this.getAttribute('base-path') || '.';
         // CONFIGURATION: Centralized link management
-        const sponsorLink = "buymeacoffee.com/abhishek333k"
+        const sponsorLink = "https://buymeacoffee.com/Abhishek333k"
 
         this.innerHTML = `
             <nav class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50">
