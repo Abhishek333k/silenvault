@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>404 | Lost in the Vault</title>
+    <meta name="robots" content="noindex">
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="assets/js/layout.js" defer></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
@@ -15,9 +19,11 @@
         }
     </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden relative grid-bg">
+<body class="min-h-screen flex flex-col grid-bg overflow-x-hidden relative">
 
-    <main class="flex-1 flex flex-col items-center justify-center text-center px-4 relative z-10">
+    <sv-header base-path="."></sv-header>
+
+    <main class="flex-1 flex flex-col items-center justify-center text-center px-4 relative z-10 py-20">
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] -z-10"></div>
 
         <div class="mb-8">
@@ -30,36 +36,25 @@
         </p>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl mx-auto">
-            
-            <a href="/index.html#business" class="group p-6 bg-slate-900/50 border border-slate-800 rounded-2xl hover:border-emerald-500/50 transition-all text-left">
+            <a href="index.html#business" class="group p-6 bg-slate-900/50 border border-slate-800 rounded-2xl hover:border-emerald-500/50 transition-all text-left">
                 <div class="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center mb-4 text-emerald-500">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 </div>
-                <h3 class="text-white font-bold mb-1 group-hover:text-emerald-400 transition-colors">Business Tools</h3>
-                <p class="text-xs text-slate-500 leading-normal">Invoices, GST Calculators, and Financial Utilities.</p>
+                <h3 class="text-white font-bold mb-1 group-hover:text-emerald-400">Business Tools</h3>
+                <p class="text-xs text-slate-500">Access GST, Invoices, and Tax Engines.</p>
             </a>
 
-            <a href="/index.html#dev-tools" class="group p-6 bg-slate-900/50 border border-slate-800 rounded-2xl hover:border-blue-500/50 transition-all text-left">
+            <a href="index.html#dev-tools" class="group p-6 bg-slate-900/50 border border-slate-800 rounded-2xl hover:border-blue-500/50 transition-all text-left">
                 <div class="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center mb-4 text-blue-500">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
                 </div>
-                <h3 class="text-white font-bold mb-1 group-hover:text-blue-400 transition-colors">Dev Utilities</h3>
-                <p class="text-xs text-slate-500 leading-normal">HTML Sandboxes, JSON Tools, and Code Viewers.</p>
-            </a>
-
-        </div>
-
-        <div class="mt-12">
-            <a href="/index.html" class="inline-flex items-center gap-2 text-slate-500 hover:text-white transition-colors text-sm font-medium border-b border-transparent hover:border-white pb-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                Back to Global Hub
+                <h3 class="text-white font-bold mb-1 group-hover:text-blue-400">Dev Utilities</h3>
+                <p class="text-xs text-slate-500">Access Sandboxes and JSON Architects.</p>
             </a>
         </div>
     </main>
 
-    <footer class="p-6 text-center">
-        <span class="mono text-[10px] text-slate-700 tracking-[0.2em] uppercase">SilenVault Infrastructure Protection Engine // v2.6.0</span>
-    </footer>
+    <sv-footer base-path="."></sv-footer>
 
 </body>
 </html>
