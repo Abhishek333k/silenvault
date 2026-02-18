@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Unit Converter | SilenVault</title>
+    <meta name="description" content="Convert length, weight, temperature, and digital storage units instantly. Local-first, privacy-focused conversion tool.">
+    <link rel="icon" type="image/png" href="assets/img/SILENVAULT_LOGO.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="assets/js/layout.js" defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .sv-select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; appearance: none; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <sv-header base-path="."></sv-header>
+
+    <div class="max-w-7xl mx-auto w-full px-4 pt-8 pb-4">
+        <h1 class="text-3xl font-bold text-white">Omni-Converter</h1>
+        <p class="text-slate-400 text-sm mt-1">Scientific & Engineering Unit Translation</p>
+    </div>
+
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 pb-12 flex flex-col lg:flex-row gap-8">
+        
+        <section class="flex-1 max-w-3xl">
+            <div class="flex gap-2 overflow-x-auto pb-4 mb-2 no-scrollbar">
+                <button onclick="setCategory('length')" class="cat-btn active bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors" id="btn-length">📏 Length</button>
+                <button onclick="setCategory('weight')" class="cat-btn bg-slate-800 text-slate-400 hover:text-white px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors" id="btn-weight">⚖️ Weight</button>
+                <button onclick="setCategory('temp')" class="cat-btn bg-slate-800 text-slate-400 hover:text-white px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors" id="btn-temp">🌡️ Temperature</button>
+                <button onclick="setCategory('digital')" class="cat-btn bg-slate-800 text-slate-400 hover:text-white px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors" id="btn-digital">💾 Digital</button>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
+                
+                <div class="flex flex-col md:flex-row gap-6 items-center">
+                    
+                    <div class="flex-1 w-full">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">From</label>
+                        <input type="number" id="input-val" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-4 text-2xl text-white focus:border-blue-500 outline-none mb-3 font-mono" placeholder="0" oninput="convert()">
+                        <select id="from-unit" class="sv-select w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white text-sm focus:border-blue-500 outline-none cursor-pointer" onchange="convert()">
+                            </select>
+                    </div>
+
+                    <button onclick="swap()" class="p-3 bg-slate-800 rounded-full border border-slate-700 text-slate-400 hover:text-white hover:border-blue-500 transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                    </button>
+
+                    <div class="flex-1 w-full">
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">To</label>
+                        <div class="w-full bg-slate-950/50 border border-slate-800 rounded-xl p-4 mb-3">
+                            <span id="output-val" class="text-2xl text-emerald-400 font-mono font-bold block overflow-hidden text-ellipsis">0</span>
+                        </div>
+                        <select id="to-unit" class="sv-select w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white text-sm focus:border-blue-500 outline-none cursor-pointer" onchange="convert()">
+                            </select>
+                    </div>
+
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-slate-800">
+                    <p class="text-center text-sm text-slate-500">
+                        Formula: <span id="formula-display" class="text-blue-400 font-mono">...</span>
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+        <aside class="w-full lg:w-80 flex flex-col gap-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                <h3 class="font-bold text-white mb-2">Did you know?</h3>
+                <p id="fact-display" class="text-sm text-slate-400">
+                    The metric system was first adopted in France in 1799.
+                </p>
+            </div>
+            <div class="w-full h-64 border border-dashed border-slate-700 rounded-xl flex items-center justify-center text-xs text-slate-600 uppercase tracking-widest bg-slate-900/50">
+                Ad Slot
+            </div>
+        </aside>
+
+    </main>
+
+    <sv-footer base-path="."></sv-footer>
+
+    <script>
+        const definitions = {
+            length: {
+                units: {
+                    m: { name: 'Meter', rate: 1 },
+                    km: { name: 'Kilometer', rate: 1000 },
+                    cm: { name: 'Centimeter', rate: 0.01 },
+                    mm: { name: 'Millimeter', rate: 0.001 },
+                    mi: { name: 'Mile', rate: 1609.34 },
+                    yd: { name: 'Yard', rate: 0.9144 },
+                    ft: { name: 'Foot', rate: 0.3048 },
+                    in: { name: 'Inch', rate: 0.0254 }
+                },
+                fact: "The meter was originally defined as one ten-millionth of the distance from the equator to the North Pole."
+            },
+            weight: {
+                units: {
+                    kg: { name: 'Kilogram', rate: 1 },
+                    g: { name: 'Gram', rate: 0.001 },
+                    mg: { name: 'Milligram', rate: 0.000001 },
+                    lb: { name: 'Pound', rate: 0.453592 },
+                    oz: { name: 'Ounce', rate: 0.0283495 }
+                },
+                fact: "A kilogram is very nearly equal to the mass of 1,000 cubic centimeters of water."
+            },
+            digital: {
+                units: {
+                    b: { name: 'Byte', rate: 1 },
+                    kb: { name: 'Kilobyte', rate: 1024 },
+                    mb: { name: 'Megabyte', rate: 1048576 },
+                    gb: { name: 'Gigabyte', rate: 1073741824 },
+                    tb: { name: 'Terabyte', rate: 1099511627776 }
+                },
+                fact: "There are 8 bits in 1 byte. The term 'byte' was coined by Werner Buchholz in 1956."
+            },
+            // Temp is special, handled separately
+            temp: {
+                units: {
+                    c: { name: 'Celsius' },
+                    f: { name: 'Fahrenheit' },
+                    k: { name: 'Kelvin' }
+                },
+                fact: "At -40 degrees, the Celsius and Fahrenheit scales are exactly the same."
+            }
+        };
+
+        let currentCat = 'length';
+
+        function setCategory(cat) {
+            currentCat = cat;
+            
+            // Update Buttons
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.className = "cat-btn bg-slate-800 text-slate-400 hover:text-white px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors";
+            });
+            document.getElementById(`btn-${cat}`).className = "cat-btn active bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors";
+
+            // Populate Selects
+            const fromSel = document.getElementById('from-unit');
+            const toSel = document.getElementById('to-unit');
+            fromSel.innerHTML = '';
+            toSel.innerHTML = '';
+
+            const units = definitions[cat].units;
+            Object.keys(units).forEach(key => {
+                const opt1 = new Option(units[key].name, key);
+                const opt2 = new Option(units[key].name, key);
+                fromSel.add(opt1);
+                toSel.add(opt2);
+            });
+
+            // Set Defaults
+            toSel.selectedIndex = 1;
+            
+            // Update Fact
+            document.getElementById('fact-display').innerText = definitions[cat].fact;
+            
+            convert();
+        }
+
+        function convert() {
+            const val = parseFloat(document.getElementById('input-val').value);
+            const from = document.getElementById('from-unit').value;
+            const to = document.getElementById('to-unit').value;
+            const resEl = document.getElementById('output-val');
+            const formulaEl = document.getElementById('formula-display');
+
+            if(isNaN(val)) {
+                resEl.innerText = '0';
+                return;
+            }
+
+            let result;
+
+            if (currentCat === 'temp') {
+                result = convertTemp(val, from, to);
+                formulaEl.innerText = `Complex Temp Formula`;
+            } else {
+                const fromRate = definitions[currentCat].units[from].rate;
+                const toRate = definitions[currentCat].units[to].rate;
+                
+                // Convert to base then to target
+                const base = val * fromRate;
+                result = base / toRate;
+                
+                formulaEl.innerText = `multiply by ${fromRate}, divide by ${toRate}`;
+            }
+
+            // Smart rounding
+            resEl.innerText = parseFloat(result.toPrecision(6));
+        }
+
+        function convertTemp(val, from, to) {
+            if(from === to) return val;
+            let c;
+            // To Celsius
+            if(from === 'f') c = (val - 32) * 5/9;
+            else if(from === 'k') c = val - 273.15;
+            else c = val;
+
+            // From Celsius
+            if(to === 'f') return (c * 9/5) + 32;
+            if(to === 'k') return c + 273.15;
+            return c;
+        }
+
+        function swap() {
+            const from = document.getElementById('from-unit');
+            const to = document.getElementById('to-unit');
+            const temp = from.value;
+            from.value = to.value;
+            to.value = temp;
+            convert();
+        }
+
+        // Init
+        setCategory('length');
+    </script>
+</body>
+</html>
