@@ -17,12 +17,10 @@
         .input-group:focus-within { border-color: #10b981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
         .sv-select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; -webkit-print-color-adjust: exact; appearance: none; }
         
-        /* Tabs */
         .tab-btn { border-bottom: 2px solid transparent; color: #64748b; transition: all 0.2s; }
         .tab-btn:hover { color: #94a3b8; }
         .tab-btn.active { border-bottom-color: #10b981; color: #10b981; font-weight: 600; }
 
-        /* Pure CSS Pie Chart */
         .pie-chart {
             width: 220px; height: 220px; border-radius: 50%;
             background: conic-gradient(#10b981 var(--p), #334155 0);
@@ -73,7 +71,7 @@
                                 <label id="label-amount" class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Loan Amount</label>
                                 <div class="input-group flex items-center px-4 py-3">
                                     <span class="text-emerald-500 font-bold mr-3">₹</span>
-                                    <input type="number" id="amount" value="100000" class="bg-transparent w-full text-white font-mono text-lg outline-none" oninput="calculate()">
+                                    <input type="number" id="amount" value="100000" min="0" class="bg-transparent w-full text-white font-mono text-lg outline-none" oninput="calculate()">
                                 </div>
                             </div>
 
@@ -81,16 +79,18 @@
                                 <div>
                                     <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Interest (%)</label>
                                     <div class="input-group flex items-center px-4 py-3">
-                                        <input type="number" id="rate" value="6" step="0.1" class="bg-transparent w-full text-white font-mono text-lg outline-none" oninput="calculate()">
+                                        <input type="number" id="rate" value="6" step="0.1" min="0" class="bg-transparent w-full text-white font-mono text-lg outline-none" oninput="calculate()">
                                     </div>
                                 </div>
                                 <div>
                                     <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Term (Years)</label>
                                     <div class="input-group flex items-center px-4 py-3">
-                                        <input type="number" id="years" value="10" class="bg-transparent w-full text-white font-mono text-lg outline-none" oninput="calculate()">
+                                        <input type="number" id="years" value="10" min="1" max="100" class="bg-transparent w-full text-white font-mono text-lg outline-none" oninput="syncSlider(this.value)">
                                     </div>
                                 </div>
                             </div>
+                            
+                            <input type="range" id="yearsSlider" min="1" max="30" value="10" class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer" oninput="syncInput(this.value)">
 
                             <div class="h-px bg-slate-700 w-full my-2"></div>
 
@@ -147,8 +147,10 @@
                                     <div id="totalAmount" class="text-xl font-bold text-white">₹0</div>
                                 </div>
                                 <div class="h-px bg-slate-700 w-full my-2"></div>
-                                <div id="extraData" class="space-y-1">
-                                    </div>
+                                <div class="space-y-1">
+                                    <div class="text-[10px] text-slate-400 uppercase tracking-wider">Payoff Date</div>
+                                    <div id="payoffDisplay" class="text-lg font-bold text-slate-300">-</div>
+                                </div>
                             </div>
                         </div>
 
@@ -232,6 +234,16 @@
     <script>
         let currentMode = 'amortized';
 
+        // 2-Way Slider Binding
+        function syncInput(val) {
+            document.getElementById('years').value = val;
+            calculate();
+        }
+        function syncSlider(val) {
+            document.getElementById('yearsSlider').value = val;
+            calculate();
+        }
+
         function switchTab(mode) {
             currentMode = mode;
             // Update Tab UI
@@ -247,12 +259,12 @@
                 labelAmount.innerText = "Loan Amount";
                 payBackWrapper.classList.remove('hidden');
                 amortSection.classList.remove('hidden');
-                document.getElementById('compounding').value = "12"; // Monthly default
+                document.getElementById('compounding').value = "12"; 
             } else if (mode === 'deferred') {
                 labelAmount.innerText = "Loan Amount";
-                payBackWrapper.classList.add('hidden'); // No periodic payments
+                payBackWrapper.classList.add('hidden');
                 amortSection.classList.add('hidden');
-                document.getElementById('compounding').value = "1"; // Annually default
+                document.getElementById('compounding').value = "1"; 
             } else if (mode === 'bond') {
                 labelAmount.innerText = "Face Value (Due Amount)";
                 payBackWrapper.classList.add('hidden');
@@ -268,51 +280,54 @@
             const years = parseFloat(document.getElementById('years').value) || 0;
             const cmpFreq = parseInt(document.getElementById('compounding').value);
             
-            if (P === 0 || annualRate === 0 || years === 0) return;
+            if (P < 0 || annualRate < 0 || years <= 0) return; // Basic validation
 
-            // Common Rates
             const r_nominal = annualRate / 100;
-            // Effective Rate per period: (1 + r/n)^(n*t) logic
             
+            // Payoff Date Logic
+            const d = new Date();
+            d.setFullYear(d.getFullYear() + years);
+            const options = { year: 'numeric', month: 'short' };
+            document.getElementById('payoffDisplay').innerText = d.toLocaleDateString('en-US', options);
+
             if (currentMode === 'amortized') {
                 const payFreq = parseInt(document.getElementById('payFreq').value);
                 
                 // Effective Annual Rate (EAR)
                 const EAR = Math.pow(1 + (r_nominal / cmpFreq), cmpFreq) - 1;
                 // Rate per payment period
-                const r_period = Math.pow(1 + EAR, 1 / payFreq) - 1;
-                const n = years * payFreq; // Total payments
+                const ratePerPeriod = Math.pow(1 + EAR, 1 / payFreq) - 1;
+                const n = Math.ceil(years * payFreq); 
 
                 // Amortization Formula
-                const payment = (P * r_period * Math.pow(1 + r_period, n)) / (Math.pow(1 + r_period, n) - 1);
+                let payment = 0;
+                if (ratePerPeriod === 0) {
+                    payment = P / n;
+                } else {
+                    payment = (P * ratePerPeriod * Math.pow(1 + ratePerPeriod, n)) / (Math.pow(1 + ratePerPeriod, n) - 1);
+                }
+
                 const totalPayment = payment * n;
                 const totalInterest = totalPayment - P;
 
                 updateUI(payment, totalInterest, totalPayment, P, "Payment");
-                generateSchedule(P, r_period, n, payment, payFreq);
+                generateSchedule(P, ratePerPeriod, n, payment, payFreq);
 
             } else if (currentMode === 'deferred') {
-                // A = P(1 + r/n)^(nt)
-                // Here, P is loan amount. We calculate Future Value.
                 const totalAmount = P * Math.pow(1 + (r_nominal / cmpFreq), cmpFreq * years);
                 const totalInterest = totalAmount - P;
-                
                 updateUI(totalAmount, totalInterest, totalAmount, P, "Due at Maturity");
-                // For Deferred, "Payment" is the lump sum at end.
 
             } else if (currentMode === 'bond') {
-                // We know Future Value (Face Value) = P input. We want Present Value.
-                // PV = FV / (1 + r/n)^(nt)
                 const faceValue = P;
                 const presentValue = faceValue / Math.pow(1 + (r_nominal / cmpFreq), cmpFreq * years);
                 const totalInterest = faceValue - presentValue;
 
                 updateUI(presentValue, totalInterest, faceValue, presentValue, "Start Value");
-                // Special labels for Bond
                 document.getElementById('resultLabel').innerText = "Initial Value";
                 document.getElementById('mainResult').innerText = formatCurrency(presentValue);
                 document.getElementById('subResultLabel').innerText = "Received Now";
-                document.getElementById('totalAmount').innerText = formatCurrency(faceValue); // This is Face Value
+                document.getElementById('totalAmount').innerText = formatCurrency(faceValue);
             }
         }
 
@@ -320,7 +335,6 @@
             document.getElementById('resultLabel').innerText = label;
             document.getElementById('mainResult').innerText = formatCurrency(mainMetric);
             
-            // Sub label logic
             if (currentMode === 'amortized') {
                 const payFreq = parseInt(document.getElementById('payFreq').value);
                 let txt = "/ Month";
@@ -335,16 +349,18 @@
             document.getElementById('totalInterest').innerText = formatCurrency(interest);
             document.getElementById('totalAmount').innerText = formatCurrency(total);
 
-            // Chart
-            const totalForChart = principal + interest; // Basis
+            // Chart Logic
+            const totalForChart = principal + interest;
             const principalPercent = (principal / totalForChart) * 100;
             document.getElementById('chart').style.setProperty('--p', `${principalPercent}%`);
         }
 
-        function generateSchedule(P, r, n, payment, payFreq) {
+        function generateSchedule(P, ratePerPeriod, n, payment, payFreq) {
             let balance = P;
             const tbody = document.getElementById('scheduleBody');
-            tbody.innerHTML = '';
+            
+            // Optimization: Use buffer string instead of repeated innerHTML writes
+            let htmlBuffer = '';
             
             // Grouping logic for long loans
             const groupByYear = n > 60;
@@ -353,8 +369,14 @@
             let currentYear = 1;
 
             for (let i = 1; i <= n; i++) {
-                const interest = balance * r;
-                const principal = payment - interest;
+                const interest = balance * ratePerPeriod;
+                let principal = payment - interest;
+                
+                // Handle last payment adjustments
+                if (balance - principal < 0.1) { 
+                    principal = balance;
+                }
+                
                 balance -= principal;
                 if (balance < 0) balance = 0;
 
@@ -362,27 +384,28 @@
                     yearPrincipal += principal;
                     yearInterest += interest;
                     if (i % payFreq === 0 || i === n) {
-                        const row = `
+                        htmlBuffer += `
                             <tr class="hover:bg-slate-800/50 border-b border-slate-800 last:border-0">
                                 <td class="px-6 py-4 font-mono text-emerald-500">Year ${currentYear}</td>
                                 <td class="px-6 py-4">₹${Math.round(yearPrincipal).toLocaleString()}</td>
                                 <td class="px-6 py-4">₹${Math.round(yearInterest).toLocaleString()}</td>
-                                <td class="px-6 py-4 text-slate-400">₹${Math.round(balance).toLocaleString()}</td>
+                                <td class="px-6 py-4 text-slate-400">₹${Math.max(0, Math.round(balance)).toLocaleString()}</td>
                             </tr>`;
-                        tbody.innerHTML += row;
                         yearPrincipal = 0; yearInterest = 0; currentYear++;
                     }
                 } else {
-                    const row = `
+                    htmlBuffer += `
                         <tr class="hover:bg-slate-800/50 border-b border-slate-800 last:border-0">
                             <td class="px-6 py-4 font-mono text-emerald-500">Period ${i}</td>
                             <td class="px-6 py-4">₹${Math.round(principal).toLocaleString()}</td>
                             <td class="px-6 py-4">₹${Math.round(interest).toLocaleString()}</td>
-                            <td class="px-6 py-4 text-slate-400">₹${Math.round(balance).toLocaleString()}</td>
+                            <td class="px-6 py-4 text-slate-400">₹${Math.max(0, Math.round(balance)).toLocaleString()}</td>
                         </tr>`;
-                    tbody.innerHTML += row;
                 }
+                if (balance <= 0) break;
             }
+            // Single DOM write
+            tbody.innerHTML = htmlBuffer;
         }
 
         function formatCurrency(num) {
