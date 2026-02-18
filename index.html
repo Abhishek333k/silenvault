@@ -27,14 +27,9 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
         .bento-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
-        /* Unified transitions via Tailwind where possible, keeping complex gradients here */
         .tool-card { background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); border: 1px solid #334155; transition: all 0.3s ease; }
         .tool-card:hover { transform: translateY(-4px); border-color: #3b82f6; box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.3); }
-        .badge-new { background: #10b981; color: #020617; }
-        .badge-hot { background: #f59e0b; color: #020617; }
         .search-wrapper:focus-within { box-shadow: 0 0 20px -5px rgba(59, 130, 246, 0.5); border-color: #3b82f6; }
-        
-        /* Smooth scrolling for anchor links */
         html { scroll-behavior: smooth; }
     </style>
 </head>
@@ -65,18 +60,16 @@
     <main class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-12 flex flex-col lg:flex-row gap-12 flex-1">
         
         <div class="flex-1">
-            <div class="mb-12" id="business">
+            <div class="mb-24 tool-section" id="business">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-2xl font-bold text-white flex items-center gap-2">
                         <span class="w-2 h-8 bg-emerald-500 rounded-full"></span>
                         Business Operations
                     </h2>
-                    <span class="text-xs font-mono text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded">High Priority</span>
                 </div>
                 
                 <div class="bento-grid">
                     <a href="tools/invoice_generator" class="tool-card p-6 rounded-2xl group relative overflow-hidden block">
-                        <div class="absolute top-4 right-4 text-xs font-bold px-2 py-1 rounded-full badge-hot">HOT</div>
                         <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-4 text-blue-400 group-hover:text-blue-300">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                         </div>
@@ -93,7 +86,6 @@
                     </a>
 
                     <a href="tools/gst_calculator" class="tool-card p-6 rounded-2xl group relative block">
-                        <div class="absolute top-4 right-4 text-xs font-bold px-2 py-1 rounded-full badge-new">NEW</div>
                         <div class="w-12 h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center mb-4 text-emerald-400 group-hover:text-emerald-300">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
@@ -101,7 +93,7 @@
                         <p class="text-sm text-slate-400">Instant tax breakdown for 50+ countries. RCM supported.</p>
                     </a>
 
-                    <div class="rounded-2xl overflow-hidden my-2 border border-slate-800 bg-slate-900/50 p-2 text-center min-h-[250px] flex flex-col justify-center">
+                    <div class="ad-unit-wrapper rounded-2xl overflow-hidden my-2 border border-slate-800 bg-slate-900/50 p-2 text-center min-h-[250px] flex flex-col justify-center">
                         <span class="text-[10px] uppercase tracking-widest text-slate-600 block mb-2">Sponsored</span>
                         <ins class="adsbygoogle"
                              style="display:block"
@@ -116,14 +108,13 @@
                 </div>
             </div>
             
-            <section id="creator-tools">
+            <section class="mb-24 tool-section" id="creator-tools">
                 <div class="flex items-center gap-4 mb-8">
                     <div class="h-8 w-1 bg-red-500 rounded-full shadow-[0_0_10px_#ef4444]"></div>
                     <h2 class="text-xl font-bold text-white tracking-tight uppercase">Creator Tools</h2>
                 </div>
                 <div class="bento-grid">
                     <a href="tools/yt_thumbnail" class="tool-card p-6 rounded-2xl group block relative overflow-hidden">
-                         <div class="absolute top-4 right-4 text-xs font-bold px-2 py-1 rounded-full badge-hot">MAGNET</div>
                         <div class="w-12 h-12 bg-red-500/10 rounded-lg flex items-center justify-center mb-4 text-red-500 group-hover:bg-red-500 group-hover:text-white transition-all shadow-inner">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
                         </div>
@@ -132,7 +123,6 @@
                     </a>
                     
                     <a href="tools/exif_remover" class="tool-card p-6 rounded-2xl group block relative overflow-hidden">
-                        <div class="absolute top-4 right-4 text-xs font-bold px-2 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">PRIVACY</div>
                         <div class="w-12 h-12 bg-emerald-500/10 rounded-lg flex items-center justify-center mb-4 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-inner">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                         </div>
@@ -144,13 +134,13 @@
                         <div class="w-12 h-12 bg-indigo-500/10 rounded-lg flex items-center justify-center mb-4 text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-all shadow-inner">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
                         </div>
-                        <h3 class="text-lg font-semibold text-white mb-2">Smart Image Compressor</h3>
+                        <h3 class="text-lg font-semibold text-white mb-2">Smart Compressor</h3>
                         <p class="text-sm text-slate-500 leading-relaxed">Reduce file size by up to 80% without losing quality.</p>
                     </a>
                 </div>
             </section>
             
-            <div class="mb-12" id="dev-tools">
+            <div class="mb-24 tool-section" id="dev-tools">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-2xl font-bold text-white flex items-center gap-2">
                         <span class="w-2 h-8 bg-blue-500 rounded-full"></span>
@@ -176,7 +166,6 @@
                     </a>
 
                     <a href="tools/json_tool" class="tool-card p-6 rounded-2xl group block">
-                         <div class="absolute top-4 right-4 text-xs font-bold px-2 py-1 rounded-full badge-new">V1.0</div>
                         <div class="w-12 h-12 bg-pink-500/20 rounded-lg flex items-center justify-center mb-4 text-pink-400">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
                         </div>
@@ -223,16 +212,28 @@
     <sv-footer base-path="."></sv-footer>
 
     <script>
-        // Optimization: Cache references on load so we don't querySelectorAll every keypress
-        let toolCards = [];
+        // ARCHITECT: Advanced Smart Filter (Hides Sections + Ads)
+        let sections = [];
         
         window.addEventListener('DOMContentLoaded', () => {
-            const nodes = document.querySelectorAll('.tool-card');
-            nodes.forEach(card => {
-                toolCards.push({
-                    element: card,
-                    title: card.querySelector('h3').innerText.toUpperCase(),
-                    desc: card.querySelector('p').innerText.toUpperCase()
+            document.querySelectorAll('.tool-section').forEach(sec => {
+                const cards = sec.querySelectorAll('.tool-card');
+                const adUnit = sec.querySelector('.ad-unit-wrapper');
+                
+                // Store card data for this section
+                let cardData = [];
+                cards.forEach(card => {
+                    cardData.push({
+                        element: card,
+                        title: card.querySelector('h3').innerText.toUpperCase(),
+                        desc: card.querySelector('p').innerText.toUpperCase()
+                    });
+                });
+
+                sections.push({
+                    section: sec,
+                    cards: cardData,
+                    ad: adUnit
                 });
             });
         });
@@ -241,11 +242,28 @@
             const input = document.getElementById('toolSearch');
             const filter = input.value.toUpperCase();
             
-            toolCards.forEach(item => {
-                if (item.title.includes(filter) || item.desc.includes(filter)) {
-                    item.element.style.display = "block";
+            sections.forEach(secData => {
+                let visibleCards = 0;
+
+                // 1. Check each card in this section
+                secData.cards.forEach(item => {
+                    if (item.title.includes(filter) || item.desc.includes(filter)) {
+                        item.element.style.display = "block";
+                        visibleCards++;
+                    } else {
+                        item.element.style.display = "none";
+                    }
+                });
+
+                // 2. Logic: If NO cards are visible, hide the whole section + ad
+                if (visibleCards === 0) {
+                    secData.section.style.display = "none";
                 } else {
-                    item.element.style.display = "none";
+                    secData.section.style.display = "block";
+                    // If searching (filter exists), hide the Ad to declutter. If empty (view all), show ad.
+                    if (secData.ad) {
+                        secData.ad.style.display = (filter.length > 0) ? "none" : "flex"; 
+                    }
                 }
             });
         }
