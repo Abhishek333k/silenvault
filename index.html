@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SilenVault | SaaS Operations Hub</title>
     <meta name="description" content="Local-first, privacy-focused tools for developers and business owners. Generate invoices, convert files, and manage code without cloud uploads.">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://silenvault.com/">
+    <meta property="og:title" content="SilenVault | SaaS Operations Hub">
+    <meta property="og:description" content="Local-first tools: Invoice Generator, Loan Calculator, File Converter. Zero data leaks.">
+    <meta property="og:image" content="https://silenvault.com/assets/img/Banner_with_CREST.png">
+
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://silenvault.com/">
+    <meta property="twitter:title" content="SilenVault | SaaS Operations Hub">
+    <meta property="twitter:description" content="Local-first tools: Invoice Generator, Loan Calculator, File Converter. Zero data leaks.">
+    <meta property="twitter:image" content="https://silenvault.com/assets/img/Banner_with_CREST.png">
+
     <link rel="icon" type="image/png" href="assets/img/SILENVAULT_LOGO.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,11 +27,15 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
         .bento-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+        /* Unified transitions via Tailwind where possible, keeping complex gradients here */
         .tool-card { background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%); border: 1px solid #334155; transition: all 0.3s ease; }
         .tool-card:hover { transform: translateY(-4px); border-color: #3b82f6; box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.3); }
         .badge-new { background: #10b981; color: #020617; }
         .badge-hot { background: #f59e0b; color: #020617; }
         .search-wrapper:focus-within { box-shadow: 0 0 20px -5px rgba(59, 130, 246, 0.5); border-color: #3b82f6; }
+        
+        /* Smooth scrolling for anchor links */
+        html { scroll-behavior: smooth; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -39,7 +56,7 @@
 
         <div class="max-w-xl mx-auto relative search-wrapper border border-slate-700 rounded-2xl bg-slate-900/50 backdrop-blur-sm transition-all">
             <svg class="absolute left-4 top-3.5 w-5 h-5 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-            <input type="text" id="toolSearch" placeholder="Search tools (e.g., 'Invoice', 'JSON', 'Tax')..." 
+            <input type="text" id="toolSearch" aria-label="Search tools" placeholder="Search tools (e.g., 'Invoice', 'JSON', 'Tax')..." 
                    class="w-full bg-transparent border-none text-white px-12 py-3 focus:outline-none rounded-2xl placeholder-slate-500"
                    onkeyup="filterTools()">
         </div>
@@ -113,6 +130,7 @@
                         <h3 class="text-lg font-semibold text-white mb-2">YouTube Thumbnails</h3>
                         <p class="text-sm text-slate-500 leading-relaxed">Extract 4K/HD thumbnails from any video instantly.</p>
                     </a>
+                    
                     <a href="tools/exif_remover" class="tool-card p-6 rounded-2xl group block relative overflow-hidden">
                         <div class="absolute top-4 right-4 text-xs font-bold px-2 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">PRIVACY</div>
                         <div class="w-12 h-12 bg-emerald-500/10 rounded-lg flex items-center justify-center mb-4 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-inner">
@@ -121,7 +139,14 @@
                         <h3 class="text-lg font-semibold text-white mb-2">EXIF Shield</h3>
                         <p class="text-sm text-slate-500 leading-relaxed">Scan & remove GPS location data from your photos.</p>
                     </a>
-                    
+
+                    <a href="tools/image_compressor" class="tool-card p-6 rounded-2xl group block relative overflow-hidden">
+                        <div class="w-12 h-12 bg-indigo-500/10 rounded-lg flex items-center justify-center mb-4 text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-all shadow-inner">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
+                        </div>
+                        <h3 class="text-lg font-semibold text-white mb-2">Smart Image Compressor</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Reduce file size by up to 80% without losing quality.</p>
+                    </a>
                 </div>
             </section>
             
@@ -198,17 +223,29 @@
     <sv-footer base-path="."></sv-footer>
 
     <script>
+        // Optimization: Cache references on load so we don't querySelectorAll every keypress
+        let toolCards = [];
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            const nodes = document.querySelectorAll('.tool-card');
+            nodes.forEach(card => {
+                toolCards.push({
+                    element: card,
+                    title: card.querySelector('h3').innerText.toUpperCase(),
+                    desc: card.querySelector('p').innerText.toUpperCase()
+                });
+            });
+        });
+
         function filterTools() {
             const input = document.getElementById('toolSearch');
             const filter = input.value.toUpperCase();
-            const cards = document.querySelectorAll('.tool-card');
-            cards.forEach(card => {
-                const title = card.querySelector('h3').innerText;
-                const desc = card.querySelector('p').innerText;
-                if (title.toUpperCase().indexOf(filter) > -1 || desc.toUpperCase().indexOf(filter) > -1) {
-                    card.style.display = "block";
+            
+            toolCards.forEach(item => {
+                if (item.title.includes(filter) || item.desc.includes(filter)) {
+                    item.element.style.display = "block";
                 } else {
-                    card.style.display = "none";
+                    item.element.style.display = "none";
                 }
             });
         }
