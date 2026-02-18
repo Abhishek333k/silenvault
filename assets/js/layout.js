@@ -32,6 +32,15 @@ class SVHeader extends HTMLElement {
                 </div>
             </nav>
         `;
+
+      
+        if (!document.getElementById('sv-consent-script')) {
+            const script = document.createElement('script');
+            script.id = 'sv-consent-script';
+            script.src = `${basePath}/assets/js/consent.js`;
+            script.defer = true;
+            document.body.appendChild(script);
+        }
     }
 }
 
@@ -82,15 +91,28 @@ class SVFooter extends HTMLElement {
     }
 }
 
+// Register Components
 customElements.define('sv-header', SVHeader);
 customElements.define('sv-footer', SVFooter);
 
+// Global Bookmark Logic (Required for the header button)
 window.bookmarkSite = function() {
     const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
     const hotkey = isMac ? 'Cmd + D' : 'Ctrl + D';
+    
+    // Check if toast already exists to prevent stacking
+    if (document.getElementById('sv-toast')) return;
+
     const toast = document.createElement('div');
-    toast.className = "fixed bottom-4 right-4 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-xl z-50 animate-bounce";
-    toast.innerText = `Press ${hotkey} to bookmark SilenVault`;
+    toast.id = 'sv-toast';
+    toast.className = "fixed bottom-6 right-6 bg-blue-600 text-white px-6 py-4 rounded-xl shadow-2xl z-[100] flex items-center gap-3 animate-bounce cursor-pointer";
+    toast.innerHTML = `
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+        <span>Press <strong>${hotkey}</strong> to bookmark</span>
+    `;
+    
+    toast.onclick = () => toast.remove();
     document.body.appendChild(toast);
-    setTimeout(() => { toast.remove(); }, 4000);
+    
+    setTimeout(() => { if(toast) toast.remove(); }, 4000);
 };
