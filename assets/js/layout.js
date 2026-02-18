@@ -2,7 +2,7 @@ class SVHeader extends HTMLElement {
     connectedCallback() {
         const basePath = this.getAttribute('base-path') || '.';
         
-        // [FIX 1] Internal Donate Page (No External Link)
+        // ARCHITECT FIX: Internal Donate Page (No External Link)
         const sponsorLink = `${basePath}/donate`; 
 
         // [FEATURE] Automated Favicon Injection
@@ -29,8 +29,7 @@ class SVHeader extends HTMLElement {
             <nav class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                     <a href="${basePath}/index" class="flex items-center gap-3 transition-transform hover:scale-105">
-                        <img src="${basePath}/assets/img/SILENVAULT_CREST.png" alt="SilenVault Crest" class="h-8 w-auto object-contain">
-                        <span class="text-xl font-bold tracking-tight text-white hidden md:block">Silen<span class="text-blue-500">Vault</span></span>
+                        <img src="${basePath}/assets/img/Banner_with_CREST.png" alt="SilenVault" class="h-10 w-auto object-contain">
                     </a>
                     
                     <div class="flex items-center gap-4">
@@ -112,10 +111,11 @@ class SVFooter extends HTMLElement {
     }
 }
 
+// Register Components
 customElements.define('sv-header', SVHeader);
 customElements.define('sv-footer', SVFooter);
 
-// [FIX 5] Modern Smooth Toast Notification (Replacing Alert)
+// ARCHITECT FIX: Restored the Smooth Toast Notification
 window.bookmarkSite = function() {
     const isMac = /Mac/i.test(navigator.userAgent);
     const hotkey = isMac ? 'Cmd + D' : 'Ctrl + D';
