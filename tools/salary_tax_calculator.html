@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salary Tax Architect Pro | SilenVault</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="../assets/js/layout.js" defer></script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
+        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .input-group { background: #0f172a; border: 1px solid #1e293b; border-radius: 0.75rem; }
+        .input-group:focus-within { border-color: #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.1); }
+        
+        input[type=range] { -webkit-appearance: none; background: transparent; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 6px; background: #1e293b; border-radius: 3px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 18px; width: 18px; border-radius: 50%; background: #3b82f6; cursor: pointer; margin-top: -6px; border: 2px solid white; }
+
+        @media print {
+            body { background: white !important; color: black !important; }
+            sv-header, sv-footer, .no-print, aside { display: none !important; }
+            .glass-panel { border: 1px solid #eee !important; background: white !important; color: black !important; padding: 20px; }
+            .text-transparent { background: none !important; color: black !important; -webkit-background-clip: initial; }
+            .text-white, .text-slate-300 { color: black !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <sv-header base-path=".."></sv-header>
+
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-12 flex flex-col lg:flex-row gap-8">
+        
+        <div class="flex-1 space-y-6">
+            <div class="text-center mb-8 no-print">
+                <h1 class="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+                    Salary <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Architect Pro</span>
+                </h1>
+                <p class="text-slate-400 max-w-lg mx-auto">
+                    Optimized for the 2025-26 Budget. Secure, local-first tax modeling.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-12 gap-8">
+                <div class="md:col-span-5 space-y-6 no-print">
+                    <div class="glass-panel p-6 rounded-3xl border-blue-500/20">
+                        <div class="space-y-8">
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">Annual Gross</label>
+                                    <span id="grossLabel" class="text-blue-400 font-mono font-bold">₹12,00,000</span>
+                                </div>
+                                <input type="range" id="grossSlider" min="300000" max="5000000" step="50000" value="1200000" oninput="updateFromSlider('gross')" class="w-full mb-4">
+                                <div class="input-group flex items-center px-4 py-2">
+                                    <span class="text-slate-500 mr-2 text-sm">₹</span>
+                                    <input type="number" id="grossInput" value="1200000" oninput="updateFromInput('gross')" class="bg-transparent w-full text-white font-mono outline-none">
+                                </div>
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">Deductions (Old Regime)</label>
+                                    <span id="deductLabel" class="text-emerald-400 font-mono font-bold">₹1,50,000</span>
+                                </div>
+                                <input type="range" id="deductSlider" min="0" max="500000" step="5000" value="150000" oninput="updateFromSlider('deduct')" class="w-full mb-4">
+                                <div class="input-group flex items-center px-4 py-2">
+                                    <span class="text-slate-500 mr-2 text-sm">₹</span>
+                                    <input type="number" id="deductInput" value="150000" oninput="updateFromInput('deduct')" class="bg-transparent w-full text-white font-mono outline-none">
+                                </div>
+                            </div>
+
+                            <button onclick="window.print()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 border border-slate-700">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                Print PDF Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md:col-span-7 space-y-4">
+                    <div id="advisor" class="glass-panel p-4 rounded-2xl border-blue-500/20 bg-blue-500/5 mb-4 flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <p id="advisorText" class="text-sm text-blue-200/80">Updating financial models...</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="glass-panel p-6 rounded-3xl border-emerald-500/30 relative overflow-hidden h-full">
+                            <div class="absolute top-0 right-0 p-2">
+                                <span id="newBadge" class="hidden bg-emerald-500 text-slate-900 text-[8px] font-black px-2 py-0.5 rounded-full">RECOMMENDED</span>
+                            </div>
+                            <h4 class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-4">New Regime</h4>
+                            <div class="text-3xl font-mono font-bold text-white mb-1" id="res-home-new">₹0</div>
+                            <div class="text-[10px] text-slate-500 mb-6 uppercase">Monthly Take-Home</div>
+                            <div class="border-t border-slate-800 pt-4 flex justify-between items-center">
+                                <span class="text-xs text-slate-500">Annual Tax</span>
+                                <span class="text-sm font-bold text-emerald-400" id="res-tax-new">₹0</span>
+                            </div>
+                        </div>
+
+                        <div class="glass-panel p-6 rounded-3xl border-slate-700 h-full">
+                            <h4 class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-4">Old Regime</h4>
+                            <div class="text-3xl font-mono font-bold text-slate-300 mb-1" id="res-home-old">₹0</div>
+                            <div class="text-[10px] text-slate-500 mb-6 uppercase">Monthly Take-Home</div>
+                            <div class="border-t border-slate-800 pt-4 flex justify-between items-center">
+                                <span class="text-xs text-slate-500">Annual Tax</span>
+                                <span class="text-sm font-bold text-slate-400" id="res-tax-old">₹0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <aside class="w-full lg:w-80 flex flex-col gap-6 shrink-0 no-print">
+            <div class="glass-panel p-6 rounded-2xl border-emerald-500/20">
+                <h3 class="font-bold text-white mb-4 uppercase tracking-wider text-xs">2025-26 Framework</h3>
+                <ul class="text-[11px] text-slate-400 space-y-3 leading-relaxed">
+                    <li>• Standard Deduction: <strong>₹75,000</strong> (New) / <strong>₹50,000</strong> (Old).</li>
+                    <li>• Full Rebate (New): Up to <strong>₹12,00,000</strong> income.</li>
+                    <li>• Health & Education Cess: <strong>4%</strong> on tax.</li>
+                </ul>
+            </div>
+            <div class="smart-ad-unit">
+                <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="9264203071" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+            </div>
+        </aside>
+    </main>
+
+    <sv-footer base-path=".."></sv-footer>
+
+    <script>
+        function updateFromSlider(type) {
+            const slider = document.getElementById(type + 'Slider');
+            const input = document.getElementById(type + 'Input');
+            const label = document.getElementById(type + 'Label');
+            input.value = slider.value;
+            label.innerText = '₹' + parseInt(slider.value).toLocaleString('en-IN');
+            calculateTax();
+        }
+
+        function updateFromInput(type) {
+            const slider = document.getElementById(type + 'Slider');
+            const input = document.getElementById(type + 'Input');
+            const label = document.getElementById(type + 'Label');
+            
+            let val = parseInt(input.value) || 0;
+            // Bound checks
+            if (val > slider.max) val = slider.max;
+            slider.value = val;
+            label.innerText = '₹' + val.toLocaleString('en-IN');
+            calculateTax();
+        }
+
+        function calculateTax() {
+            const gross = parseFloat(document.getElementById('grossInput').value) || 0;
+            const extraDeductions = parseFloat(document.getElementById('deductInput').value) || 0;
+
+            const STD_NEW = 75000;
+            const STD_OLD = 50000;
+            const CESS = 0.04;
+
+            // --- New Regime Logic (Budget 2025) ---
+            let taxableNew = Math.max(0, gross - STD_NEW);
+            let taxNewBefore = 0;
+
+            if (taxableNew > 2400000) taxNewBefore += (taxableNew - 2400000) * 0.30 + 400000;
+            else if (taxableNew > 2000000) taxNewBefore += (taxableNew - 2000000) * 0.25 + 300000;
+            else if (taxableNew > 1600000) taxNewBefore += (taxableNew - 1600000) * 0.20 + 220000;
+            else if (taxableNew > 1200000) taxNewBefore += (taxableNew - 1200000) * 0.15 + 140000;
+            else if (taxableNew > 800000) taxNewBefore += (taxableNew - 800000) * 0.10 + 60000;
+            else if (taxableNew > 400000) taxNewBefore += (taxableNew - 400000) * 0.05;
+
+            // Section 87A Rebate for New Regime (Up to 12L income pays zero tax)
+            let rebateNew = (taxableNew <= 1200000) ? taxNewBefore : 0;
+            let taxNew = (taxNewBefore - rebateNew) * (1 + CESS);
+
+            // --- Old Regime Logic ---
+            let taxableOld = Math.max(0, gross - STD_OLD - extraDeductions);
+            let taxOldBefore = 0;
+
+            if (taxableOld > 1000000) taxOldBefore += (taxableOld - 1000000) * 0.30 + 112500;
+            else if (taxableOld > 500000) taxOldBefore += (taxableOld - 500000) * 0.20 + 12500;
+            else if (taxableOld > 250000) taxOldBefore += (taxableOld - 250000) * 0.05;
+
+            // Section 87A Rebate for Old Regime (Up to 5L)
+            let rebateOld = (taxableOld <= 500000) ? taxOldBefore : 0;
+            let taxOld = (taxOldBefore - rebateOld) * (1 + CESS);
+
+            // UI Update
+            document.getElementById('res-tax-new').innerText = '₹' + Math.round(taxNew).toLocaleString('en-IN');
+            document.getElementById('res-tax-old').innerText = '₹' + Math.round(taxOld).toLocaleString('en-IN');
+
+            const homeNew = Math.round((gross - taxNew) / 12);
+            const homeOld = Math.round((gross - taxOld) / 12);
+
+            document.getElementById('res-home-new').innerText = '₹' + homeNew.toLocaleString('en-IN');
+            document.getElementById('res-home-old').innerText = '₹' + homeOld.toLocaleString('en-IN');
+
+            const advisorText = document.getElementById('advisorText');
+            const badge = document.getElementById('newBadge');
+
+            if (taxNew < taxOld) {
+                advisorText.innerText = `New Regime saves you ₹${Math.round(taxOld - taxNew).toLocaleString('en-IN')} yearly.`;
+                badge.classList.remove('hidden');
+            } else if (taxOld < taxNew) {
+                advisorText.innerText = `Old Regime saves you ₹${Math.round(taxNew - taxOld).toLocaleString('en-IN')} due to investments.`;
+                badge.classList.add('hidden');
+            } else {
+                advisorText.innerText = "Both regimes are identical for this income level.";
+                badge.classList.add('hidden');
+            }
+        }
+        window.onload = calculateTax;
+    </script>
+</body>
+</html>
