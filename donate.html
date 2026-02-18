@@ -4,87 +4,96 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Support the Vault | SilenVault</title>
-    <link rel="icon" type="image/png" href="assets/img/SILENVAULT_LOGO.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="assets/js/layout.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
-        .payment-card { 
-            background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
-            border: 1px solid #334155;
+        .glass-card { 
+            background: rgba(15, 23, 42, 0.6); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid rgba(51, 65, 85, 0.5); 
             transition: all 0.3s ease;
         }
-        .payment-card:hover { border-color: #3b82f6; transform: translateY(-2px); }
+        .glass-card:hover {
+            border-color: rgba(59, 130, 246, 0.4);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px -20px rgba(0,0,0,0.5);
+        }
+        .scanline {
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0; pointer-events: none;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+            background-size: 100% 4px; opacity: 0.15; z-index: -1;
+        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col relative overflow-x-hidden">
+    
+    <div class="fixed inset-0 pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[100px]"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-600/10 rounded-full blur-[100px]"></div>
+    </div>
 
     <sv-header base-path="."></sv-header>
 
-    <main class="flex-1 max-w-4xl mx-auto w-full px-6 py-16">
-        <div class="text-center mb-12">
-            <h1 class="text-4xl font-extrabold text-white mb-4">Keep the Vault Open.</h1>
-            <p class="text-slate-400 text-lg max-w-2xl mx-auto">
-                SilenVault is 100% free and runs without server-side tracking. Your contributions help cover domain, hosting, and coffee for the architect.
+    <main class="flex-1 max-w-6xl mx-auto w-full px-6 py-20 relative z-10">
+        <div class="text-center mb-16">
+            <h1 class="text-4xl md:text-5xl font-black text-white mb-6 uppercase tracking-tighter">
+                Fuel the <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Initiative</span>
+            </h1>
+            <p class="text-slate-400 max-w-lg mx-auto text-lg leading-relaxed">
+                SilenVault is 100% free and open-standard. Your support covers our domain costs and keeps the code tracking-free.
             </p>
         </div>
 
-        <div class="grid md:grid-cols-2 gap-8">
-            <!-- India Support (UPI) -->
-            <div class="payment-card rounded-2xl p-8 flex flex-col items-center text-center">
-                <div class="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mb-6">
-                    <svg class="w-8 h-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <div class="grid md:grid-cols-3 gap-6">
+            
+            <div class="glass-card p-8 rounded-3xl border-emerald-500/20 relative group">
+                <div class="absolute top-4 right-4 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-2 py-1 rounded border border-emerald-500/20 uppercase tracking-wider">
+                    Zero Fees
                 </div>
-                <h2 class="text-xl font-bold text-white mb-2">Support from India</h2>
-                <p class="text-slate-400 text-sm mb-6">Zero transaction fees via UPI. Best for small amounts.</p>
-                
-                <div class="bg-white p-4 rounded-xl mb-4">
-                    <!-- Replace with your actual UPI QR code or use a generator link -->
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=YOUR_UPI_ID@okaxis%26pn=SilenVault%26cu=INR" alt="UPI QR Code">
+                <div class="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-6 text-emerald-500 group-hover:scale-110 transition-transform">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
+                <h3 class="text-xl font-bold text-white mb-2">Domestic (India)</h3>
+                <p class="text-sm text-slate-400 mb-6">Direct UPI transfer. 100% of your contribution reaches development.</p>
                 
-                <code class="bg-slate-950 px-4 py-2 rounded text-blue-400 text-sm font-mono mb-4 select-all">YOUR_UPI_ID@okaxis</code>
-                <p class="text-[10px] text-slate-500 uppercase tracking-widest">Supports PhonePe, GPay, Paytm</p>
+                <div class="bg-white p-2 rounded-xl w-fit mx-auto mb-4 border-4 border-white shadow-xl">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=Abhishek333k@upi%26pn=SilenVault%26cu=INR" alt="UPI QR" class="w-32 h-32">
+                </div>
+                <div class="text-center">
+                    <code class="text-xs font-mono text-emerald-400 bg-emerald-900/30 px-2 py-1 rounded select-all">Abhishek333k@upi</code>
+                </div>
             </div>
 
-            <!-- Global Support (PayPal) -->
-            <div class="payment-card rounded-2xl p-8 flex flex-col items-center text-center">
-                <div class="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mb-6">
-                    <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 002 2 2 2 0 012 2v.6b3.3 3.3 0 001.635 2.867"></path></svg>
+            <div class="glass-card p-8 rounded-3xl border-blue-500/20 relative group">
+                <div class="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mb-6 text-blue-500 group-hover:scale-110 transition-transform">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944.901C5.026.382 5.474 0 5.998 0h7.46c2.57 0 4.578.543 5.69 1.81 1.01 1.15 1.304 2.42 1.012 4.287-.023.143-.047.288-.077.437-.946 5.05-3.691 6.67-6.936 6.67H10.97l-1.326 8.39c-.066.417-.42.743-.843.743h-1.725z"/></svg>
                 </div>
-                <h2 class="text-xl font-bold text-white mb-2">International Support</h2>
-                <p class="text-slate-400 text-sm mb-6">Support from anywhere in the world via PayPal.</p>
+                <h3 class="text-xl font-bold text-white mb-2">International</h3>
+                <p class="text-sm text-slate-400 mb-8">Secure transfer via PayPal. Supports USD, EUR, and GBP.</p>
                 
-                <a href="https://paypal.me/YOUR_USERNAME" target="_blank" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-blue-500/20 mb-4 flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 3.72a.641.641 0 0 1 .632-.54h7.506c1.759 0 3.1.397 4.022 1.18.913.776 1.34 1.895 1.272 3.326-.037 1.144-.351 2.052-.942 2.723-.591.67-1.399 1.154-2.424 1.452l-.208.06c-.347.101-.527.273-.541.516l-.164 2.812c-.015.253.162.463.414.463h.545c.422 0 .61-.218.665-.558l.182-1.13c.054-.34.343-.586.688-.586h.744c2.61 0 4.545-2.058 4.753-4.522.063-.733-.038-1.423-.3-2.05-.281-.667-.745-1.221-1.385-1.647C18.423 3.864 16.14 3.18 13.082 3.18H5.576L2.402 21.058c-.025.14.08.279.222.279h4.452l.222-1.28c.054-.34.343-.586.688-.586h.744c.422 0 .61.218.665-.558l.21-1.33c.055-.34.343-.586.688-.586h.744c.422 0 .61.218.665-.558l.182-1.13c.054-.34.343-.586.688-.586z"></path></svg>
-                    Pay with PayPal
+                <a href="https://paypal.me/Abhishek333k" target="_blank" class="block w-full bg-[#0070ba] hover:bg-[#005ea6] text-white py-4 rounded-xl font-bold text-center transition-all shadow-lg shadow-blue-500/20">
+                    Send via PayPal
                 </a>
-                
-                <p class="text-xs text-slate-500">Supports Credit Cards & Global Wallets</p>
+                <p class="text-[10px] text-slate-600 text-center mt-3">Standard processing fees apply.</p>
             </div>
-        </div>
 
-        <!-- Transparency Section -->
-        <div class="mt-16 bg-slate-900/50 border border-slate-800 rounded-2xl p-8">
-            <h3 class="text-white font-bold mb-4">Where does the money go?</h3>
-            <div class="grid sm:grid-cols-3 gap-6">
-                <div class="text-center sm:text-left">
-                    <div class="text-blue-400 font-bold text-lg">Infrastructure</div>
-                    <p class="text-xs text-slate-500 mt-1">Domain renewals and high-speed CDN hosting.</p>
+            <div class="glass-card p-8 rounded-3xl border-yellow-500/20 relative group">
+                <div class="w-12 h-12 bg-yellow-500/10 rounded-xl flex items-center justify-center mb-6 text-yellow-500 group-hover:scale-110 transition-transform">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M20.216 6.415l-.132-.666c-.119-.596-.388-1.163-1.001-1.379-.197-.069-.42-.098-.57-.241-1.526-1.448-6.38-1.527-9.956-1.527-2.69 0-5.249.266-6.19.429-.479.082-1.02.226-1.296.696-.241.411-.271.85-.294 1.259-.079 1.406-.217 3.918.066 6.097.23 1.763.903 3.091 1.94 4.339 1.253 1.508 3.023 2.126 4.793 2.164 1.354.029 2.536-.341 3.536-.931.396.199.789.37 1.189.511.238.084.482.164.733.226 2.054.507 5.093-.286 5.093-2.924 0-.874-.329-1.921-.776-2.983-.757-1.796-1.636-3.23-2.135-4.07zm-3.415 5.232c-.396 1.056-.993 2.376-1.636 3.733-1.05 2.215-2.28 2.654-3.151 2.441-.22-.054-.438-.124-.651-.198-.949-.33-1.777-.822-2.348-1.373-1.666-1.609-2.025-3.953-2.264-5.698-.069-1.851.057-3.837.135-4.839.014-.182.024-.342.08-.435.034-.058.204-.129.435-.169 1.319-.228 3.869-.459 5.89-.459 2.973 0 6.6.039 7.739 1.111.054.051.109.076.166.104.37.181.564.551.626 1.028.109.844.207 1.636.207 2.296-.002.827-.535 1.569-1.228 2.458z"/></svg>
                 </div>
-                <div class="text-center sm:text-left">
-                    <div class="text-emerald-400 font-bold text-lg">Development</div>
-                    <p class="text-xs text-slate-500 mt-1">Building new local-first tools (PDF, Image, SEO).</p>
-                </div>
-                <div class="text-center sm:text-left">
-                    <div class="text-pink-400 font-bold text-lg">Maintenance</div>
-                    <p class="text-xs text-slate-500 mt-1">Keeping the legal docs and security up to date.</p>
-                </div>
+                <h3 class="text-xl font-bold text-white mb-2">Alternative</h3>
+                <p class="text-sm text-slate-400 mb-8">Support via Credit Card or Apple Pay using "Buy Me a Coffee".</p>
+                
+                <a href="https://buymeacoffee.com/Abhishek333k" target="_blank" class="block w-full bg-[#ffdd00] hover:bg-[#e6c700] text-slate-900 py-4 rounded-xl font-bold text-center transition-all shadow-lg shadow-yellow-500/20">
+                    Buy Me a Coffee
+                </a>
             </div>
+
         </div>
     </main>
 
-    <sv-footer base-path="."></sv-header>
-
+    <sv-footer base-path="."></sv-footer>
 </body>
-</html>    
+</html>
