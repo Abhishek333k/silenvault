@@ -20,11 +20,6 @@
             transform: translateY(-5px);
             box-shadow: 0 20px 40px -20px rgba(0,0,0,0.5);
         }
-        .scanline {
-            width: 100%; height: 100%; position: absolute; top: 0; left: 0; pointer-events: none;
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
-            background-size: 100% 4px; opacity: 0.15; z-index: -1;
-        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col relative overflow-x-hidden">
@@ -56,13 +51,17 @@
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
                 <h3 class="text-xl font-bold text-white mb-2">Domestic (India)</h3>
-                <p class="text-sm text-slate-400 mb-6">Direct UPI transfer. 100% of your contribution reaches development.</p>
+                <p class="text-sm text-slate-400 mb-6">Tap QR to pay via GPay, PhonePe, or Paytm.</p>
                 
-                <div class="bg-white p-2 rounded-xl w-fit mx-auto mb-4 border-4 border-white shadow-xl">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=Abhishek333k@upi%26pn=SilenVault%26cu=INR" alt="UPI QR" class="w-32 h-32">
-                </div>
+                <a href="upi://pay?pa=Abhishek333k@upi&pn=SilenVault&cu=INR" class="block bg-white p-2 rounded-xl w-fit mx-auto mb-4 border-4 border-white shadow-xl hover:scale-105 transition-transform cursor-pointer" title="Tap to Open Payment App">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=Abhishek333k@upi%26pn=SilenVault%26cu=INR" alt="Tap to Pay" class="w-32 h-32">
+                </a>
+                
                 <div class="text-center">
-                    <code class="text-xs font-mono text-emerald-400 bg-emerald-900/30 px-2 py-1 rounded select-all">Abhishek333k@upi</code>
+                    <a href="upi://pay?pa=Abhishek333k@upi&pn=SilenVault&cu=INR" class="text-xs font-mono text-emerald-400 bg-emerald-900/30 px-3 py-2 rounded hover:bg-emerald-800/50 transition-colors border border-emerald-500/20 block w-full">
+                        Abhishek333k@upi
+                        <span class="block text-[10px] text-emerald-600 mt-1 uppercase font-bold tracking-widest">Tap to Pay</span>
+                    </a>
                 </div>
             </div>
 
