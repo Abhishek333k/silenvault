@@ -1,7 +1,8 @@
 class SVHeader extends HTMLElement {
     connectedCallback() {
         const basePath = this.getAttribute('base-path') || '.';
-        const sponsorLink = "https://buymeacoffee.com/Abhishek333k";
+        // ARCHITECT FIX: Pointing to internal donation hub
+        const sponsorLink = `${basePath}/donate`; 
 
         // Automated Favicon Injection
         let favicon = document.querySelector("link[rel~='icon']");
@@ -27,7 +28,7 @@ class SVHeader extends HTMLElement {
                         
                         <div class="h-6 w-px bg-slate-800 hidden md:block"></div>
                         
-                        <a href="${sponsorLink}" target="_blank" class="flex items-center gap-2 text-xs font-bold text-white bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20">
+                        <a href="${sponsorLink}" class="flex items-center gap-2 text-xs font-bold text-white bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/20">
                             Sponsor
                         </a>
 
@@ -44,7 +45,7 @@ class SVHeader extends HTMLElement {
 class SVFooter extends HTMLElement {
     connectedCallback() {
         const basePath = this.getAttribute('base-path') || '.';
-        const sponsorLink = "https://buymeacoffee.com/Abhishek333k";
+        const sponsorLink = `${basePath}/donate`;
         
         this.innerHTML = `
             <footer class="bg-slate-950 border-t border-slate-900 py-16 mt-auto">
@@ -63,7 +64,7 @@ class SVFooter extends HTMLElement {
                             <h4 class="text-white font-semibold mb-6">Directory</h4>
                             <ul class="space-y-3 text-sm text-slate-500">
                                 <li><a href="${basePath}/index" class="hover:text-blue-400 transition-colors">Global Hub</a></li>
-                                <li><a href="${sponsorLink}" target="_blank" class="hover:text-blue-400 transition-colors">Become a Sponsor</a></li>
+                                <li><a href="${sponsorLink}" class="hover:text-blue-400 transition-colors">Become a Sponsor</a></li>
                             </ul>
                         </div>
                         <div>
@@ -88,8 +89,36 @@ class SVFooter extends HTMLElement {
 customElements.define('sv-header', SVHeader);
 customElements.define('sv-footer', SVFooter);
 
+// ARCHITECT FIX: Restored the Smooth Toast Notification
 window.bookmarkSite = function() {
     const isMac = /Mac/i.test(navigator.userAgent);
     const hotkey = isMac ? 'Cmd + D' : 'Ctrl + D';
-    alert(`Press ${hotkey} to save the Vault.`);
+    
+    // Prevent stacking multiple toasts
+    if (document.getElementById('sv-toast')) return;
+
+    const toast = document.createElement('div');
+    toast.id = 'sv-toast';
+    toast.className = "fixed bottom-6 right-6 bg-slate-800 text-white px-6 py-4 rounded-xl shadow-2xl z-[100] flex items-center gap-4 animate-bounce border border-slate-700 cursor-pointer";
+    toast.style.animation = "slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)";
+    toast.innerHTML = `
+        <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center text-blue-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+        </div>
+        <div>
+            <p class="text-sm font-bold text-white">Save to Bookmarks</p>
+            <p class="text-xs text-slate-400">Press <code class="bg-slate-900 px-1 py-0.5 rounded border border-slate-700 text-slate-300 font-mono">${hotkey}</code> to secure this vault.</p>
+        </div>
+    `;
+    
+    // Auto-remove logic
+    const removeToast = () => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(20px)';
+        setTimeout(() => toast.remove(), 300);
+    };
+
+    toast.onclick = removeToast;
+    document.body.appendChild(toast);
+    setTimeout(removeToast, 5000);
 };
