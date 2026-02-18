@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Image Compressor | SilenVault</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="../assets/js/layout.js" defer></script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
+        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        
+        /* Tech Slider */
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; background: #0f172a; border-radius: 4px; border: 1px solid #1e293b; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%; background: #3b82f6; border: 2px solid #60a5fa; cursor: pointer; margin-top: -9px; box-shadow: 0 0 15px rgba(59, 130, 246, 0.6); transition: transform 0.1s; }
+        .scale-tick { position: relative; height: 6px; width: 1px; background: #334155; margin-top: 4px; }
+        .scale-label { font-size: 10px; color: #64748b; margin-top: 4px; text-align: center; width: 20px; margin-left: -10px; }
+        .sv-select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; appearance: none; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <sv-header base-path=".."></sv-header>
+
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-12 flex flex-col lg:flex-row gap-8">
+        
+        <div class="flex-1">
+            <div id="dropZone" class="glass-panel rounded-2xl p-12 mb-8 text-center cursor-pointer border-2 border-dashed border-slate-700 hover:border-blue-500 transition-colors group" onclick="document.getElementById('fileInput').click()">
+                <input type="file" id="fileInput" accept="image/jpeg, image/png, image/webp" class="hidden" onchange="handleFile(this.files[0])">
+                <div class="pointer-events-none group-hover:scale-105 transition-transform">
+                    <div class="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-6 text-blue-500 border border-blue-500/20 group-hover:border-blue-500">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Drop Image Here</h3>
+                    <p class="text-sm text-slate-500">Supports JPG, PNG, WebP (Max 20MB)</p>
+                </div>
+            </div>
+
+            <div id="editorArea" class="hidden space-y-8">
+                
+                <div class="glass-panel p-8 rounded-3xl border-blue-500/20">
+                    <div class="grid md:grid-cols-2 gap-8 mb-8">
+                        <div>
+                            <div class="flex justify-between items-end mb-4">
+                                <div>
+                                    <label class="text-sm font-bold text-slate-300 uppercase tracking-wider">Quality Level</label>
+                                    <p class="text-xs text-slate-500 mt-1">Lower = Smaller File</p>
+                                </div>
+                                <div class="text-right bg-slate-900 px-3 py-1 rounded border border-slate-800">
+                                    <span id="qualityVal" class="text-xl font-mono font-bold text-blue-400">75%</span>
+                                </div>
+                            </div>
+                            <div class="relative px-2">
+                                <input type="range" id="qualitySlider" min="1" max="100" value="75" oninput="updateCompression()">
+                                <div class="flex justify-between mt-2 select-none">
+                                    <div><div class="scale-tick"></div><div class="scale-label">0</div></div>
+                                    <div><div class="scale-tick"></div><div class="scale-label">50</div></div>
+                                    <div><div class="scale-tick"></div><div class="scale-label">100</div></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-2 block">Max Width</label>
+                                <select id="resizeSelect" onchange="updateCompression()" class="sv-select w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors">
+                                    <option value="0">Original Dimensions</option>
+                                    <option value="1920">1920px (Full HD)</option>
+                                    <option value="1280">1280px (HD)</option>
+                                    <option value="800">800px (Web)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-2 block">Output Format</label>
+                                <select id="formatSelect" onchange="updateCompression()" class="sv-select w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors">
+                                    <option value="image/webp">WebP (Best Compression)</option>
+                                    <option value="image/jpeg">JPEG (Standard)</option>
+                                    <option value="image/png">PNG (Lossless)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="advisorBox" class="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 flex gap-4 items-center">
+                        <div class="p-2 bg-blue-500/20 rounded-lg text-blue-400">
+                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <div>
+                            <h4 id="advisorTitle" class="font-bold text-white text-sm">Balanced Optimization</h4>
+                            <p id="advisorText" class="text-xs text-slate-400 mt-0.5">Best for websites. Good reduction with sharp details.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="glass-panel p-4 rounded-2xl opacity-60">
+                        <div class="flex justify-between mb-3 text-sm border-b border-slate-700 pb-2">
+                            <span class="text-slate-400 font-medium">Original</span>
+                            <div class="text-right">
+                                <span id="origSize" class="font-mono text-white block">0 KB</span>
+                                <span id="origDims" class="text-[10px] text-slate-500">0x0</span>
+                            </div>
+                        </div>
+                        <div class="h-64 flex items-center justify-center bg-slate-900/50 rounded-lg overflow-hidden">
+                            <img id="origImg" class="max-w-full max-h-full object-contain">
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-2xl border-blue-500/30 relative group">
+                        <div class="flex justify-between mb-3 text-sm border-b border-slate-700 pb-2">
+                            <span class="text-blue-400 font-bold">Result</span>
+                            <div class="text-right">
+                                <span id="compSize" class="font-mono text-white block">0 KB</span>
+                                <span id="compDims" class="text-[10px] text-slate-500">0x0</span>
+                            </div>
+                        </div>
+                        
+                        <div class="h-64 flex items-center justify-center bg-slate-900/50 rounded-lg overflow-hidden relative">
+                            <div class="absolute top-2 right-2 bg-slate-900/80 backdrop-blur-md text-slate-300 text-xs font-bold px-3 py-1 rounded-full shadow-lg border border-slate-700 z-10" id="savedBadge">
+                                Ready
+                            </div>
+                            <img id="compImg" class="max-w-full max-h-full object-contain">
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3 mt-4">
+                            <button onclick="resetTool()" class="py-3 rounded-xl border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 font-bold transition-all text-sm">
+                                Start Over
+                            </button>
+                            <button onclick="downloadCompressed()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-500/20 flex justify-center gap-2 items-center">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                Save File
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-12 glass-panel p-4 rounded-2xl flex flex-col items-center justify-center min-h-[150px]">
+                <span class="text-[10px] uppercase tracking-widest text-slate-600 mb-2">Sponsored</span>
+                <ins class="adsbygoogle"
+                     style="display:block; width: 100%;"
+                     data-ad-client="ca-pub-5449371042798610"
+                     data-ad-slot="7594122081"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+            </div>
+        </div>
+
+        <aside class="w-full lg:w-80 flex flex-col gap-6 shrink-0">
+            <div class="glass-panel p-6 rounded-2xl">
+                <h3 class="font-bold text-white mb-4">Format Guide</h3>
+                <div class="space-y-4 text-xs">
+                    <div class="flex gap-3">
+                        <div class="font-bold text-blue-400 w-12">WebP</div>
+                        <span class="text-slate-400">Modern standard. 30% smaller than JPEG. Best for everything.</span>
+                    </div>
+                    <div class="flex gap-3">
+                        <div class="font-bold text-slate-300 w-12">JPEG</div>
+                        <span class="text-slate-400">Classic compatibility. Good for photos, bad for text.</span>
+                    </div>
+                    <div class="flex gap-3">
+                        <div class="font-bold text-slate-300 w-12">PNG</div>
+                        <span class="text-slate-400">Lossless. Huge file size. Only for transparent backgrounds.</span>
+                    </div>
+                </div>
+            </div>
+            <div class="glass-panel p-4 rounded-2xl flex flex-col items-center justify-center min-h-[600px] sticky top-24">
+                <span class="text-[10px] uppercase tracking-widest text-slate-600 mb-2">Partner</span>
+                <ins class="adsbygoogle" style="display:block; width: 100%; height: 100%;" data-ad-client="ca-pub-5449371042798610" data-ad-slot="9264203071" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+            </div>
+        </aside>
+
+    </main>
+
+    <sv-footer base-path=".."></sv-footer>
+
+    <script>
+        let originalFile = null;
+        let compressedBlob = null;
+
+        function handleFile(file) {
+            if (!file) return;
+            if (!file.type.match('image.*')) {
+                alert("Please select a valid image file (JPG, PNG, WebP).");
+                return;
+            }
+            originalFile = file;
+            
+            const img = new Image();
+            img.src = URL.createObjectURL(file);
+            img.onload = () => {
+                document.getElementById('origSize').innerText = formatBytes(file.size);
+                document.getElementById('origDims').innerText = `${img.width}x${img.height}`;
+                document.getElementById('origImg').src = img.src;
+                
+                // Smart Defaults
+                if (img.width > 2500) document.getElementById('resizeSelect').value = "1920";
+                
+                document.getElementById('dropZone').classList.add('hidden');
+                document.getElementById('editorArea').classList.remove('hidden');
+                updateCompression();
+            };
+        }
+
+        function resetTool() {
+            originalFile = null;
+            compressedBlob = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('editorArea').classList.add('hidden');
+            document.getElementById('dropZone').classList.remove('hidden');
+        }
+
+        let timeout;
+        function updateCompression() {
+            const quality = document.getElementById('qualitySlider').value;
+            document.getElementById('qualityVal').innerText = quality + '%';
+            updateAdvisor(parseInt(quality));
+
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                performCompression(quality);
+            }, 50);
+        }
+
+        function performCompression(quality) {
+            if (!originalFile) return;
+
+            const reader = new FileReader();
+            reader.readAsDataURL(originalFile);
+            reader.onload = event => {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    // Resize Logic
+                    const maxWidth = parseInt(document.getElementById('resizeSelect').value);
+                    if (maxWidth > 0 && width > maxWidth) {
+                        const ratio = maxWidth / width;
+                        width = maxWidth;
+                        height = img.height * ratio;
+                    }
+
+                    // ARCHITECT FIX: Integer Math
+                    canvas.width = Math.floor(width);
+                    canvas.height = Math.floor(height);
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, Math.floor(width), Math.floor(height));
+
+                    // ARCHITECT FIX: User Selected Format (Defaults to WebP)
+                    const format = document.getElementById('formatSelect').value;
+
+                    canvas.toBlob(blob => {
+                        if (!blob) return;
+                        compressedBlob = blob;
+                        document.getElementById('compImg').src = URL.createObjectURL(blob);
+                        document.getElementById('compSize').innerText = formatBytes(blob.size);
+                        document.getElementById('compDims').innerText = `${canvas.width}x${canvas.height}`;
+                        
+                        const savings = ((originalFile.size - blob.size) / originalFile.size) * 100;
+                        const badge = document.getElementById('savedBadge');
+                        
+                        if (savings > 0) {
+                            badge.innerText = 'SAVED ' + Math.round(savings) + '%';
+                            badge.className = "absolute top-2 right-2 bg-emerald-500/90 backdrop-blur-md text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-10 border border-emerald-400/30";
+                        } else {
+                            badge.innerText = 'LARGER'; 
+                            badge.className = "absolute top-2 right-2 bg-red-500/90 backdrop-blur-md text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-10 border border-red-400/30";
+                        }
+                    }, format, quality / 100);
+                }
+            }
+        }
+
+        function updateAdvisor(q) {
+            const title = document.getElementById('advisorTitle');
+            const text = document.getElementById('advisorText');
+            
+            if (q >= 90) {
+                title.innerText = "Archival Quality";
+                text.innerText = "Maximum detail. Minimal compression.";
+            } else if (q >= 75) {
+                title.innerText = "Balanced Optimization";
+                text.innerText = "The sweet spot. Great savings, sharp details.";
+            } else {
+                title.innerText = "Aggressive Compression";
+                text.innerText = "Max savings. Visible artifacts possible.";
+            }
+        }
+
+        function downloadCompressed() {
+            if (!compressedBlob) return;
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(compressedBlob);
+            
+            const q = document.getElementById('qualitySlider').value;
+            const format = document.getElementById('formatSelect').value;
+            // Map MIME type to extension
+            const extMap = { 'image/webp': 'webp', 'image/jpeg': 'jpg', 'image/png': 'png' };
+            const outExt = extMap[format] || 'jpg';
+            
+            const name = originalFile.name.split('.')[0];
+            a.download = `${name}_opt_${q}.${outExt}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    </script>
+</body>
+</html>
