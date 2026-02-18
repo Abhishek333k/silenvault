@@ -7,15 +7,15 @@ class SVHeader extends HTMLElement {
         this.innerHTML = `
             <nav class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                    <a href="${basePath}/index.html" class="flex items-center gap-3 transition-transform hover:scale-105">
+                    <a href="${basePath}/index" class="flex items-center gap-3 transition-transform hover:scale-105">
                         <img src="${basePath}/assets/img/SILENVAULT_CREST.png" alt="SilenVault Crest" class="h-8 w-auto object-contain">
                         <span class="text-xl font-bold tracking-tight text-white hidden md:block">Silen<span class="text-blue-500">Vault</span></span>
                     </a>
                     
                     <div class="flex items-center gap-4">
                         <div class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-400">
-                            <a href="${basePath}/index.html#dev-tools" class="hover:text-white transition-colors">Dev Tools</a>
-                            <a href="${basePath}/index.html#business" class="hover:text-white transition-colors">Business</a>
+                            <a href="${basePath}/index#dev-tools" class="hover:text-white transition-colors">Dev Tools</a>
+                            <a href="${basePath}/index#business" class="hover:text-white transition-colors">Business</a>
                         </div>
                         
                         <div class="h-6 w-px bg-slate-800 hidden md:block"></div>
@@ -68,7 +68,7 @@ class SVFooter extends HTMLElement {
                         <div>
                             <h4 class="text-white font-semibold mb-4">Ecosystem</h4>
                             <ul class="space-y-2 text-sm text-slate-500">
-                                <li><a href="${basePath}/index.html" class="hover:text-blue-400 transition-colors">All Tools</a></li>
+                                <li><a href="${basePath}/index" class="hover:text-blue-400 transition-colors">All Tools</a></li>
                                 <li><a href="https://github.com/sponsors/abhishek333k" class="hover:text-pink-400 transition-colors">Become a Sponsor</a></li>
                                 <li><a href="mailto:contact@silenvault.com" class="hover:text-blue-400 transition-colors">Submit a Template</a></li>
                             </ul>
@@ -76,9 +76,9 @@ class SVFooter extends HTMLElement {
                         <div>
                             <h4 class="text-white font-semibold mb-4">Legal</h4>
                             <ul class="space-y-2 text-sm text-slate-500">
-                                <li><a href="${basePath}/policies/terms.html" class="hover:text-blue-400 transition-colors">Terms of Service</a></li>
-                                <li><a href="${basePath}/policies/privacy.html" class="hover:text-blue-400 transition-colors">Privacy Policy</a></li>
-                                <li><a href="${basePath}/policies/disclaimer.html" class="hover:text-blue-400 transition-colors">Disclaimer</a></li>
+                                <li><a href="${basePath}/policies/terms" class="hover:text-blue-400 transition-colors">Terms of Service</a></li>
+                                <li><a href="${basePath}/policies/privacy" class="hover:text-blue-400 transition-colors">Privacy Policy</a></li>
+                                <li><a href="${basePath}/policies/disclaimer" class="hover:text-blue-400 transition-colors">Disclaimer</a></li>
                             </ul>
                         </div>
                     </div>
