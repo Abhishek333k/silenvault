@@ -12,6 +12,16 @@ class SVHeader extends HTMLElement {
             document.head.appendChild(favicon);
         }
         favicon.href = `${basePath}/assets/img/SILENVAULT_CREST.png`;
+        
+        if (!document.getElementById('sv-adsense')) {
+            const adScript = document.createElement('script');
+            adScript.id = 'sv-adsense';
+            adScript.async = true;
+            // Your Publisher ID from ads.txt
+            adScript.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610";
+            adScript.crossOrigin = "anonymous";
+            document.head.appendChild(adScript);
+        }
 
         this.innerHTML = `
             <nav class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50">
