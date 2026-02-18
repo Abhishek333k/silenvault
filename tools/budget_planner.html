@@ -232,6 +232,38 @@
             if (savedLimit) document.getElementById('projectLimit').value = savedLimit;
             render();
         };
+
+        // ARCHITECT: CSV Export Logic
+        function exportToCSV() {
+            if (expenses.length === 0) {
+                alert("No data to export.");
+                return;
+            }
+        
+            // 1. Create CSV Header
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Item Description,Category,Cost (INR)\r\n";
+        
+            // 2. Loop through expenses
+            expenses.forEach(e => {
+                const row = `"${e.desc.replace(/"/g, '""')}",${e.cat},${e.cost}`;
+                csvContent += row + "\r\n";
+            });
+        
+            // 3. Add Totals Row
+            const totalSpent = expenses.reduce((sum, e) => sum + e.cost, 0);
+            csvContent += `\r\nTOTAL SPENT,,${totalSpent}`;
+        
+            // 4. Trigger Download
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `SilenVault_Budget_${new Date().toLocaleDateString()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
     </script>
 </body>
 </html>
