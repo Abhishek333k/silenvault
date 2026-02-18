@@ -5,67 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>500 | System Halt</title>
     <meta name="robots" content="noindex">
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="assets/js/layout.js" defer></script>
-    
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
         .mono { font-family: 'Fira Code', monospace; }
-        .glitch-text { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .glitch-text { animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
-        
-        /* ARCHITECT ADDITION: Functional Scanline */
-        .scanline {
-            width: 100%; height: 2px; background: rgba(239, 68, 68, 0.1);
-            position: fixed; top: 0; left: 0; pointer-events: none;
-            animation: scan 4s linear infinite; z-index: 50;
-        }
-        @keyframes scan { 0% { top: -10%; } 100% { top: 110%; } }
     </style>
 </head>
 <body class="min-h-screen flex flex-col bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-900/10 via-slate-950 to-slate-950">
 
-    <div class="scanline"></div>
-
     <sv-header base-path="."></sv-header>
 
     <main class="flex-1 flex flex-col items-center justify-center text-center px-4 space-y-8 relative z-10">
-        
-        <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 shadow-[0_0_30px_rgba(239,68,68,0.2)]">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
+        <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
         </div>
 
         <div class="space-y-2">
-            <h1 class="text-4xl md:text-5xl font-black text-white tracking-tight">SYSTEM <span class="text-red-500 glitch-text">HALTED</span></h1>
-            <p class="mono text-red-400 text-sm uppercase tracking-[0.3em]">Critical Error 500: Infrastructure Breach</p>
+            <h1 class="text-4xl md:text-5xl font-black text-white tracking-tight uppercase">System <span class="text-red-500 glitch-text">Halted</span></h1>
+            <p class="mono text-red-400 text-sm uppercase tracking-[0.3em]">Critical Error 500: Internal Malfunction</p>
         </div>
-
-        <p class="text-slate-400 leading-relaxed max-w-md mx-auto">
-            The SilenVault engine encountered an unexpected internal exception. Our automated recovery protocols have been engaged.
-        </p>
 
         <div class="bg-slate-900/80 border border-red-900/30 rounded-xl p-6 text-left shadow-2xl backdrop-blur-sm w-full max-w-md mx-auto">
             <h3 class="mono text-xs font-bold text-slate-500 mb-4 uppercase tracking-widest">Diagnostic Log</h3>
             <div class="space-y-2 mono text-[11px]">
                 <p class="text-slate-500 flex justify-between"><span>Request Status:</span> <span class="text-red-500">FAILED</span></p>
                 <p class="text-slate-500 flex justify-between"><span>Data Integrity:</span> <span class="text-emerald-500">SECURE (LOCAL)</span></p>
-                <p class="text-slate-500 flex justify-between"><span>Action Required:</span> <span class="text-blue-400">HARD RELOAD</span></p>
             </div>
         </div>
 
         <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <button onclick="window.location.reload()" class="w-full sm:w-auto bg-white text-slate-950 px-8 py-3 rounded-lg font-bold hover:bg-slate-200 transition-all shadow-lg">
-                Attempt Recovery
-            </button>
-            <a href="index.html" class="w-full sm:w-auto text-slate-400 hover:text-white px-8 py-3 rounded-lg font-semibold transition-colors border border-slate-800">
-                Return to Hub
-            </a>
+            <button onclick="window.location.reload()" class="bg-white text-slate-950 px-8 py-3 rounded-lg font-bold hover:bg-slate-200 transition-all">Attempt Recovery</button>
+            <a href="index.html" class="text-slate-400 hover:text-white px-8 py-3 rounded-lg font-semibold border border-slate-800">Return Home</a>
         </div>
-
     </main>
 
     <sv-footer base-path="."></sv-footer>
