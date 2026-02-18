@@ -55,7 +55,7 @@ class SVFooter extends HTMLElement {
                         <div class="col-span-2">
                             <span class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
                                 <img src="${basePath}/assets/img/SILENVAULT_CREST.png" alt="SilenVault Crest" class="h-6 w-auto object-contain grayscale opacity-50">
-                                SilenVault <span class="text-xs align-top text-slate-500">LLP</span>
+                                SilenVault <span class="text-xs align-top text-slate-500"></span>
                             </span>
                             <p class="text-slate-500 text-sm mt-4 max-w-xs leading-relaxed">
                                 The open-standard for local-first operations. Secure, offline-capable, and transparent.
@@ -83,7 +83,7 @@ class SVFooter extends HTMLElement {
                         </div>
                     </div>
                     <div class="border-t border-slate-900 mt-12 pt-8 text-center text-xs text-slate-600">
-                        &copy; 2026 SilenVault LLP. All rights reserved. 
+                        &copy; 2026 SilenVault. All rights reserved. 
                     </div>
                 </div>
             </footer>
