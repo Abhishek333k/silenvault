@@ -3,82 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SilenVault | Industrial Utility Suite</title>
+    <title>SilenVault | SaaS Operations Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="assets/js/layout.js" defer></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #09090b; color: #fafafa; }
-        .bento-card { 
-            background: #121214; 
-            border: 1px solid #27272a; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; scroll-behavior: smooth; }
+        
+        /* Smooth Dashboard Glows */
+        .glow-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
+            pointer-events: none; z-index: -1;
         }
-        .bento-card:hover { 
-            border-color: #6366f1; 
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px -15px rgba(99, 102, 241, 0.3);
+
+        .bento-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+        
+        .tool-card { 
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        ::selection { background: #6366f1; color: white; }
+        
+        /* Smooth Hover Transitions */
+        .tool-card:hover { 
+            transform: translateY(-5px);
+            background: rgba(15, 23, 42, 0.8);
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.5);
+        }
+
+        .search-wrapper:focus-within { border-color: #3b82f6; box-shadow: 0 0 20px -5px rgba(59, 130, 246, 0.3); }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
+    <div class="glow-bg"></div>
 
     <sv-header base-path="."></sv-header>
 
-    <header class="pt-32 pb-20 px-4 text-center">
-        <h1 class="text-6xl md:text-8xl font-black tracking-tighter text-white mb-6 uppercase">
-            Vault <span class="text-zinc-800">Alpha.</span>
-        </h1>
-        <p class="text-zinc-500 font-bold max-w-lg mx-auto text-xs uppercase tracking-[0.3em] mb-12">
-            Secure Infrastructure for the Modern Builder.
-        </p>
+    <header class="relative pt-24 pb-16 px-4 text-center">
+        <img src="assets/img/Banner_with_CREST.png" alt="SilenVault" class="h-16 md:h-20 mx-auto mb-8 drop-shadow-[0_0_15px_rgba(59,130,246,0.2)]">
 
-        <div class="max-w-xl mx-auto relative">
-            <input type="text" id="toolSearch" placeholder="SEARCH SYSTEM TOOLS..." 
-                   class="w-full bg-zinc-900 border border-zinc-800 text-white px-6 py-4 rounded font-bold tracking-widest text-[10px] focus:outline-none focus:border-indigo-500 transition-all placeholder-zinc-700 uppercase"
+        <h1 class="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">
+            Digital Infrastructure.<br>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 font-extrabold text-glow">Zero Data Leaks.</span>
+        </h1>
+        
+        <div class="max-w-xl mx-auto relative search-wrapper border border-slate-800 rounded-2xl bg-slate-900/40 backdrop-blur-md transition-all mb-12">
+            <input type="text" id="toolSearch" placeholder="Search system tools..." 
+                   class="w-full bg-transparent border-none text-white px-6 py-4 focus:outline-none rounded-2xl placeholder-slate-600 font-medium"
                    onkeyup="filterTools()">
         </div>
     </header>
 
-    <main class="max-w-6xl mx-auto w-full px-6 pb-32 flex-1">
-        <div id="dev-tools" class="mb-20">
-            <h2 class="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600 mb-8 flex items-center gap-4">
-                <span class="h-px bg-zinc-800 flex-1"></span>
-                Developer Utilities
-            </h2>
-            <div class="grid md:grid-cols-3 gap-4">
-                <a href="tools/html_viewer" class="bento-card p-8 rounded-lg block group">
-                    <h3 class="text-white font-bold mb-2 group-hover:text-indigo-400 transition-colors uppercase tracking-tight">HTML Console</h3>
-                    <p class="text-zinc-500 text-xs leading-relaxed font-medium">Local-first sandbox for logic testing.</p>
-                </a>
-                <a href="tools/json_tool" class="bento-card p-8 rounded-lg block group">
-                    <h3 class="text-white font-bold mb-2 group-hover:text-indigo-400 transition-colors uppercase tracking-tight">JSON Architect</h3>
-                    <p class="text-zinc-500 text-xs leading-relaxed font-medium">Object validation and transformation.</p>
-                </a>
-                <a href="tools/unit_converter" class="bento-card p-8 rounded-lg block group">
-                    <h3 class="text-white font-bold mb-2 group-hover:text-indigo-400 transition-colors uppercase tracking-tight">Omni-Converter</h3>
-                    <p class="text-zinc-500 text-xs leading-relaxed font-medium">Scientific unit translation engine.</p>
-                </a>
-            </div>
+    <main class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-32 flex flex-col lg:flex-row gap-12 flex-1">
+        
+        <div class="flex-1 space-y-20">
+            <section id="business">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="h-8 w-1 bg-emerald-500 rounded-full shadow-[0_0_10px_#10b981]"></div>
+                    <h2 class="text-xl font-bold text-white tracking-tight uppercase">Business Operations</h2>
+                </div>
+                <div class="bento-grid">
+                    <a href="tools/gst_calculator" class="tool-card p-8 rounded-3xl block group">
+                        <div class="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-6 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-inner">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">GST Tax Engine</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Secure tax breakdowns and audit-ready reports for global ledgers.</p>
+                    </a>
+                </div>
+            </section>
+
+            <section id="dev-tools">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="h-8 w-1 bg-blue-500 rounded-full shadow-[0_0_10px_#3b82f6]"></div>
+                    <h2 class="text-xl font-bold text-white tracking-tight uppercase">Developer Utilities</h2>
+                </div>
+                <div class="bento-grid">
+                    <a href="tools/html_viewer" class="tool-card p-8 rounded-3xl block group border-blue-500/10">
+                        <div class="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mb-6 text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all shadow-inner">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">HTML Console</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Secure sandbox for rapid logic testing and DOM rendering.</p>
+                    </a>
+                    <a href="tools/json_tool" class="tool-card p-8 rounded-3xl block group border-pink-500/10">
+                        <div class="w-12 h-12 bg-pink-500/10 rounded-xl flex items-center justify-center mb-6 text-pink-500 group-hover:bg-pink-500 group-hover:text-white transition-all shadow-inner">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">JSON Architect</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Object validation, minification, and secure data transformation.</p>
+                    </a>
+                </div>
+            </section>
         </div>
 
-        <div id="business">
-            <h2 class="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-600 mb-8 flex items-center gap-4">
-                <span class="h-px bg-zinc-800 flex-1"></span>
-                Business Operations
-            </h2>
-            <div class="grid md:grid-cols-2 gap-4">
-                <a href="tools/gst_calculator" class="bento-card p-10 rounded-lg block group">
-                    <h3 class="text-2xl font-black text-white mb-2 group-hover:text-indigo-400 transition-colors uppercase tracking-tighter">Tax Engine</h3>
-                    <p class="text-zinc-500 text-sm leading-relaxed font-medium">Instant GST/VAT breakdown for global business ledgers.</p>
-                </a>
-                <div class="bento-card p-10 rounded-lg border-dashed border-zinc-800 opacity-30 select-none">
-                    <h3 class="text-2xl font-black text-zinc-800 mb-2 uppercase tracking-tighter">Asset Generator</h3>
-                    <p class="text-zinc-700 text-[10px] font-bold tracking-widest uppercase">System Initializing...</p>
-                </div>
+        <aside class="w-full lg:w-80 flex flex-col gap-6 shrink-0">
+            <div class="bg-slate-900/40 backdrop-blur-md border border-slate-800 rounded-3xl p-8 sticky top-24">
+                <h3 class="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-6 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span>
+                    System Integrity
+                </h3>
+                <ul class="space-y-6 text-sm text-slate-400">
+                    <li><strong class="text-white block mb-1">Local-First</strong> Processing occurs in browser memory. No data is stored or transmitted.</li>
+                    <li><strong class="text-white block mb-1">High Velocity</strong> Zero network overhead ensures instant execution speeds.</li>
+                </ul>
             </div>
-        </div>
+        </aside>
+
     </main>
 
     <sv-footer base-path="."></sv-footer>
@@ -87,10 +123,11 @@
         function filterTools() {
             const input = document.getElementById('toolSearch');
             const filter = input.value.toUpperCase();
-            const cards = document.querySelectorAll('.bento-card');
+            const cards = document.querySelectorAll('.tool-card');
             cards.forEach(card => {
                 const title = card.querySelector('h3')?.innerText || "";
-                card.style.display = title.toUpperCase().includes(filter) ? "block" : "none";
+                const desc = card.querySelector('p')?.innerText || "";
+                card.style.display = (title.toUpperCase().includes(filter) || desc.toUpperCase().includes(filter)) ? "block" : "none";
             });
         }
     </script>
