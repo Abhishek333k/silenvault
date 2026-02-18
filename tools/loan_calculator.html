@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Architect | SilenVault</title>
+    <meta name="description" content="Professional loan calculator. Amortized, Deferred, and Bond calculations with custom compounding and payment frequencies.">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="../assets/js/layout.js" defer></script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
+        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .input-group { background: #0f172a; border: 1px solid #1e293b; border-radius: 0.75rem; transition: all 0.2s; }
+        .input-group:focus-within { border-color: #10b981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
+        .sv-select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; -webkit-print-color-adjust: exact; appearance: none; }
+        
+        /* Tabs */
+        .tab-btn { border-bottom: 2px solid transparent; color: #64748b; transition: all 0.2s; }
+        .tab-btn:hover { color: #94a3b8; }
+        .tab-btn.active { border-bottom-color: #10b981; color: #10b981; font-weight: 600; }
+
+        /* Pure CSS Pie Chart */
+        .pie-chart {
+            width: 220px; height: 220px; border-radius: 50%;
+            background: conic-gradient(#10b981 var(--p), #334155 0);
+            transition: background 0.5s ease-out;
+            position: relative;
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.1);
+        }
+        .pie-hole {
+            width: 160px; height: 160px; background: rgba(15, 23, 42, 0.95); border-radius: 50%;
+            position: absolute; top: 30px; left: 30px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <sv-header base-path=".."></sv-header>
+
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-12 flex flex-col lg:flex-row gap-8">
+        
+        <div class="flex-1 space-y-6">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+                    Financial <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">Architect</span>
+                </h1>
+                <p class="text-slate-400 max-w-lg mx-auto">
+                    Advanced modeling for Amortized Loans, Deferred Payments, and Bonds.
+                </p>
+            </div>
+
+            <div class="glass-panel p-1 rounded-2xl flex justify-center mb-6 overflow-x-auto">
+                <button onclick="switchTab('amortized')" id="tab-amortized" class="tab-btn active flex-1 py-3 px-6 text-sm uppercase tracking-wider">Amortized Loan</button>
+                <button onclick="switchTab('deferred')" id="tab-deferred" class="tab-btn flex-1 py-3 px-6 text-sm uppercase tracking-wider">Deferred Payment</button>
+                <button onclick="switchTab('bond')" id="tab-bond" class="tab-btn flex-1 py-3 px-6 text-sm uppercase tracking-wider">Bond / PV</button>
+            </div>
+
+            <div class="grid md:grid-cols-12 gap-8">
+                
+                <div class="md:col-span-5 space-y-6">
+                    <div class="glass-panel p-6 rounded-3xl border-emerald-500/20">
+                        <h3 class="font-bold text-white mb-6 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            Configuration
+                        </h3>
+
+                        <div class="space-y-5">
+                            <div>
+                                <label id="label-amount" class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Loan Amount</label>
+                                <div class="input-group flex items-center px-4 py-3">
+                                    <span class="text-emerald-500 font-bold mr-3">₹</span>
+                                    <input type="number" id="amount" value="100000" class="bg-transparent w-full text-white font-mono text-lg outline-none" oninput="calculate()">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Interest (%)</label>
+                                    <div class="input-group flex items-center px-4 py-3">
+                                        <input type="number" id="rate" value="6" step="0.1" class="bg-transparent w-full text-white font-mono text-lg outline-none" oninput="calculate()">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Term (Years)</label>
+                                    <div class="input-group flex items-center px-4 py-3">
+                                        <input type="number" id="years" value="10" class="bg-transparent w-full text-white font-mono text-lg outline-none" oninput="calculate()">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="h-px bg-slate-700 w-full my-2"></div>
+
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Compounding Frequency</label>
+                                <select id="compounding" onchange="calculate()" class="sv-select w-full bg-slate-950 border border-slate-700 text-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500">
+                                    <option value="12" selected>Monthly (APR)</option>
+                                    <option value="1">Annually (APY)</option>
+                                    <option value="2">Semi-Annually</option>
+                                    <option value="4">Quarterly</option>
+                                    <option value="24">Semi-Monthly</option>
+                                    <option value="26">Bi-Weekly</option>
+                                    <option value="52">Weekly</option>
+                                    <option value="365">Daily</option>
+                                </select>
+                            </div>
+
+                            <div id="payBackWrapper">
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">Pay Back Frequency</label>
+                                <select id="payFreq" onchange="calculate()" class="sv-select w-full bg-slate-950 border border-slate-700 text-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500">
+                                    <option value="12" selected>Every Month</option>
+                                    <option value="1">Every Year</option>
+                                    <option value="4">Every Quarter</option>
+                                    <option value="26">Every 2 Weeks (Bi-Weekly)</option>
+                                    <option value="52">Every Week</option>
+                                    <option value="365">Every Day</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md:col-span-7">
+                    <div class="glass-panel p-8 rounded-3xl bg-emerald-900/10 border border-emerald-500/30 flex flex-col items-center justify-center text-center relative h-full">
+                        
+                        <div class="flex flex-col md:flex-row items-center w-full justify-around gap-8">
+                            <div class="relative">
+                                <div class="pie-chart shadow-2xl shadow-emerald-900/50" id="chart" style="--p: 0%">
+                                    <div class="pie-hole">
+                                        <span id="resultLabel" class="text-[10px] text-slate-400 uppercase tracking-wider">Payment</span>
+                                        <span id="mainResult" class="text-3xl font-bold text-white mt-1">₹0</span>
+                                        <span id="subResultLabel" class="text-[10px] text-slate-500 mt-1">/ Month</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="w-full md:w-auto space-y-4 text-left min-w-[200px]">
+                                <div class="space-y-1">
+                                    <div class="text-[10px] text-slate-400 uppercase tracking-wider">Total Interest</div>
+                                    <div id="totalInterest" class="text-xl font-bold text-emerald-400">₹0</div>
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="text-[10px] text-slate-400 uppercase tracking-wider">Total Amount</div>
+                                    <div id="totalAmount" class="text-xl font-bold text-white">₹0</div>
+                                </div>
+                                <div class="h-px bg-slate-700 w-full my-2"></div>
+                                <div id="extraData" class="space-y-1">
+                                    </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div id="amortizationSection" class="glass-panel rounded-2xl overflow-hidden mt-8">
+                <button onclick="toggleTable()" class="w-full flex justify-between items-center p-6 text-left hover:bg-slate-800/50 transition-colors">
+                    <span class="font-bold text-white flex items-center gap-2">
+                        <svg class="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        Amortization Schedule
+                    </span>
+                    <svg id="tableArrow" class="w-5 h-5 text-slate-400 transform transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                <div id="tableContainer" class="hidden border-t border-slate-800">
+                    <div class="overflow-x-auto max-h-96">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-slate-900 text-slate-400 uppercase text-xs sticky top-0">
+                                <tr>
+                                    <th class="px-6 py-3">Period</th>
+                                    <th class="px-6 py-3">Principal</th>
+                                    <th class="px-6 py-3">Interest</th>
+                                    <th class="px-6 py-3">Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scheduleBody" class="text-slate-300 divide-y divide-slate-800"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 glass-panel p-4 rounded-2xl flex flex-col items-center justify-center min-h-[150px]">
+                <span class="text-[10px] uppercase tracking-widest text-slate-600 mb-2">Sponsored by Partner Banks</span>
+                <ins class="adsbygoogle"
+                     style="display:block; width: 100%;"
+                     data-ad-client="ca-pub-5449371042798610"
+                     data-ad-slot="7594122081"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+            </div>
+
+        </div>
+
+        <aside class="w-full lg:w-80 flex flex-col gap-6 shrink-0">
+            <div class="glass-panel p-6 rounded-2xl">
+                <h3 class="font-bold text-white mb-4">Calculator Types</h3>
+                <div class="space-y-4 text-xs text-slate-400">
+                    <div class="p-3 bg-slate-900/50 rounded-lg border border-slate-800">
+                        <strong class="text-emerald-400 block mb-1">Amortized Loan</strong>
+                        Standard loans (Home, Auto) where you pay a fixed amount periodically to pay off principal + interest.
+                    </div>
+                    <div class="p-3 bg-slate-900/50 rounded-lg border border-slate-800">
+                        <strong class="text-blue-400 block mb-1">Deferred Payment</strong>
+                        Loans where you pay nothing now, but a huge lump sum (Principal + Interest) at the end.
+                    </div>
+                    <div class="p-3 bg-slate-900/50 rounded-lg border border-slate-800">
+                        <strong class="text-purple-400 block mb-1">Bond</strong>
+                        Calculate the present value. "If I want ₹100k in 10 years, what is it worth today?"
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel p-4 rounded-2xl flex flex-col items-center justify-center min-h-[600px] sticky top-24">
+                <span class="text-[10px] uppercase tracking-widest text-slate-600 mb-2">Finance Partner</span>
+                <ins class="adsbygoogle"
+                     style="display:block; width: 100%; height: 100%;"
+                     data-ad-client="ca-pub-5449371042798610"
+                     data-ad-slot="9264203071"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+                <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+            </div>
+        </aside>
+
+    </main>
+
+    <sv-footer base-path=".."></sv-footer>
+
+    <script>
+        let currentMode = 'amortized';
+
+        function switchTab(mode) {
+            currentMode = mode;
+            // Update Tab UI
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`tab-${mode}`).classList.add('active');
+
+            // Update Input Visibility
+            const payBackWrapper = document.getElementById('payBackWrapper');
+            const labelAmount = document.getElementById('label-amount');
+            const amortSection = document.getElementById('amortizationSection');
+
+            if (mode === 'amortized') {
+                labelAmount.innerText = "Loan Amount";
+                payBackWrapper.classList.remove('hidden');
+                amortSection.classList.remove('hidden');
+                document.getElementById('compounding').value = "12"; // Monthly default
+            } else if (mode === 'deferred') {
+                labelAmount.innerText = "Loan Amount";
+                payBackWrapper.classList.add('hidden'); // No periodic payments
+                amortSection.classList.add('hidden');
+                document.getElementById('compounding').value = "1"; // Annually default
+            } else if (mode === 'bond') {
+                labelAmount.innerText = "Face Value (Due Amount)";
+                payBackWrapper.classList.add('hidden');
+                amortSection.classList.add('hidden');
+                document.getElementById('compounding').value = "1";
+            }
+            calculate();
+        }
+
+        function calculate() {
+            const P = parseFloat(document.getElementById('amount').value) || 0;
+            const annualRate = parseFloat(document.getElementById('rate').value) || 0;
+            const years = parseFloat(document.getElementById('years').value) || 0;
+            const cmpFreq = parseInt(document.getElementById('compounding').value);
+            
+            if (P === 0 || annualRate === 0 || years === 0) return;
+
+            // Common Rates
+            const r_nominal = annualRate / 100;
+            // Effective Rate per period: (1 + r/n)^(n*t) logic
+            
+            if (currentMode === 'amortized') {
+                const payFreq = parseInt(document.getElementById('payFreq').value);
+                
+                // Effective Annual Rate (EAR)
+                const EAR = Math.pow(1 + (r_nominal / cmpFreq), cmpFreq) - 1;
+                // Rate per payment period
+                const r_period = Math.pow(1 + EAR, 1 / payFreq) - 1;
+                const n = years * payFreq; // Total payments
+
+                // Amortization Formula
+                const payment = (P * r_period * Math.pow(1 + r_period, n)) / (Math.pow(1 + r_period, n) - 1);
+                const totalPayment = payment * n;
+                const totalInterest = totalPayment - P;
+
+                updateUI(payment, totalInterest, totalPayment, P, "Payment");
+                generateSchedule(P, r_period, n, payment, payFreq);
+
+            } else if (currentMode === 'deferred') {
+                // A = P(1 + r/n)^(nt)
+                // Here, P is loan amount. We calculate Future Value.
+                const totalAmount = P * Math.pow(1 + (r_nominal / cmpFreq), cmpFreq * years);
+                const totalInterest = totalAmount - P;
+                
+                updateUI(totalAmount, totalInterest, totalAmount, P, "Due at Maturity");
+                // For Deferred, "Payment" is the lump sum at end.
+
+            } else if (currentMode === 'bond') {
+                // We know Future Value (Face Value) = P input. We want Present Value.
+                // PV = FV / (1 + r/n)^(nt)
+                const faceValue = P;
+                const presentValue = faceValue / Math.pow(1 + (r_nominal / cmpFreq), cmpFreq * years);
+                const totalInterest = faceValue - presentValue;
+
+                updateUI(presentValue, totalInterest, faceValue, presentValue, "Start Value");
+                // Special labels for Bond
+                document.getElementById('resultLabel').innerText = "Initial Value";
+                document.getElementById('mainResult').innerText = formatCurrency(presentValue);
+                document.getElementById('subResultLabel').innerText = "Received Now";
+                document.getElementById('totalAmount').innerText = formatCurrency(faceValue); // This is Face Value
+            }
+        }
+
+        function updateUI(mainMetric, interest, total, principal, label) {
+            document.getElementById('resultLabel').innerText = label;
+            document.getElementById('mainResult').innerText = formatCurrency(mainMetric);
+            
+            // Sub label logic
+            if (currentMode === 'amortized') {
+                const payFreq = parseInt(document.getElementById('payFreq').value);
+                let txt = "/ Month";
+                if(payFreq == 26) txt = "/ 2 Weeks";
+                if(payFreq == 52) txt = "/ Week";
+                if(payFreq == 1) txt = "/ Year";
+                document.getElementById('subResultLabel').innerText = txt;
+            } else {
+                document.getElementById('subResultLabel').innerText = "";
+            }
+
+            document.getElementById('totalInterest').innerText = formatCurrency(interest);
+            document.getElementById('totalAmount').innerText = formatCurrency(total);
+
+            // Chart
+            const totalForChart = principal + interest; // Basis
+            const principalPercent = (principal / totalForChart) * 100;
+            document.getElementById('chart').style.setProperty('--p', `${principalPercent}%`);
+        }
+
+        function generateSchedule(P, r, n, payment, payFreq) {
+            let balance = P;
+            const tbody = document.getElementById('scheduleBody');
+            tbody.innerHTML = '';
+            
+            // Grouping logic for long loans
+            const groupByYear = n > 60;
+            let yearPrincipal = 0;
+            let yearInterest = 0;
+            let currentYear = 1;
+
+            for (let i = 1; i <= n; i++) {
+                const interest = balance * r;
+                const principal = payment - interest;
+                balance -= principal;
+                if (balance < 0) balance = 0;
+
+                if (groupByYear) {
+                    yearPrincipal += principal;
+                    yearInterest += interest;
+                    if (i % payFreq === 0 || i === n) {
+                        const row = `
+                            <tr class="hover:bg-slate-800/50 border-b border-slate-800 last:border-0">
+                                <td class="px-6 py-4 font-mono text-emerald-500">Year ${currentYear}</td>
+                                <td class="px-6 py-4">₹${Math.round(yearPrincipal).toLocaleString()}</td>
+                                <td class="px-6 py-4">₹${Math.round(yearInterest).toLocaleString()}</td>
+                                <td class="px-6 py-4 text-slate-400">₹${Math.round(balance).toLocaleString()}</td>
+                            </tr>`;
+                        tbody.innerHTML += row;
+                        yearPrincipal = 0; yearInterest = 0; currentYear++;
+                    }
+                } else {
+                    const row = `
+                        <tr class="hover:bg-slate-800/50 border-b border-slate-800 last:border-0">
+                            <td class="px-6 py-4 font-mono text-emerald-500">Period ${i}</td>
+                            <td class="px-6 py-4">₹${Math.round(principal).toLocaleString()}</td>
+                            <td class="px-6 py-4">₹${Math.round(interest).toLocaleString()}</td>
+                            <td class="px-6 py-4 text-slate-400">₹${Math.round(balance).toLocaleString()}</td>
+                        </tr>`;
+                    tbody.innerHTML += row;
+                }
+            }
+        }
+
+        function formatCurrency(num) {
+            return '₹' + Math.round(num).toLocaleString('en-IN');
+        }
+
+        function toggleTable() {
+            const table = document.getElementById('tableContainer');
+            const arrow = document.getElementById('tableArrow');
+            if (table.classList.contains('hidden')) {
+                table.classList.remove('hidden');
+                arrow.style.transform = 'rotate(180deg)';
+            } else {
+                table.classList.add('hidden');
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        window.onload = () => { switchTab('amortized'); };
+    </script>
+</body>
+</html>
