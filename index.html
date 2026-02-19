@@ -23,11 +23,13 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
         
+        /* Fixed Background Mesh */
         .fixed-bg {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: -2; background: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 100%);
         }
 
+        /* ARCHITECT: Mobile-Responsive Center Watermark Crest */
         .bg-crest {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 100%; height: 100%; background-image: url('assets/img/SILENVAULT_LOGO.png');
@@ -48,17 +50,14 @@
             box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.2); 
         }
 
-        /* Search Bar Glow */
         .search-wrapper:focus-within { box-shadow: 0 0 20px -5px rgba(59, 130, 246, 0.5); border-color: #3b82f6; }
         
-        /* Smooth injection animation */
         @keyframes fadeSlideUp {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
         .animate-in-card { animation: fadeSlideUp 0.4s ease forwards; }
 
-        /* The Sticky Sidebar Constraint */
         .sticky-sidebar { position: sticky; top: 6rem; height: calc(100vh - 8rem); display: flex; flex-direction: column; }
 
         html { scroll-behavior: smooth; }
@@ -105,32 +104,26 @@
             </div>
 
             <div class="mb-24 tool-section" id="sec-business">
-                <div class="flex items-center justify-between mb-8">
-                    <h2 class="text-xl font-bold text-white flex items-center gap-3 uppercase tracking-wider">
-                        <span class="w-1.5 h-6 bg-emerald-500 rounded-full shadow-[0_0_10px_#10b981]"></span>
-                        Business Operations
-                    </h2>
-                </div>
+                <h2 class="text-xl font-bold text-white flex items-center gap-3 uppercase tracking-wider mb-8">
+                    <span class="w-1.5 h-6 bg-emerald-500 rounded-full shadow-[0_0_10px_#10b981]"></span>
+                    Business Operations
+                </h2>
                 <div class="bento-grid" id="grid-business"></div>
             </div>
             
             <div class="mb-24 tool-section" id="sec-creator">
-                <div class="flex items-center justify-between mb-8">
-                    <h2 class="text-xl font-bold text-white flex items-center gap-3 uppercase tracking-wider">
-                        <span class="w-1.5 h-6 bg-red-500 rounded-full shadow-[0_0_10px_#ef4444]"></span>
-                        Creator Tools
-                    </h2>
-                </div>
+                <h2 class="text-xl font-bold text-white flex items-center gap-3 uppercase tracking-wider mb-8">
+                    <span class="w-1.5 h-6 bg-red-500 rounded-full shadow-[0_0_10px_#ef4444]"></span>
+                    Creator Tools
+                </h2>
                 <div class="bento-grid" id="grid-creator"></div>
             </div>
             
             <div class="mb-24 tool-section" id="sec-dev">
-                <div class="flex items-center justify-between mb-8">
-                    <h2 class="text-xl font-bold text-white flex items-center gap-3 uppercase tracking-wider">
-                        <span class="w-1.5 h-6 bg-blue-500 rounded-full shadow-[0_0_10px_#3b82f6]"></span>
-                        Developer Utilities
-                    </h2>
-                </div>
+                <h2 class="text-xl font-bold text-white flex items-center gap-3 uppercase tracking-wider mb-8">
+                    <span class="w-1.5 h-6 bg-blue-500 rounded-full shadow-[0_0_10px_#3b82f6]"></span>
+                    Developer Utilities
+                </h2>
                 <div class="bento-grid" id="grid-dev"></div>
             </div>
         </div>
@@ -156,8 +149,8 @@
                     </ul>
                 </div>
                 
-                <div class="smart-ad-unit w-full flex-1 min-h-[300px] border border-slate-800/50 bg-slate-900/20 rounded-2xl overflow-hidden flex flex-col relative group">
-                    <div class="absolute top-2 left-0 right-0 text-center pointer-events-none opacity-30 text-[10px] uppercase tracking-widest font-bold text-slate-500 z-0">
+                <div id="sidebar-ad-container" class="hidden opacity-0 transition-opacity duration-1000 w-full flex-1 min-h-[300px] border border-slate-800/50 bg-slate-900/20 rounded-2xl overflow-hidden flex flex-col relative">
+                    <div class="absolute top-2 left-0 right-0 text-center pointer-events-none opacity-30 text-[10px] uppercase tracking-widest font-bold text-slate-500">
                         Advertisement
                     </div>
                     <div class="relative z-10 w-full h-full flex items-center justify-center">
@@ -178,26 +171,40 @@
     <sv-footer base-path="."></sv-footer>
 
     <script>
-        // ARCHITECT: Pro Developer Shortcuts
+        // ARCHITECT: Pro Shortcuts
         document.addEventListener('keydown', (e) => {
-            // Focus search on Ctrl+K, Cmd+K, or pressing "/" outside of inputs
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-                e.preventDefault();
-                document.getElementById('toolSearch').focus();
-            }
-            if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+            if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') || (e.key === '/' && document.activeElement.tagName !== 'INPUT')) {
                 e.preventDefault();
                 document.getElementById('toolSearch').focus();
             }
         });
 
-        // ARCHITECT: DOM Generator & Search Engine
+        // ARCHITECT: Ad-Sensing Logic
+        function monitorAds() {
+            const adSlot = document.querySelector('#sidebar-ad-container ins.adsbygoogle');
+            const container = document.getElementById('sidebar-ad-container');
+            if (!adSlot) return;
+
+            const observer = new MutationObserver(() => {
+                const status = adSlot.getAttribute('data-ad-status');
+                if (status === 'filled' || adSlot.innerHTML.includes('iframe')) {
+                    container.classList.remove('hidden');
+                    setTimeout(() => container.classList.add('opacity-100'), 100);
+                    observer.disconnect();
+                } else if (status === 'unfilled') {
+                    container.classList.add('hidden');
+                }
+            });
+
+            observer.observe(adSlot, { attributes: true, childList: true });
+            setTimeout(() => { if (!adSlot.innerHTML.includes('iframe')) container.style.display = 'none'; }, 5000);
+        }
+
+        // ARCHITECT: Dynamic Render Engine
         function renderEngine() {
             const queryRaw = document.getElementById('toolSearch').value;
             const query = queryRaw.toLowerCase();
             let totalFound = 0;
-            
-            // 1. Group tools
             const filteredTools = { business: [], creator: [], dev: [] };
 
             silenVaultTools.forEach(tool => {
@@ -207,55 +214,35 @@
                 }
             });
 
-            // 2. Handle Zero-State UI
             const emptyState = document.getElementById('empty-state');
-            if (totalFound === 0) {
-                emptyState.classList.remove('hidden');
-                document.getElementById('query-term').innerText = queryRaw;
-            } else {
-                emptyState.classList.add('hidden');
-            }
+            emptyState.classList.toggle('hidden', totalFound !== 0);
+            if (totalFound === 0) document.getElementById('query-term').innerText = queryRaw;
 
-            // 3. Render HTML with smooth fade-in
             Object.keys(filteredTools).forEach(category => {
-                const gridElement = document.getElementById(`grid-${category}`);
-                const sectionElement = document.getElementById(`sec-${category}`);
-                
-                gridElement.innerHTML = ''; 
+                const grid = document.getElementById(`grid-${category}`);
+                const sec = document.getElementById(`sec-${category}`);
+                grid.innerHTML = ''; 
+                sec.style.display = filteredTools[category].length === 0 ? 'none' : 'block';
 
-                if (filteredTools[category].length === 0) {
-                    sectionElement.style.display = 'none'; 
-                } else {
-                    sectionElement.style.display = 'block'; 
-                    
-                    filteredTools[category].forEach((tool, index) => {
-                        // Stagger the animation slightly for a "waterfall" effect
-                        const delay = index * 0.05;
-                        const tagHTML = tool.tag ? `<div class="absolute top-4 right-4"><span class="bg-slate-800 text-slate-300 border border-slate-700 text-[9px] font-black px-2 py-1 rounded-md tracking-widest uppercase shadow-sm">${tool.tag}</span></div>` : '';
-                        
-                        gridElement.innerHTML += `
-                            <a href="${tool.link}" class="tool-card p-8 rounded-2xl group block relative overflow-hidden animate-in-card" style="animation-delay: ${delay}s">
-                                <div class="w-14 h-14 ${tool.iconColors} rounded-xl flex items-center justify-center mb-6 transition-all shadow-inner">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="${tool.iconPath.includes('stroke') ? 'none' : 'currentColor'}" viewBox="0 0 24 24" stroke="currentColor">
-                                        ${tool.iconPath}
-                                    </svg>
-                                </div>
-                                ${tagHTML}
-                                <h3 class="text-lg font-bold text-white mb-3">${tool.title}</h3>
-                                <p class="text-sm text-slate-400 leading-relaxed">${tool.desc}</p>
-                            </a>
-                        `;
-                    });
-                }
+                filteredTools[category].forEach((tool, index) => {
+                    const tagHTML = tool.tag ? `<div class="absolute top-4 right-4"><span class="bg-slate-800 text-slate-300 border border-slate-700 text-[9px] font-black px-2 py-1 rounded-md tracking-widest uppercase shadow-sm">${tool.tag}</span></div>` : '';
+                    grid.innerHTML += `
+                        <a href="${tool.link}" class="tool-card p-8 rounded-2xl group block relative overflow-hidden animate-in-card" style="animation-delay: ${index * 0.05}s">
+                            <div class="w-14 h-14 ${tool.iconColors} rounded-xl flex items-center justify-center mb-6 transition-all shadow-inner">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="${tool.iconPath.includes('stroke') ? 'none' : 'currentColor'}" viewBox="0 0 24 24" stroke="currentColor">${tool.iconPath}</svg>
+                            </div>
+                            ${tagHTML}
+                            <h3 class="text-lg font-bold text-white mb-3">${tool.title}</h3>
+                            <p class="text-sm text-slate-400 leading-relaxed">${tool.desc}</p>
+                        </a>`;
+                });
             });
         }
 
-        // Initialize grid on load
         window.addEventListener('DOMContentLoaded', () => {
             if (typeof silenVaultTools !== 'undefined') {
                 renderEngine();
-            } else {
-                console.error("Architect Error: directory.js failed to load.");
+                monitorAds();
             }
         });
     </script>
