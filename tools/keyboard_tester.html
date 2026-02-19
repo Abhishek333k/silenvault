@@ -6,6 +6,8 @@
     <title>Keyboard Architect Pro | SilenVault</title>
     <meta name="description" content="Test your keyboard keys, check for ghosting, and analyze raw JavaScript key codes in real-time.">
     
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="../assets/js/layout.js" defer></script>
@@ -100,11 +102,20 @@
                 </ul>
             </div>
 
-            <aside class="smart-ad-unit bg-slate-900/50 border border-slate-800 rounded-2xl flex flex-col items-center justify-center p-4 min-h-[250px]">
-                <span class="text-[10px] uppercase tracking-widest text-slate-600 block mb-2 pointer-events-none">Sponsored</span>
-                <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="7594122081" data-ad-format="auto" data-full-width-responsive="true"></ins>
-                <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-            </aside>
+            <div class="space-y-6">
+                <div id="sidebar-ad-wrapper" class="hidden opacity-0 transition-opacity duration-1000">
+                    <aside class="smart-ad-unit bg-slate-900/50 border border-slate-800 rounded-2xl flex flex-col items-center justify-center p-4 min-h-[250px]">
+                        <span class="text-[10px] uppercase tracking-widest text-slate-600 block mb-2 pointer-events-none">Sponsored</span>
+                        <ins class="adsbygoogle" 
+                             style="display:block" 
+                             data-ad-client="ca-pub-5449371042798610" 
+                             data-ad-slot="7594122081" 
+                             data-ad-format="auto" 
+                             data-full-width-responsive="true"></ins>
+                        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+                    </aside>
+                </div>
+            </div>
         </div>
 
     </main>
@@ -216,8 +227,37 @@
         window.addEventListener('keydown', (e) => handleKey(e, true), { passive: false });
         window.addEventListener('keyup', (e) => handleKey(e, false), { passive: false });
 
+        // ARCHITECT: Ad-Sensing Logic
+        function monitorAds() {
+            const adSlot = document.querySelector('#sidebar-ad-wrapper ins.adsbygoogle');
+            const container = document.getElementById('sidebar-ad-wrapper');
+            if (!adSlot) return;
+
+            const observer = new MutationObserver(() => {
+                const status = adSlot.getAttribute('data-ad-status');
+                if (status === 'filled' || adSlot.innerHTML.includes('iframe')) {
+                    container.classList.remove('hidden');
+                    // Small delay to allow the CSS to recognize the display block before fading
+                    setTimeout(() => container.classList.add('opacity-100'), 50);
+                    observer.disconnect();
+                } else if (status === 'unfilled') {
+                    container.classList.add('hidden');
+                }
+            });
+
+            observer.observe(adSlot, { attributes: true, childList: true });
+            
+            // Failsafe: if AdSense network fails entirely, remove the empty box
+            setTimeout(() => { 
+                if (!adSlot.innerHTML.includes('iframe')) container.style.display = 'none'; 
+            }, 5000);
+        }
+
         // Init
-        renderKeyboard();
+        window.onload = () => {
+            renderKeyboard();
+            monitorAds();
+        };
     </script>
 </body>
 </html>
