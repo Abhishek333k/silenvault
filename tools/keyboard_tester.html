@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Keyboard Architect Pro | SilenVault</title>
-    <meta name="description" content="Test your keyboard keys, check for ghosting, and analyze raw JavaScript key codes in real-time.">
+    <title>I/O Architect Pro | SilenVault</title>
+    <meta name="description" content="Advanced Keyboard and Mouse diagnostic tool. Test for ghosting, track polling, and verify hardware layouts for Windows and Apple.">
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
 
@@ -17,19 +17,27 @@
         .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
         .mono { font-family: 'Fira Code', monospace; }
 
-        /* Keyboard UI Layout */
-        .keyboard { display: flex; flex-direction: column; gap: 0.5rem; max-width: 1000px; margin: 0 auto; padding: 2rem; background: #0b1120; border-radius: 1.5rem; border: 1px solid #1e293b; box-shadow: inset 0 0 40px rgba(0,0,0,0.5); }
-        .row { display: flex; gap: 0.5rem; justify-content: center; }
+        /* Master Keyboard Grid */
+        .keyboard-wrapper { display: flex; gap: 2rem; justify-content: center; max-width: 1200px; margin: 0 auto; padding: 2rem; background: #0b1120; border-radius: 1.5rem; border: 1px solid #1e293b; box-shadow: inset 0 0 40px rgba(0,0,0,0.5); overflow-x: auto; }
+        .kb-main { display: flex; flex-direction: column; gap: 0.5rem; }
+        .kb-nav { display: flex; flex-direction: column; justify-content: space-between; gap: 0.5rem; }
+        .kb-numpad { display: flex; flex-direction: column; gap: 0.5rem; }
         
+        .row { display: flex; gap: 0.5rem; }
+        .nav-cluster { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+        .arrow-cluster { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+        .arrow-up { grid-column: 2; }
+        
+        /* Key Styling */
         .key {
             background: #1e293b; border: 1px solid #334155; border-bottom-width: 4px;
-            color: #94a3b8; font-family: 'Fira Code', monospace; font-size: 0.8rem;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 0.5rem; min-width: 3rem; height: 3rem;
-            transition: all 0.1s; user-select: none;
+            color: #94a3b8; font-family: 'Fira Code', monospace; font-size: 0.75rem;
+            display: flex; align-items: center; justify-content: center; text-align: center;
+            border-radius: 0.5rem; min-width: 3rem; height: 3rem; padding: 0 0.5rem;
+            transition: all 0.05s; user-select: none; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
-        /* Key States */
+        /* Active & Tested States */
         .key.active {
             background: #3b82f6; color: white; border-color: #2563eb;
             border-bottom-width: 1px; transform: translateY(3px);
@@ -37,68 +45,110 @@
         }
 
         .key.tested {
-            background: rgba(16, 185, 129, 0.1); color: #10b981;
+            background: rgba(16, 185, 129, 0.15); color: #34d399;
             border-color: #059669;
         }
 
-        /* Key Width Overrides */
+        /* Sizing Overrides */
         .w-1-5 { width: 4.5rem; }
+        .w-1-75 { width: 5.25rem; }
         .w-2 { width: 6rem; }
         .w-2-5 { width: 7.5rem; }
-        .w-space { width: 18rem; }
-        .w-enter { width: 6.8rem; }
+        .w-space { flex-grow: 1; }
+        .h-2 { height: 6.5rem; }
 
-        .data-box { background: #020617; border: 1px solid #1e293b; border-radius: 0.5rem; padding: 1rem; }
+        /* Data Boxes */
+        .data-box { background: #020617; border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1rem; position: relative; overflow: hidden; }
+        .data-box::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); opacity: 0.5; }
+
+        /* Mouse Tester Styles */
+        .mouse-btn { background: #1e293b; border: 1px solid #334155; border-radius: 0.25rem; padding: 0.25rem 0.5rem; font-size: 0.7rem; color: #64748b; transition: all 0.1s; }
+        .mouse-btn.active { background: #10b981; color: white; border-color: #059669; box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
 
     <sv-header base-path=".."></sv-header>
 
-    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-12 flex flex-col gap-8">
+    <main class="flex-1 max-w-[1400px] mx-auto w-full px-4 py-8 flex flex-col gap-6">
         
-        <div class="text-center mb-4">
-            <h1 class="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight">
-                Keyboard <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-500">Architect</span>
-            </h1>
-            <p class="text-slate-400 max-w-lg mx-auto">
-                Press any key to test hardware functionality and view raw JavaScript event codes.
-            </p>
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-2">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight">
+                    I/O <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-500">Architect</span>
+                </h1>
+                <p class="text-sm text-slate-400 mt-1">Hardware diagnostics: Keyboard polling, Ghosting, and Mouse validation.</p>
+            </div>
+
+            <div class="glass-panel p-2 rounded-xl flex items-center gap-3">
+                <select id="os-select" onchange="updateLayout()" class="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded p-1.5 outline-none cursor-pointer">
+                    <option value="win">Windows PC</option>
+                    <option value="mac">Apple macOS</option>
+                </select>
+                <select id="size-select" onchange="updateLayout()" class="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded p-1.5 outline-none cursor-pointer">
+                    <option value="full">Full Size (104/109)</option>
+                    <option value="tkl">Tenkeyless (87/88)</option>
+                </select>
+                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-400 px-2 border-l border-slate-700">
+                    <input type="checkbox" id="sound-toggle" checked class="accent-emerald-500">
+                    Mech Sound
+                </label>
+            </div>
         </div>
 
-        <div class="glass-panel p-6 rounded-3xl border-slate-700 shadow-2xl relative overflow-hidden">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
             
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-center max-w-4xl mx-auto">
-                <div class="data-box shadow-inner">
+            <div class="md:col-span-3 grid grid-cols-3 gap-4">
+                <div class="data-box shadow-inner flex flex-col justify-center">
                     <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">event.key</span>
-                    <span id="out-key" class="text-xl font-bold text-white mono">-</span>
+                    <span id="out-key" class="text-xl font-bold text-white mono truncate">-</span>
                 </div>
-                <div class="data-box shadow-inner">
+                <div class="data-box shadow-inner flex flex-col justify-center">
                     <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">event.code</span>
-                    <span id="out-code" class="text-xl font-bold text-emerald-400 mono">-</span>
+                    <span id="out-code" class="text-lg font-bold text-emerald-400 mono truncate">-</span>
                 </div>
-                <div class="data-box shadow-inner">
-                    <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">event.keyCode</span>
-                    <span id="out-keycode" class="text-xl font-bold text-blue-400 mono">-</span>
-                </div>
-                <div class="data-box shadow-inner relative">
-                    <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">Tested Keys</span>
-                    <span class="text-xl font-bold text-purple-400 mono"><span id="tested-count">0</span>/87</span>
-                    <button onclick="resetTester()" class="absolute right-2 top-2 text-[10px] bg-slate-800 hover:bg-rose-500 hover:text-white text-slate-400 px-2 py-1 rounded transition-colors">Reset</button>
+                <div class="data-box shadow-inner flex flex-col justify-center relative">
+                    <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">Key Health</span>
+                    <span class="text-xl font-bold text-purple-400 mono"><span id="tested-count">0</span> / <span id="total-count">0</span></span>
+                    <button onclick="resetTester()" class="absolute right-3 top-3 text-[9px] bg-slate-800 hover:bg-rose-500 hover:text-white text-slate-400 px-2 py-1 rounded transition-colors uppercase font-bold tracking-wider">Reset</button>
                 </div>
             </div>
 
-            <div id="keyboard" class="keyboard"></div>
+            <div class="md:col-span-2 data-box shadow-inner" id="mouse-tester-zone" oncontextmenu="return false;">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold">Mouse Architect</span>
+                    <span class="text-[10px] text-slate-600">Test Here</span>
+                </div>
+                <div class="flex flex-wrap gap-2 mb-3">
+                    <div id="mouse-0" class="mouse-btn">Left</div>
+                    <div id="mouse-1" class="mouse-btn">Middle</div>
+                    <div id="mouse-2" class="mouse-btn">Right</div>
+                    <div id="mouse-3" class="mouse-btn">Back</div>
+                    <div id="mouse-4" class="mouse-btn">Fwd</div>
+                </div>
+                <div class="flex justify-between items-end border-t border-slate-800 pt-2">
+                    <div>
+                        <span class="text-[9px] text-slate-500 uppercase">Wheel Scroll</span>
+                        <div id="mouse-wheel" class="text-xs font-bold text-slate-300 mono mt-0.5">Idle</div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[9px] text-slate-500 uppercase">Coordinates</span>
+                        <div class="text-xs font-bold text-blue-400 mono mt-0.5">X:<span id="mouse-x">0</span> Y:<span id="mouse-y">0</span></div>
+                    </div>
+                </div>
+            </div>
 
         </div>
 
+        <div id="keyboard-container" class="keyboard-wrapper"></div>
+
         <div class="grid lg:grid-cols-3 gap-8 mt-4">
             <div class="lg:col-span-2 glass-panel p-8 rounded-2xl border-slate-800 prose prose-invert max-w-none">
-                <h2 class="text-2xl font-bold text-white mb-4">How to Test Your Keyboard</h2>
-                <ul class="text-sm text-slate-400 leading-relaxed space-y-2">
-                    <li><strong>Basic Test:</strong> Press every key on your physical keyboard. If the corresponding key on the screen turns <span class="text-emerald-400">Green</span>, the hardware switch is fully functional.</li>
-                    <li><strong>Ghosting / Rollover Test:</strong> Press and hold multiple keys at the exact same time (e.g., A, S, D, F). If some keys do not light up <span class="text-blue-400">Blue</span>, your keyboard has "Ghosting" limitations.</li>
-                    <li><strong>Developer Mode:</strong> The HUD above the keyboard displays the exact raw JavaScript strings required to map hotkeys in your web applications.</li>
+                <h2 class="text-xl font-bold text-white mb-4">Hardware Diagnostic Guide</h2>
+                <ul class="text-sm text-slate-400 leading-relaxed space-y-3">
+                    <li><strong>Key Ghosting Test:</strong> Also known as N-Key Rollover (NKRO). Press and hold multiple keys simultaneously (e.g., A, S, D, F, Space). If a key fails to light up <span class="text-blue-400">Blue</span>, your keyboard hardware cannot process that many inputs at once.</li>
+                    <li><strong>Mouse Polling & Buttons:</strong> Move your cursor inside the "Mouse Architect" box to track X/Y coordinate refresh rates. Test side-buttons (Back/Forward) to ensure your drivers are functioning.</li>
+                    <li><strong>Apple vs Windows:</strong> Physical hardware codes differ between OS environments. Use the settings dropdown to adapt the visualizer to your specific <code>A1243</code>, <code>A1314</code>, or Generic Windows layout.</li>
                 </ul>
             </div>
 
@@ -106,12 +156,7 @@
                 <div id="sidebar-ad-wrapper" class="hidden opacity-0 transition-opacity duration-1000">
                     <aside class="smart-ad-unit bg-slate-900/50 border border-slate-800 rounded-2xl flex flex-col items-center justify-center p-4 min-h-[250px]">
                         <span class="text-[10px] uppercase tracking-widest text-slate-600 block mb-2 pointer-events-none">Sponsored</span>
-                        <ins class="adsbygoogle" 
-                             style="display:block" 
-                             data-ad-client="ca-pub-5449371042798610" 
-                             data-ad-slot="7594122081" 
-                             data-ad-format="auto" 
-                             data-full-width-responsive="true"></ins>
+                        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="7594122081" data-ad-format="auto" data-full-width-responsive="true"></ins>
                         <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
                     </aside>
                 </div>
@@ -123,76 +168,175 @@
     <sv-footer base-path=".."></sv-footer>
 
     <script>
-        // ARCHITECT: Standard 87-Key TKL Layout mapped to standard JS event.code
-        const layout = [
-            [
-                {code: 'Escape', label: 'Esc'}, {code: 'F1', label: 'F1'}, {code: 'F2', label: 'F2'}, {code: 'F3', label: 'F3'}, {code: 'F4', label: 'F4'},
-                {code: 'F5', label: 'F5'}, {code: 'F6', label: 'F6'}, {code: 'F7', label: 'F7'}, {code: 'F8', label: 'F8'},
-                {code: 'F9', label: 'F9'}, {code: 'F10', label: 'F10'}, {code: 'F11', label: 'F11'}, {code: 'F12', label: 'F12'}
+        // ARCHITECT: Core Hardware Definitions
+        const kbBlocks = {
+            main: [
+                [{c:'Escape', l:'Esc'}, {c:'F1', l:'F1'}, {c:'F2', l:'F2'}, {c:'F3', l:'F3'}, {c:'F4', l:'F4'}, {c:'F5', l:'F5'}, {c:'F6', l:'F6'}, {c:'F7', l:'F7'}, {c:'F8', l:'F8'}, {c:'F9', l:'F9'}, {c:'F10', l:'F10'}, {c:'F11', l:'F11'}, {c:'F12', l:'F12'}],
+                [{c:'Backquote', l:'~'}, {c:'Digit1', l:'1'}, {c:'Digit2', l:'2'}, {c:'Digit3', l:'3'}, {c:'Digit4', l:'4'}, {c:'Digit5', l:'5'}, {c:'Digit6', l:'6'}, {c:'Digit7', l:'7'}, {c:'Digit8', l:'8'}, {c:'Digit9', l:'9'}, {c:'Digit0', l:'0'}, {c:'Minus', l:'-'}, {c:'Equal', l:'='}, {c:'Backspace', l:'Back', cls:'w-2'}],
+                [{c:'Tab', l:'Tab', cls:'w-1-5'}, {c:'KeyQ', l:'Q'}, {c:'KeyW', l:'W'}, {c:'KeyE', l:'E'}, {c:'KeyR', l:'R'}, {c:'KeyT', l:'T'}, {c:'KeyY', l:'Y'}, {c:'KeyU', l:'U'}, {c:'KeyI', l:'I'}, {c:'KeyO', l:'O'}, {c:'KeyP', l:'P'}, {c:'BracketLeft', l:'['}, {c:'BracketRight', l:']'}, {c:'Backslash', l:'\\', cls:'w-1-5'}],
+                [{c:'CapsLock', l:'Caps', cls:'w-1-75'}, {c:'KeyA', l:'A'}, {c:'KeyS', l:'S'}, {c:'KeyD', l:'D'}, {c:'KeyF', l:'F'}, {c:'KeyG', l:'G'}, {c:'KeyH', l:'H'}, {c:'KeyJ', l:'J'}, {c:'KeyK', l:'K'}, {c:'KeyL', l:'L'}, {c:'Semicolon', l:';'}, {c:'Quote', l:"'"}, {c:'Enter', l:'Enter', cls:'w-enter'}],
+                [{c:'ShiftLeft', l:'Shift', cls:'w-2-5'}, {c:'KeyZ', l:'Z'}, {c:'KeyX', l:'X'}, {c:'KeyC', l:'C'}, {c:'KeyV', l:'V'}, {c:'KeyB', l:'B'}, {c:'KeyN', l:'N'}, {c:'KeyM', l:'M'}, {c:'Comma', l:','}, {c:'Period', l:'.'}, {c:'Slash', l:'/'}, {c:'ShiftRight', l:'Shift', cls:'w-2-5'}],
+                [{c:'ControlLeft', l:'Ctrl', cls:'w-1-5'}, {c:'MetaLeft', l:'Win', cls:'w-1-5'}, {c:'AltLeft', l:'Alt', cls:'w-1-5'}, {c:'Space', l:'', cls:'w-space'}, {c:'AltRight', l:'Alt', cls:'w-1-5'}, {c:'MetaRight', l:'Win', cls:'w-1-5'}, {c:'ContextMenu', l:'Menu'}, {c:'ControlRight', l:'Ctrl', cls:'w-1-5'}]
             ],
-            [
-                {code: 'Backquote', label: '~'}, {code: 'Digit1', label: '1'}, {code: 'Digit2', label: '2'}, {code: 'Digit3', label: '3'},
-                {code: 'Digit4', label: '4'}, {code: 'Digit5', label: '5'}, {code: 'Digit6', label: '6'}, {code: 'Digit7', label: '7'},
-                {code: 'Digit8', label: '8'}, {code: 'Digit9', label: '9'}, {code: 'Digit0', label: '0'}, {code: 'Minus', label: '-'},
-                {code: 'Equal', label: '='}, {code: 'Backspace', label: 'Backspace', class: 'w-2'}
+            nav: [
+                {c:'PrintScreen', l:'PrtSc'}, {c:'ScrollLock', l:'Scrl'}, {c:'Pause', l:'Pause'},
+                {c:'Insert', l:'Ins'}, {c:'Home', l:'Home'}, {c:'PageUp', l:'PgUp'},
+                {c:'Delete', l:'Del'}, {c:'End', l:'End'}, {c:'PageDown', l:'PgDn'}
             ],
-            [
-                {code: 'Tab', label: 'Tab', class: 'w-1-5'}, {code: 'KeyQ', label: 'Q'}, {code: 'KeyW', label: 'W'}, {code: 'KeyE', label: 'E'},
-                {code: 'KeyR', label: 'R'}, {code: 'KeyT', label: 'T'}, {code: 'KeyY', label: 'Y'}, {code: 'KeyU', label: 'U'},
-                {code: 'KeyI', label: 'I'}, {code: 'KeyO', label: 'O'}, {code: 'KeyP', label: 'P'}, {code: 'BracketLeft', label: '['},
-                {code: 'BracketRight', label: ']'}, {code: 'Backslash', label: '\\', class: 'w-1-5'}
+            arrows: [
+                {c:'ArrowUp', l:'↑', cls:'arrow-up'}, 
+                {c:'ArrowLeft', l:'←'}, {c:'ArrowDown', l:'↓'}, {c:'ArrowRight', l:'→'}
             ],
-            [
-                {code: 'CapsLock', label: 'Caps Lock', class: 'w-2'}, {code: 'KeyA', label: 'A'}, {code: 'KeyS', label: 'S'}, {code: 'KeyD', label: 'D'},
-                {code: 'KeyF', label: 'F'}, {code: 'KeyG', label: 'G'}, {code: 'KeyH', label: 'H'}, {code: 'KeyJ', label: 'J'},
-                {code: 'KeyK', label: 'K'}, {code: 'KeyL', label: 'L'}, {code: 'Semicolon', label: ';'}, {code: 'Quote', label: "'"},
-                {code: 'Enter', label: 'Enter', class: 'w-enter'}
-            ],
-            [
-                {code: 'ShiftLeft', label: 'Shift', class: 'w-2-5'}, {code: 'KeyZ', label: 'Z'}, {code: 'KeyX', label: 'X'}, {code: 'KeyC', label: 'C'},
-                {code: 'KeyV', label: 'V'}, {code: 'KeyB', label: 'B'}, {code: 'KeyN', label: 'N'}, {code: 'KeyM', label: 'M'},
-                {code: 'Comma', label: ','}, {code: 'Period', label: '.'}, {code: 'Slash', label: '/'}, {code: 'ShiftRight', label: 'Shift', class: 'w-2-5'}
-            ],
-            [
-                {code: 'ControlLeft', label: 'Ctrl', class: 'w-1-5'}, {code: 'MetaLeft', label: 'Win', class: 'w-1-5'}, {code: 'AltLeft', label: 'Alt', class: 'w-1-5'},
-                {code: 'Space', label: 'Space', class: 'w-space'},
-                {code: 'AltRight', label: 'Alt', class: 'w-1-5'}, {code: 'MetaRight', label: 'Win', class: 'w-1-5'}, {code: 'ContextMenu', label: 'Menu'}, {code: 'ControlRight', label: 'Ctrl', class: 'w-1-5'}
+            numpad: [
+                [{c:'NumLock', l:'Num'}, {c:'NumpadDivide', l:'/'}, {c:'NumpadMultiply', l:'*'}, {c:'NumpadSubtract', l:'-'}],
+                [{c:'Numpad7', l:'7'}, {c:'Numpad8', l:'8'}, {c:'Numpad9', l:'9'}, {c:'NumpadAdd', l:'+', cls:'h-2'}],
+                [{c:'Numpad4', l:'4'}, {c:'Numpad5', l:'5'}, {c:'Numpad6', l:'6'}],
+                [{c:'Numpad1', l:'1'}, {c:'Numpad2', l:'2'}, {c:'Numpad3', l:'3'}, {c:'NumpadEnter', l:'Ent', cls:'h-2'}],
+                [{c:'Numpad0', l:'0', cls:'w-2'}, {c:'NumpadDecimal', l:'.'}]
             ]
-        ];
+        };
 
-        const keyboardEl = document.getElementById('keyboard');
+        const container = document.getElementById('keyboard-container');
         const testedKeys = new Set();
         let totalKeys = 0;
+        let audioCtx;
 
-        // Render Keyboard
-        function renderKeyboard() {
-            keyboardEl.innerHTML = '';
-            totalKeys = 0;
-            layout.forEach(row => {
-                const rowEl = document.createElement('div');
-                rowEl.className = 'row';
-                row.forEach(keyData => {
-                    const keyEl = document.createElement('div');
-                    keyEl.className = `key ${keyData.class || ''}`;
-                    keyEl.id = `key-${keyData.code}`;
-                    keyEl.innerText = keyData.label;
-                    rowEl.appendChild(keyEl);
-                    totalKeys++;
-                });
-                keyboardEl.appendChild(rowEl);
-            });
-            document.getElementById('tested-count').innerText = testedKeys.size;
+        // Sound Engine
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
         }
 
-        // Handle Key Events
+        function playClick() {
+            if(!document.getElementById('sound-toggle').checked) return;
+            if(!audioCtx) initAudio();
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            
+            // Generate a mechanical "clack" using oscillators
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.03);
+            
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.03);
+        }
+
+        // Layout Engine
+        function updateLayout() {
+            const os = document.getElementById('os-select').value;
+            const size = document.getElementById('size-select').value;
+            
+            container.innerHTML = '';
+            totalKeys = 0;
+
+            // 1. Build Main Block
+            const mainDiv = document.createElement('div');
+            mainDiv.className = 'kb-main';
+            
+            kbBlocks.main.forEach((row, rowIndex) => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'row';
+                
+                // Add spacing for F-Keys
+                if(rowIndex === 0) rowDiv.style.marginBottom = '0.5rem';
+
+                row.forEach(k => {
+                    let label = k.l;
+                    // OS specific mapping
+                    if(os === 'mac') {
+                        if(k.c === 'MetaLeft' || k.c === 'MetaRight') label = '⌘ Cmd';
+                        if(k.c === 'AltLeft' || k.c === 'AltRight') label = '⌥ Opt';
+                        if(k.c === 'Backspace') label = 'Delete';
+                        if(k.c === 'Enter') label = 'Return';
+                    }
+                    
+                    rowDiv.innerHTML += `<div class="key ${k.cls || ''}" id="key-${k.c}">${label}</div>`;
+                    totalKeys++;
+                });
+                mainDiv.appendChild(rowDiv);
+            });
+            container.appendChild(mainDiv);
+
+            // 2. Build Nav/Arrow Block
+            const navDiv = document.createElement('div');
+            navDiv.className = 'kb-nav';
+            
+            let navClusterHTML = '<div class="nav-cluster mb-4">';
+            kbBlocks.nav.forEach(k => {
+                navClusterHTML += `<div class="key" id="key-${k.c}">${k.l}</div>`;
+                totalKeys++;
+            });
+            navClusterHTML += '</div>';
+
+            let arrowHTML = '<div class="arrow-cluster">';
+            kbBlocks.arrows.forEach(k => {
+                arrowHTML += `<div class="key ${k.cls || ''}" id="key-${k.c}">${k.l}</div>`;
+                totalKeys++;
+            });
+            arrowHTML += '</div>';
+
+            navDiv.innerHTML = navClusterHTML + arrowHTML;
+            container.appendChild(navDiv);
+
+            // 3. Build Numpad Block (if Full Size)
+            if (size === 'full') {
+                const numDiv = document.createElement('div');
+                numDiv.className = 'kb-numpad';
+                // Add top margin to align with main board
+                numDiv.style.marginTop = '4rem'; 
+
+                // Custom grid mapping for complex numpad shapes
+                kbBlocks.numpad.forEach((row, i) => {
+                    const rowDiv = document.createElement('div');
+                    rowDiv.className = 'row';
+                    // specific margin handling for the + and Enter spanning multiple rows
+                    if(i === 1) rowDiv.style.position = 'relative';
+                    if(i === 2 || i === 3) {
+                        rowDiv.style.paddingRight = '3.5rem'; // space for + / Enter
+                    }
+                    
+                    row.forEach(k => {
+                        let style = '';
+                        if(k.cls === 'h-2') {
+                            style = 'position: absolute; right: 0; top: 0;';
+                        }
+                        rowDiv.innerHTML += `<div class="key ${k.cls || ''}" id="key-${k.c}" style="${style}">${k.l}</div>`;
+                        totalKeys++;
+                    });
+                    numDiv.appendChild(rowDiv);
+                });
+                container.appendChild(numDiv);
+            }
+
+            document.getElementById('total-count').innerText = totalKeys;
+            
+            // Re-apply tested states
+            testedKeys.forEach(code => {
+                const k = document.getElementById(`key-${code}`);
+                if(k) k.classList.add('tested');
+            });
+        }
+
+        // Keyboard Events
         function handleKey(e, isDown) {
-            e.preventDefault(); // Stop scrolling when pressing space/arrows
+            e.preventDefault(); 
+            initAudio();
 
             const code = e.code;
             const keyEl = document.getElementById(`key-${code}`);
 
             if (isDown) {
-                // Update HUD
+                if(!e.repeat) playClick(); // Only click on initial press, not hold
+                
                 document.getElementById('out-key').innerText = e.key === ' ' ? 'Space' : e.key;
                 document.getElementById('out-code').innerText = e.code;
                 document.getElementById('out-keycode').innerText = e.keyCode;
@@ -215,47 +359,82 @@
         function resetTester() {
             testedKeys.clear();
             document.getElementById('tested-count').innerText = '0';
-            document.querySelectorAll('.key').forEach(k => {
-                k.classList.remove('active', 'tested');
-            });
+            document.querySelectorAll('.key').forEach(k => k.classList.remove('active', 'tested'));
             document.getElementById('out-key').innerText = '-';
             document.getElementById('out-code').innerText = '-';
             document.getElementById('out-keycode').innerText = '-';
+            
+            // Reset Mouse
+            document.querySelectorAll('.mouse-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('mouse-wheel').innerText = 'Idle';
+            document.getElementById('mouse-wheel').className = 'text-xs font-bold text-slate-300 mono mt-0.5';
         }
 
-        // Prevent browser shortcuts from stealing focus
+        // Mouse Events
+        const mouseZone = document.getElementById('mouse-tester-zone');
+        
+        mouseZone.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            const btn = document.getElementById(`mouse-${e.button}`);
+            if(btn) btn.classList.add('active');
+            playClick();
+        });
+
+        mouseZone.addEventListener('mouseup', (e) => {
+            e.preventDefault();
+            const btn = document.getElementById(`mouse-${e.button}`);
+            if(btn) {
+                setTimeout(() => btn.classList.remove('active'), 150);
+            }
+        });
+
+        mouseZone.addEventListener('mousemove', (e) => {
+            // Get coordinates relative to the box
+            const rect = mouseZone.getBoundingClientRect();
+            document.getElementById('mouse-x').innerText = Math.round(e.clientX - rect.left);
+            document.getElementById('mouse-y').innerText = Math.round(e.clientY - rect.top);
+        });
+
+        mouseZone.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const w = document.getElementById('mouse-wheel');
+            if(e.deltaY < 0) {
+                w.innerText = 'Scrolling UP';
+                w.className = 'text-xs font-bold text-emerald-400 mono mt-0.5';
+            } else {
+                w.innerText = 'Scrolling DOWN';
+                w.className = 'text-xs font-bold text-blue-400 mono mt-0.5';
+            }
+            clearTimeout(w.timeout);
+            w.timeout = setTimeout(() => {
+                w.innerText = 'Idle';
+                w.className = 'text-xs font-bold text-slate-300 mono mt-0.5';
+            }, 300);
+        });
+
+        // Event Listeners
         window.addEventListener('keydown', (e) => handleKey(e, true), { passive: false });
         window.addEventListener('keyup', (e) => handleKey(e, false), { passive: false });
 
-        // ARCHITECT: Ad-Sensing Logic
+        // Ad-Sensing Logic
         function monitorAds() {
             const adSlot = document.querySelector('#sidebar-ad-wrapper ins.adsbygoogle');
             const container = document.getElementById('sidebar-ad-wrapper');
             if (!adSlot) return;
 
             const observer = new MutationObserver(() => {
-                const status = adSlot.getAttribute('data-ad-status');
-                if (status === 'filled' || adSlot.innerHTML.includes('iframe')) {
+                if (adSlot.getAttribute('data-ad-status') === 'filled' || adSlot.innerHTML.includes('iframe')) {
                     container.classList.remove('hidden');
-                    // Small delay to allow the CSS to recognize the display block before fading
                     setTimeout(() => container.classList.add('opacity-100'), 50);
                     observer.disconnect();
-                } else if (status === 'unfilled') {
-                    container.classList.add('hidden');
                 }
             });
-
             observer.observe(adSlot, { attributes: true, childList: true });
-            
-            // Failsafe: if AdSense network fails entirely, remove the empty box
-            setTimeout(() => { 
-                if (!adSlot.innerHTML.includes('iframe')) container.style.display = 'none'; 
-            }, 5000);
         }
 
         // Init
         window.onload = () => {
-            renderKeyboard();
+            updateLayout();
             monitorAds();
         };
     </script>
