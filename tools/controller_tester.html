@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controller & Gamepad Diagnostics | SilenVault</title>
+    <meta name="description" content="Test your PlayStation, Xbox, or generic PC controller. Detect analog stick drift, trigger pressure, and button functionality instantly.">
+    
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="../assets/js/layout.js" defer></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f8fafc; overflow-x: hidden; }
+        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .mono { font-family: 'Fira Code', monospace; }
+        .data-box { background: #020617; border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1rem; position: relative; overflow: hidden; }
+
+        /* Analog Stick UI */
+        .stick-container {
+            width: 140px; height: 140px; border-radius: 50%;
+            background: #0f172a; border: 2px solid #334155;
+            position: relative; margin: 0 auto;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
+        .stick-crosshair {
+            position: absolute; inset: 0; pointer-events: none;
+        }
+        .stick-crosshair::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.1); }
+        .stick-crosshair::after { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,0.1); }
+        .stick-deadzone {
+            position: absolute; top: 50%; left: 50%; width: 20px; height: 20px;
+            border: 1px dashed rgba(239, 68, 68, 0.5); border-radius: 50%;
+            transform: translate(-50%, -50%); pointer-events: none;
+        }
+        .stick-dot {
+            position: absolute; top: 50%; left: 50%; width: 24px; height: 24px;
+            background: #3b82f6; border-radius: 50%; transform: translate(-50%, -50%);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.8);
+            transition: background-color 0.1s;
+        }
+        .stick-dot.drift { background: #f43f5e; box-shadow: 0 0 15px rgba(244, 63, 94, 0.8); }
+
+        /* Trigger UI */
+        .trigger-container {
+            width: 40px; height: 140px; background: #0f172a;
+            border: 2px solid #334155; border-radius: 8px;
+            position: relative; overflow: hidden; margin: 0 auto;
+        }
+        .trigger-fill {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 0%;
+            background: linear-gradient(to top, #8b5cf6, #d946ef);
+            box-shadow: 0 0 15px rgba(217, 70, 239, 0.6);
+        }
+
+        /* Button Grid */
+        .btn-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .btn-item {
+            background: #0f172a; border: 1px solid #1e293b; color: #64748b;
+            border-radius: 8px; padding: 10px 5px; text-align: center;
+            font-size: 11px; font-weight: bold; text-transform: uppercase;
+            transition: all 0.05s;
+        }
+        .btn-item.active {
+            background: #10b981; color: white; border-color: #059669;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.5); transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <sv-header base-path=".."></sv-header>
+
+    <main class="flex-1 max-w-[1400px] mx-auto w-full px-4 py-8 flex flex-col gap-6">
+        
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-2">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight">
+                    Gamepad <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Diagnostics</span>
+                </h1>
+                <p class="text-sm text-slate-400 mt-1">Detect analog stick drift, verify trigger pressure, and test button mapping.</p>
+            </div>
+        </div>
+
+        <div id="status-banner" class="w-full bg-slate-900/80 border border-slate-700 rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-inner relative overflow-hidden transition-colors duration-300">
+            <div id="status-pulse" class="absolute inset-0 bg-blue-500/10 animate-pulse"></div>
+            <div class="relative z-10 flex flex-col items-center">
+                <svg id="status-icon" class="w-12 h-12 text-slate-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 00-1-1H4a1 1 0 01-1-1V4a1 1 0 011-1h3a1 1 0 001-1v-1z"/></svg>
+                <h2 id="status-title" class="text-xl font-bold text-white">Awaiting Controller</h2>
+                <p id="status-desc" class="text-slate-400 text-sm mt-1">Plug in your controller or connect via Bluetooth, then <strong>press any button</strong> to wake it up.</p>
+            </div>
+        </div>
+
+        <div id="diagnostics-panel" class="grid grid-cols-1 lg:grid-cols-3 gap-6 opacity-50 pointer-events-none transition-opacity duration-300">
+            
+            <div class="lg:col-span-2 glass-panel p-8 rounded-3xl border-slate-700 shadow-2xl flex flex-col gap-6">
+                <h2 class="text-sm font-bold text-slate-300 uppercase tracking-widest border-b border-slate-800 pb-2">Stick Drift Telemetry</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
+                    <div class="flex flex-col items-center">
+                        <div class="stick-container">
+                            <div class="stick-crosshair"></div>
+                            <div class="stick-deadzone" title="Standard Deadzone"></div>
+                            <div id="ls-dot" class="stick-dot"></div>
+                        </div>
+                        <div class="mt-6 w-full px-4 space-y-2">
+                            <div class="flex justify-between items-center bg-slate-900 border border-slate-800 p-2 rounded-lg">
+                                <span class="text-[10px] text-slate-500 uppercase font-bold">L-Stick X</span>
+                                <span id="ls-x-val" class="text-sm font-bold text-white mono">0.00000</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-slate-900 border border-slate-800 p-2 rounded-lg">
+                                <span class="text-[10px] text-slate-500 uppercase font-bold">L-Stick Y</span>
+                                <span id="ls-y-val" class="text-sm font-bold text-white mono">0.00000</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col items-center">
+                        <div class="stick-container">
+                            <div class="stick-crosshair"></div>
+                            <div class="stick-deadzone" title="Standard Deadzone"></div>
+                            <div id="rs-dot" class="stick-dot"></div>
+                        </div>
+                        <div class="mt-6 w-full px-4 space-y-2">
+                            <div class="flex justify-between items-center bg-slate-900 border border-slate-800 p-2 rounded-lg">
+                                <span class="text-[10px] text-slate-500 uppercase font-bold">R-Stick X</span>
+                                <span id="rs-x-val" class="text-sm font-bold text-white mono">0.00000</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-slate-900 border border-slate-800 p-2 rounded-lg">
+                                <span class="text-[10px] text-slate-500 uppercase font-bold">R-Stick Y</span>
+                                <span id="rs-y-val" class="text-sm font-bold text-white mono">0.00000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-6">
+                
+                <div class="glass-panel p-6 rounded-3xl border-slate-700">
+                    <h2 class="text-sm font-bold text-slate-300 uppercase tracking-widest border-b border-slate-800 pb-2 mb-6">Pressure Triggers</h2>
+                    <div class="flex justify-around px-4">
+                        <div class="flex flex-col items-center gap-3">
+                            <div class="trigger-container"><div id="lt-fill" class="trigger-fill"></div></div>
+                            <span class="text-xs font-bold text-slate-400">LT / L2</span>
+                            <span id="lt-val" class="text-[10px] text-purple-400 mono font-bold">0.00</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-3">
+                            <div class="trigger-container"><div id="rt-fill" class="trigger-fill"></div></div>
+                            <span class="text-xs font-bold text-slate-400">RT / R2</span>
+                            <span id="rt-val" class="text-[10px] text-purple-400 mono font-bold">0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-3xl border-slate-700 flex-1">
+                    <h2 class="text-sm font-bold text-slate-300 uppercase tracking-widest border-b border-slate-800 pb-2 mb-4">Digital Inputs</h2>
+                    <div class="btn-grid" id="btn-grid">
+                        </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-8 mt-4">
+            <div class="lg:col-span-2 glass-panel p-8 rounded-2xl border-slate-800 prose prose-invert max-w-none">
+                <h2 class="text-xl font-bold text-white mb-4">How to Identify Stick Drift</h2>
+                <ul class="text-sm text-slate-400 leading-relaxed space-y-3 m-0 p-0 list-none">
+                    <li><strong class="text-slate-200">The 0.00000 Baseline:</strong> When your thumbs are completely off the analog sticks, the X and Y telemetry values should ideally read `0.00000`.</li>
+                    <li><strong class="text-slate-200">The Red Deadzone:</strong> If your sticks rest outside the inner dashed circle without you touching them, your controller has "Stick Drift." The dot will turn <span class="text-rose-400 font-bold">Red</span> to warn you that your character will move on their own in-game.</li>
+                    <li><strong class="text-slate-200">Trigger Sensitivity:</strong> Ensure the LT/RT triggers reach `1.00` when fully pressed. If they max out at `0.85` or `0.90`, you may not be able to accelerate to top speed in racing games.</li>
+                </ul>
+            </div>
+
+            <div class="space-y-6">
+                <div id="sidebar-ad-wrapper" class="hidden opacity-0 transition-opacity duration-1000">
+                    <aside class="smart-ad-unit bg-slate-900/50 border border-slate-800 rounded-2xl flex flex-col items-center justify-center p-4 min-h-[250px]">
+                        <span class="text-[10px] uppercase tracking-widest text-slate-600 block mb-2 pointer-events-none">Sponsored</span>
+                        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="7594122081" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+                    </aside>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <sv-footer base-path=".."></sv-footer>
+
+    <script>
+        // DOM Elements
+        const statusBanner = document.getElementById('status-banner');
+        const statusTitle = document.getElementById('status-title');
+        const statusDesc = document.getElementById('status-desc');
+        const statusIcon = document.getElementById('status-icon');
+        const statusPulse = document.getElementById('status-pulse');
+        const diagPanel = document.getElementById('diagnostics-panel');
+        
+        // Sticks
+        const lsDot = document.getElementById('ls-dot');
+        const rsDot = document.getElementById('rs-dot');
+        const lsX = document.getElementById('ls-x-val');
+        const lsY = document.getElementById('ls-y-val');
+        const rsX = document.getElementById('rs-x-val');
+        const rsY = document.getElementById('rs-y-val');
+
+        // Triggers
+        const ltFill = document.getElementById('lt-fill');
+        const rtFill = document.getElementById('rt-fill');
+        const ltVal = document.getElementById('lt-val');
+        const rtVal = document.getElementById('rt-val');
+
+        // Buttons
+        const btnGrid = document.getElementById('btn-grid');
+        
+        // Standard Mapping layout names
+        const btnNames = [
+            "A / Cross", "B / Circle", "X / Square", "Y / Tri",
+            "LB / L1", "RB / R1", "LT / L2", "RT / R2",
+            "Select", "Start", "L3 Stick", "R3 Stick",
+            "Up", "Down", "Left", "Right", "Home"
+        ];
+        
+        const btnElements = [];
+
+        // Initialize Button Grid UI
+        function initButtons() {
+            btnGrid.innerHTML = '';
+            for(let i = 0; i < 17; i++) {
+                const b = document.createElement('div');
+                b.className = 'btn-item';
+                b.innerText = btnNames[i] || `B${i}`;
+                btnGrid.appendChild(b);
+                btnElements.push(b);
+            }
+        }
+        initButtons();
+
+        // Engine State
+        let activeGamepadIndex = null;
+        let animationFrameId = null;
+
+        // Controller Connection Handlers
+        window.addEventListener("gamepadconnected", (e) => {
+            const gp = e.gamepad;
+            if (activeGamepadIndex === null) {
+                activeGamepadIndex = gp.index;
+                
+                // Update Banner UI to Connected
+                statusBanner.classList.replace('bg-slate-900/80', 'bg-emerald-900/30');
+                statusBanner.classList.replace('border-slate-700', 'border-emerald-500/50');
+                statusPulse.classList.replace('bg-blue-500/10', 'bg-emerald-500/10');
+                
+                statusIcon.classList.replace('text-slate-500', 'text-emerald-400');
+                statusIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>`;
+                
+                statusTitle.innerText = "Hardware Connected";
+                statusTitle.className = "text-xl font-bold text-emerald-400";
+                statusDesc.innerText = `ID: ${gp.id}`;
+                
+                // Unlock Diagnostics Panel
+                diagPanel.classList.remove('opacity-50', 'pointer-events-none');
+                
+                // Start hardware loop
+                if(!animationFrameId) pollGamepad();
+            }
+        });
+
+        window.addEventListener("gamepaddisconnected", (e) => {
+            if (e.gamepad.index === activeGamepadIndex) {
+                activeGamepadIndex = null;
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+                
+                // Reset Banner UI
+                statusBanner.classList.replace('bg-emerald-900/30', 'bg-slate-900/80');
+                statusBanner.classList.replace('border-emerald-500/50', 'border-slate-700');
+                statusPulse.classList.replace('bg-emerald-500/10', 'bg-blue-500/10');
+                
+                statusIcon.classList.replace('text-emerald-400', 'text-slate-500');
+                statusIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 00-1-1H4a1 1 0 01-1-1V4a1 1 0 011-1h3a1 1 0 001-1v-1z"/>`;
+                
+                statusTitle.innerText = "Connection Lost";
+                statusTitle.className = "text-xl font-bold text-white";
+                statusDesc.innerText = "Reconnect your controller and press any button.";
+                
+                diagPanel.classList.add('opacity-50', 'pointer-events-none');
+                
+                // Reset Visuals
+                lsDot.style.transform = `translate(-50%, -50%)`;
+                rsDot.style.transform = `translate(-50%, -50%)`;
+                ltFill.style.height = `0%`; rtFill.style.height = `0%`;
+                btnElements.forEach(b => b.classList.remove('active'));
+            }
+        });
+
+        // The Hardware Polling Loop
+        function pollGamepad() {
+            const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+            const gp = gamepads[activeGamepadIndex];
+
+            if (gp) {
+                // --- 1. Analog Sticks (Axes 0, 1, 2, 3) ---
+                const axes = gp.axes;
+                // Deadzone threshold for visual warning
+                const driftThreshold = 0.08; 
+                
+                if(axes.length >= 4) {
+                    const lx = axes[0], ly = axes[1], rx = axes[2], ry = axes[3];
+                    
+                    lsX.innerText = lx.toFixed(5); lsY.innerText = ly.toFixed(5);
+                    rsX.innerText = rx.toFixed(5); rsY.innerText = ry.toFixed(5);
+
+                    // Move dots (Map -1/1 to -50px/50px radius)
+                    lsDot.style.transform = `translate(calc(-50% + ${lx * 50}px), calc(-50% + ${ly * 50}px))`;
+                    rsDot.style.transform = `translate(calc(-50% + ${rx * 50}px), calc(-50% + ${ry * 50}px))`;
+
+                    // Detect Drift (Resting outside deadzone)
+                    if (Math.abs(lx) > driftThreshold || Math.abs(ly) > driftThreshold) lsDot.classList.add('drift');
+                    else lsDot.classList.remove('drift');
+
+                    if (Math.abs(rx) > driftThreshold || Math.abs(ry) > driftThreshold) rsDot.classList.add('drift');
+                    else rsDot.classList.remove('drift');
+                }
+
+                // --- 2. Buttons & Digital Triggers ---
+                const btns = gp.buttons;
+                for (let i = 0; i < btns.length; i++) {
+                    const val = btns[i].value;
+                    const pressed = btns[i].pressed;
+
+                    // Update DOM Button Grid
+                    if (btnElements[i]) {
+                        if (pressed) btnElements[i].classList.add('active');
+                        else btnElements[i].classList.remove('active');
+                    }
+
+                    // Update UI for Analog Triggers (Standard mapped to Button 6 and 7)
+                    if (i === 6) {
+                        ltFill.style.height = `${val * 100}%`;
+                        ltVal.innerText = val.toFixed(2);
+                    }
+                    if (i === 7) {
+                        rtFill.style.height = `${val * 100}%`;
+                        rtVal.innerText = val.toFixed(2);
+                    }
+                }
+            }
+
+            animationFrameId = requestAnimationFrame(pollGamepad);
+        }
+
+        // Ad-Sensing Logic
+        function monitorAds() {
+            const adSlot = document.querySelector('#sidebar-ad-wrapper ins.adsbygoogle');
+            const container = document.getElementById('#sidebar-ad-wrapper');
+            if (!adSlot) return;
+
+            const observer = new MutationObserver(() => {
+                if (adSlot.getAttribute('data-ad-status') === 'filled' || adSlot.innerHTML.includes('iframe')) {
+                    container.classList.remove('hidden');
+                    setTimeout(() => container.classList.add('opacity-100'), 50);
+                    observer.disconnect();
+                }
+            });
+            observer.observe(adSlot, { attributes: true, childList: true });
+        }
+
+        window.onload = monitorAds;
+    </script>
+</body>
+</html>
