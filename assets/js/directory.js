@@ -131,6 +131,17 @@ const silenVaultTools = [
         // Compass / Safari Icon
         iconPath: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16l2.879-2.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />`
     },
+    {
+        category: "hardware",
+        id: "controller_tester",
+        title: "Gamepad Diagnostics",
+        desc: "Detect analog stick drift, verify trigger pressure, and test button mapping.",
+        link: "tools/controller_tester",
+        tag: "Gaming",
+        iconColors: "bg-blue-500/10 text-blue-400 group-hover:bg-blue-500",
+        // Gamepad Icon
+        iconPath: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 00-1-1H4a1 1 0 01-1-1V4a1 1 0 011-1h3a1 1 0 001-1v-1z" />`
+    },
 
     // --- CREATOR TOOLS ---
     {
