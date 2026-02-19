@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Touch Screen Tester | SilenVault</title>
+    <meta name="description" content="Test your smartphone or tablet touch screen for dead zones and multi-touch capabilities. Free local hardware diagnostic.">
+    
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="../assets/js/layout.js" defer></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f8fafc; overflow-x: hidden; }
+        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .mono { font-family: 'Fira Code', monospace; }
+
+        /* Touch Canvas Container */
+        #canvas-wrapper {
+            width: 100%; height: 60vh; min-height: 400px;
+            background: #0b1120; border-radius: 1rem;
+            border: 1px solid #1e293b; box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
+            position: relative; overflow: hidden;
+        }
+
+        /* The actual drawing surface */
+        #touch-canvas {
+            display: block; width: 100%; height: 100%;
+            /* CRITICAL: Prevents browser from scrolling/zooming when swiping on the canvas */
+            touch-action: none; 
+            cursor: crosshair;
+        }
+
+        /* Fullscreen override */
+        #canvas-wrapper.fullscreen {
+            position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 9999;
+            border-radius: 0; border: none;
+        }
+
+        .data-box { background: #020617; border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1rem; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <sv-header base-path=".."></sv-header>
+
+    <main class="flex-1 max-w-[1200px] mx-auto w-full px-4 py-8 flex flex-col gap-6">
+        
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-2">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight">
+                    Touch <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">Diagnostics</span>
+                </h1>
+                <p class="text-sm text-slate-400 mt-1">Map screen dead zones and verify multi-touch tracking.</p>
+            </div>
+
+            <div class="glass-panel p-2 rounded-xl flex items-center gap-2">
+                <button onclick="clearCanvas()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-4 py-2 rounded-lg transition-colors border border-slate-700 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    Clear Screen
+                </button>
+                <button onclick="toggleFullscreen()" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors shadow-[0_0_15px_rgba(168,85,247,0.4)] flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                    Full Screen Test
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            
+            <div class="md:col-span-3 flex flex-col gap-4">
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="data-box flex justify-between items-center shadow-inner">
+                        <div>
+                            <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">Active Touches</span>
+                            <span id="current-touches" class="text-3xl font-bold text-white mono">0</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">Input Type</span>
+                            <span id="input-type" class="text-sm font-bold text-purple-400">Awaiting...</span>
+                        </div>
+                    </div>
+                    <div class="data-box flex justify-between items-center shadow-inner">
+                        <div>
+                            <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">Max Multi-Touch</span>
+                            <span id="max-touches" class="text-3xl font-bold text-pink-400 mono">0</span>
+                        </div>
+                        <div class="text-right text-xs text-slate-400 max-w-[100px] leading-tight">
+                            Highest simultaneous points detected.
+                        </div>
+                    </div>
+                </div>
+
+                <div id="canvas-wrapper">
+                    <div id="fs-hud" class="hidden absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none z-50">
+                        <div class="bg-black/50 backdrop-blur text-white px-4 py-2 rounded-xl border border-white/10 text-xs font-bold font-mono">
+                            Touches: <span id="fs-current" class="text-purple-400">0</span> | Max: <span id="fs-max" class="text-pink-400">0</span>
+                        </div>
+                        <div class="bg-black/50 backdrop-blur text-slate-300 px-4 py-2 rounded-xl border border-white/10 text-[10px] uppercase tracking-widest font-bold">
+                            Press ESC to exit
+                        </div>
+                    </div>
+                    <canvas id="touch-canvas"></canvas>
+                </div>
+
+            </div>
+
+            <div class="flex flex-col gap-6">
+                <div class="glass-panel p-6 rounded-2xl border-slate-800 prose prose-invert max-w-none">
+                    <h2 class="text-lg font-bold text-white mb-2 border-b border-slate-700 pb-2">Diagnostic Guide</h2>
+                    <ul class="text-xs text-slate-400 leading-relaxed space-y-3 m-0 p-0 list-none">
+                        <li><strong class="text-slate-200">Dead Zone Test:</strong> Scrub your finger back and forth across the entire canvas. If the colored trail breaks or stops drawing while your finger is still down, your screen digitizer has a dead spot.</li>
+                        <li><strong class="text-slate-200">Multi-Touch Limit:</strong> Place as many fingers on the screen as possible. Modern devices should easily register 5 to 10 simultaneous touches.</li>
+                        <li><strong class="text-slate-200">Desktop Support:</strong> Don't have a touch screen? This tool fully supports standard mouse clicking and dragging to test monitors.</li>
+                    </ul>
+                </div>
+
+                <div id="sidebar-ad-wrapper" class="hidden opacity-0 transition-opacity duration-1000">
+                    <aside class="smart-ad-unit bg-slate-900/50 border border-slate-800 rounded-2xl flex flex-col items-center justify-center p-4 min-h-[250px]">
+                        <span class="text-[10px] uppercase tracking-widest text-slate-600 block mb-2 pointer-events-none">Sponsored</span>
+                        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="7594122081" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+                    </aside>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <sv-footer base-path=".."></sv-footer>
+
+    <script>
+        const canvas = document.getElementById('touch-canvas');
+        const ctx = canvas.getContext('2d');
+        const wrapper = document.getElementById('canvas-wrapper');
+        const fsHud = document.getElementById('fs-hud');
+        
+        // HUD Elements
+        const elCurrent = document.getElementById('current-touches');
+        const elMax = document.getElementById('max-touches');
+        const elInputType = document.getElementById('input-type');
+        const elFsCurrent = document.getElementById('fs-current');
+        const elFsMax = document.getElementById('fs-max');
+
+        let maxTouches = 0;
+        
+        // Track ongoing touches { id: {x, y, color} }
+        const activeTouches = {};
+        
+        // Palette for different fingers
+        const colors = ['#a855f7', '#ec4899', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#8b5cf6', '#f97316', '#14b8a6'];
+
+        // High-DPI Scaling
+        function resizeCanvas() {
+            const rect = wrapper.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            
+            // Re-apply styles after resize
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = 6;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas(); // Init
+
+        function clearCanvas() {
+            const rect = wrapper.getBoundingClientRect();
+            ctx.clearRect(0, 0, rect.width, rect.height);
+            maxTouches = 0;
+            updateHUD(0);
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                wrapper.requestFullscreen().catch(err => {
+                    alert(`Error attempting to enable full-screen mode: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Fullscreen Event Listener to toggle absolute HUD
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                wrapper.classList.add('fullscreen');
+                fsHud.classList.remove('hidden');
+                setTimeout(resizeCanvas, 100); // Wait for transition
+            } else {
+                wrapper.classList.remove('fullscreen');
+                fsHud.classList.add('hidden');
+                setTimeout(resizeCanvas, 100);
+            }
+        });
+
+        // --- Touch Event Engine ---
+
+        function updateHUD(currentCount) {
+            if(currentCount > maxTouches) maxTouches = currentCount;
+            
+            elCurrent.innerText = currentCount;
+            elMax.innerText = maxTouches;
+            elFsCurrent.innerText = currentCount;
+            elFsMax.innerText = maxTouches;
+
+            if (currentCount > 0) {
+                elCurrent.classList.replace('text-white', 'text-purple-400');
+            } else {
+                elCurrent.classList.replace('text-purple-400', 'text-white');
+            }
+        }
+
+        function handleTouchStart(e) {
+            e.preventDefault();
+            elInputType.innerText = 'Touch Screen';
+            elInputType.className = 'text-sm font-bold text-pink-400';
+
+            const touches = e.changedTouches;
+            const rect = canvas.getBoundingClientRect();
+
+            for (let i = 0; i < touches.length; i++) {
+                const touch = touches[i];
+                const id = touch.identifier;
+                // Assign color based on ID modulo
+                const color = colors[id % colors.length]; 
+                
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+
+                activeTouches[id] = { x, y, color };
+
+                // Draw initial dot
+                ctx.beginPath();
+                ctx.fillStyle = color;
+                ctx.arc(x, y, ctx.lineWidth / 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            updateHUD(e.touches.length);
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            const touches = e.changedTouches;
+            const rect = canvas.getBoundingClientRect();
+
+            for (let i = 0; i < touches.length; i++) {
+                const touch = touches[i];
+                const id = touch.identifier;
+                const active = activeTouches[id];
+
+                if (active) {
+                    const newX = touch.clientX - rect.left;
+                    const newY = touch.clientY - rect.top;
+
+                    // Draw Line
+                    ctx.beginPath();
+                    ctx.strokeStyle = active.color;
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = active.color;
+                    ctx.moveTo(active.x, active.y);
+                    ctx.lineTo(newX, newY);
+                    ctx.stroke();
+
+                    // Update stored position
+                    active.x = newX;
+                    active.y = newY;
+                }
+            }
+            // Reset shadow to prevent bleeding
+            ctx.shadowBlur = 0; 
+        }
+
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            const touches = e.changedTouches;
+            for (let i = 0; i < touches.length; i++) {
+                delete activeTouches[touches[i].identifier];
+            }
+            updateHUD(e.touches.length);
+        }
+
+        // Attach Touch Listeners
+        canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+        canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+        canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+        canvas.addEventListener('touchcancel', handleTouchEnd, { passive: false });
+
+        // --- Mouse Fallback Engine (For Desktop Users) ---
+        let isMouseDown = false;
+        
+        canvas.addEventListener('mousedown', (e) => {
+            isMouseDown = true;
+            elInputType.innerText = 'Mouse / Trackpad';
+            elInputType.className = 'text-sm font-bold text-blue-400';
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            activeTouches['mouse'] = { x, y, color: '#3b82f6' };
+            
+            ctx.beginPath();
+            ctx.fillStyle = '#3b82f6';
+            ctx.arc(x, y, ctx.lineWidth / 2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            updateHUD(1);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isMouseDown) return;
+            const rect = canvas.getBoundingClientRect();
+            const active = activeTouches['mouse'];
+            
+            if(active) {
+                const newX = e.clientX - rect.left;
+                const newY = e.clientY - rect.top;
+
+                ctx.beginPath();
+                ctx.strokeStyle = active.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = active.color;
+                ctx.moveTo(active.x, active.y);
+                ctx.lineTo(newX, newY);
+                ctx.stroke();
+                
+                ctx.shadowBlur = 0;
+
+                active.x = newX;
+                active.y = newY;
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            if(isMouseDown) {
+                isMouseDown = false;
+                delete activeTouches['mouse'];
+                updateHUD(0);
+            }
+        });
+
+        // Ad-Sensing Logic
+        function monitorAds() {
+            const adSlot = document.querySelector('#sidebar-ad-wrapper ins.adsbygoogle');
+            const container = document.getElementById('#sidebar-ad-wrapper');
+            if (!adSlot) return;
+
+            const observer = new MutationObserver(() => {
+                if (adSlot.getAttribute('data-ad-status') === 'filled' || adSlot.innerHTML.includes('iframe')) {
+                    container.classList.remove('hidden');
+                    setTimeout(() => container.classList.add('opacity-100'), 50);
+                    observer.disconnect();
+                }
+            });
+            observer.observe(adSlot, { attributes: true, childList: true });
+        }
+
+        window.onload = monitorAds;
+    </script>
+</body>
+</html>
