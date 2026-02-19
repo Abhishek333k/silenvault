@@ -22,7 +22,7 @@ injectAnalytics();
 class SVHeader extends HTMLElement {
     connectedCallback() {
         const basePath = this.getAttribute('base-path') || '.';
-        const sponsorLink = `${basePath}/donate.html`; 
+        const sponsorLink = `${basePath}/donate`; 
 
         let favicon = document.querySelector("link[rel~='icon']");
         if (!favicon) {
@@ -44,15 +44,15 @@ class SVHeader extends HTMLElement {
         this.innerHTML = `
             <nav class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-                    <a href="${basePath}/index.html" class="flex items-center gap-3 transition-transform hover:scale-105">
+                    <a href="${basePath}/index" class="flex items-center gap-3 transition-transform hover:scale-105">
                         <img src="${basePath}/assets/img/Banner_with_CREST.png" alt="SilenVault" class="h-10 w-auto object-contain">
                     </a>
                     
                     <div class="flex items-center gap-4">
                         <div class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-400">
-                            <a href="${basePath}/about.html" class="hover:text-white transition-colors">About</a>
-                            <a href="${basePath}/index.html#sec-dev" class="hover:text-white transition-colors">Dev Tools</a>
-                            <a href="${basePath}/index.html#sec-business" class="hover:text-white transition-colors">Business</a>
+                            <a href="${basePath}/about" class="hover:text-white transition-colors">About</a>
+                            <a href="${basePath}/index#sec-dev" class="hover:text-white transition-colors">Dev Tools</a>
+                            <a href="${basePath}/index#sec-business" class="hover:text-white transition-colors">Business</a>
                         </div>
                         
                         <div class="h-6 w-px bg-slate-800 hidden md:block mx-2"></div>
@@ -75,7 +75,7 @@ class SVHeader extends HTMLElement {
 class SVFooter extends HTMLElement {
     connectedCallback() {
         const basePath = this.getAttribute('base-path') || '.';
-        const sponsorLink = `${basePath}/donate.html`;
+        const sponsorLink = `${basePath}/donate`;
         
         this.innerHTML = `
             <footer class="bg-slate-950 border-t border-slate-900 py-12 mt-auto w-full">
@@ -101,17 +101,17 @@ class SVFooter extends HTMLElement {
                         <div>
                             <h4 class="text-white font-semibold mb-4">Ecosystem</h4>
                             <ul class="space-y-2 text-sm text-slate-500">
-                                <li><a href="${basePath}/about.html" class="hover:text-blue-400 transition-colors">About SilenVault</a></li>
-                                <li><a href="${basePath}/index.html" class="hover:text-blue-400 transition-colors">All Tools</a></li>
+                                <li><a href="${basePath}/about" class="hover:text-blue-400 transition-colors">About SilenVault</a></li>
+                                <li><a href="${basePath}/index" class="hover:text-blue-400 transition-colors">All Tools</a></li>
                                 <li><a href="${sponsorLink}" class="hover:text-pink-400 transition-colors">Become a Sponsor</a></li>
                             </ul>
                         </div>
                         <div>
                             <h4 class="text-white font-semibold mb-4">Legal</h4>
                             <ul class="space-y-2 text-sm text-slate-500">
-                                <li><a href="${basePath}/policies/terms.html" class="hover:text-blue-400 transition-colors">Terms of Service</a></li>
-                                <li><a href="${basePath}/policies/privacy.html" class="hover:text-blue-400 transition-colors">Privacy Policy</a></li>
-                                <li><a href="${basePath}/policies/disclaimer.html" class="hover:text-blue-400 transition-colors">Disclaimer</a></li>
+                                <li><a href="${basePath}/policies/terms" class="hover:text-blue-400 transition-colors">Terms of Service</a></li>
+                                <li><a href="${basePath}/policies/privacy" class="hover:text-blue-400 transition-colors">Privacy Policy</a></li>
+                                <li><a href="${basePath}/policies/disclaimer" class="hover:text-blue-400 transition-colors">Disclaimer</a></li>
                             </ul>
                         </div>
                     </div>
