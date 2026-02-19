@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webcam Diagnostics | SilenVault</title>
+    <meta name="description" content="Secure, local-first webcam tester. Verify camera resolution, frame rate, and take high-quality local snapshots.">
+    
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="../assets/js/layout.js" defer></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f8fafc; overflow-x: hidden; }
+        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .mono { font-family: 'Fira Code', monospace; }
+
+        /* Custom Select */
+        select { -webkit-appearance: none; -moz-appearance: none; appearance: none; }
+
+        /* Viewfinder Wrapper */
+        .viewfinder {
+            position: relative; width: 100%; aspect-ratio: 16/9; background: #000;
+            border-radius: 1rem; overflow: hidden; border: 1px solid #1e293b;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        /* The Live Feed */
+        #camera-feed {
+            width: 100%; height: 100%; object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .mirrored { transform: scaleX(-1); }
+
+        /* Viewfinder HUD Overlays */
+        .vf-corners::before, .vf-corners::after, .vf-corners div::before, .vf-corners div::after {
+            content: ''; position: absolute; width: 30px; height: 30px; border-color: rgba(255,255,255,0.4); border-style: solid; pointer-events: none; z-index: 10;
+        }
+        .vf-corners::before { top: 20px; left: 20px; border-width: 2px 0 0 2px; }
+        .vf-corners::after { top: 20px; right: 20px; border-width: 2px 2px 0 0; }
+        .vf-corners div::before { bottom: 20px; left: 20px; border-width: 0 0 2px 2px; }
+        .vf-corners div::after { bottom: 20px; right: 20px; border-width: 0 2px 2px 0; }
+
+        .vf-center {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 40px; height: 40px; pointer-events: none; z-index: 10;
+        }
+        .vf-center::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.2); }
+        .vf-center::after { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,0.2); }
+
+        .rec-indicator {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            display: flex; items-center; gap: 8px; background: rgba(0,0,0,0.6);
+            padding: 4px 12px; border-radius: 20px; z-index: 10; opacity: 0; transition: opacity 0.3s;
+        }
+        .rec-indicator.active { opacity: 1; }
+        
+        @keyframes pulse-red { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        .rec-dot { width: 8px; height: 8px; background: #ef4444; border-radius: 50%; animation: pulse-red 2s infinite; }
+
+        .data-box { background: #0b1120; border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1rem; }
+        
+        /* Snapshot Gallery */
+        #snapshot-gallery { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; }
+        .snap-item { 
+            position: relative; width: 120px; aspect-ratio: 16/9; border-radius: 0.5rem; 
+            overflow: hidden; border: 2px solid #334155; flex-shrink: 0; group; 
+        }
+        .snap-item img { width: 100%; height: 100%; object-fit: cover; }
+        .snap-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.6); display: flex;
+            align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;
+            cursor: pointer;
+        }
+        .snap-item:hover .snap-overlay { opacity: 1; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <sv-header base-path=".."></sv-header>
+
+    <main class="flex-1 max-w-[1400px] mx-auto w-full px-4 py-8 flex flex-col gap-6">
+        
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-2">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight">
+                    Camera <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500">Diagnostics</span>
+                </h1>
+                <p class="text-sm text-slate-400 mt-1">Studio viewfinder to analyze webcam resolution, framerate, and lens clarity.</p>
+            </div>
+            
+            <div class="flex items-center gap-3 w-full md:w-auto">
+                <div class="relative flex-1 md:flex-none min-w-[220px] group">
+                    <select id="cam-select" onchange="switchCamera()" class="bg-slate-900 border border-slate-700 hover:border-cyan-500 text-xs text-slate-300 font-bold rounded-xl w-full py-3 px-4 outline-none transition-all cursor-pointer shadow-inner">
+                        <option value="">Default Camera</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-slate-500 group-hover:text-cyan-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </div>
+
+                <button id="btn-toggle" onclick="toggleCamera()" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-6 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] flex items-center gap-2 shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                    <span id="btn-text">Start Camera</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <div class="lg:col-span-2 glass-panel p-6 rounded-3xl border-slate-700 shadow-2xl flex flex-col gap-4">
+                
+                <div class="flex justify-between items-center px-2">
+                    <div class="flex items-center gap-3">
+                        <span id="status-badge" class="text-[10px] uppercase tracking-widest font-bold bg-slate-800 text-slate-500 px-3 py-1 rounded-full border border-slate-700 flex items-center gap-2">
+                            <div class="w-1.5 h-1.5 rounded-full bg-slate-500" id="status-dot"></div>
+                            <span>Lens Covered</span>
+                        </span>
+                    </div>
+                    
+                    <div class="flex items-center gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-300 font-bold hover:text-cyan-400 transition-colors">
+                            <input type="checkbox" id="mirror-toggle" checked onchange="toggleMirror()" class="accent-cyan-500 w-4 h-4">
+                            Mirror Feed
+                        </label>
+                        <button onclick="takeSnapshot()" id="btn-snap" disabled class="bg-slate-800 text-slate-500 hover:text-white border border-slate-700 hover:border-emerald-500 px-4 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            Snapshot
+                        </button>
+                    </div>
+                </div>
+
+                <div class="viewfinder">
+                    <div class="vf-corners"><div></div></div>
+                    <div class="vf-center"></div>
+                    <div id="rec-indicator" class="rec-indicator">
+                        <div class="rec-dot"></div>
+                        <span class="text-[10px] text-white font-bold tracking-widest uppercase">Live</span>
+                    </div>
+                    <video id="camera-feed" class="mirrored" autoplay playsinline muted></video>
+                </div>
+
+                <div class="mt-2 h-[80px]">
+                    <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-2">Local Gallery</span>
+                    <div id="snapshot-gallery" class="no-scrollbar">
+                        <div class="text-xs text-slate-600 italic mt-4">Snapshots will appear here...</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="flex flex-col gap-6">
+                
+                <div class="glass-panel p-6 rounded-3xl border-slate-700">
+                    <h2 class="text-sm font-bold text-slate-300 uppercase tracking-widest border-b border-slate-800 pb-2 mb-4">Lens Telemetry</h2>
+                    
+                    <div class="space-y-4">
+                        <div class="data-box shadow-inner">
+                            <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">Max Resolution</span>
+                            <div class="flex items-end gap-2">
+                                <span id="res-display" class="text-2xl font-bold text-white mono">0x0</span>
+                                <span id="res-badge" class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded font-bold mb-1">SD</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="data-box shadow-inner">
+                                <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">Frame Rate</span>
+                                <span id="fps-display" class="text-xl font-bold text-cyan-400 mono">0 <span class="text-xs text-slate-500">fps</span></span>
+                            </div>
+                            <div class="data-box shadow-inner">
+                                <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">Aspect Ratio</span>
+                                <span id="aspect-display" class="text-xl font-bold text-emerald-400 mono">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="sidebar-ad-wrapper" class="hidden opacity-0 transition-opacity duration-1000 flex-1">
+                    <aside class="smart-ad-unit w-full h-full bg-slate-900/50 border border-slate-800 rounded-3xl flex flex-col items-center justify-center p-4 min-h-[250px]">
+                        <span class="text-[10px] uppercase tracking-widest text-slate-600 block mb-2 pointer-events-none">Sponsored</span>
+                        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="7594122081" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+                    </aside>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="glass-panel p-8 rounded-2xl border-slate-800 prose prose-invert max-w-none mt-4">
+            <h2 class="text-xl font-bold text-white mb-4">Hardware Diagnostic Guide</h2>
+            <ul class="text-sm text-slate-400 leading-relaxed space-y-3 m-0 p-0 list-none">
+                <li><strong class="text-slate-200">Local-First Privacy:</strong> SilenVault guarantees that your video feed never leaves your computer. The video stream is routed directly into an HTML5 container in your browser's RAM. We have no servers to store or view your camera.</li>
+                <li><strong class="text-slate-200">Mirror Feed vs True Feed:</strong> Video conferencing apps (like Zoom) "mirror" your feed so it acts like a bathroom mirror. Unchecking the <span class="text-cyan-400 font-bold">Mirror Feed</span> box shows you exactly how the other people on the call see you.</li>
+                <li><strong class="text-slate-200">HD/4K Hardware Polling:</strong> The telemetry engine forces your camera driver to output its absolute maximum resolution. If you bought a 1080p webcam but the telemetry says <code>1280x720</code> or <code>640x480</code>, you may need to update your USB drivers or plug the camera into a faster USB 3.0 port.</li>
+            </ul>
+        </div>
+
+    </main>
+
+    <sv-footer base-path=".."></sv-footer>
+
+    <script>
+        // Core State
+        let stream = null;
+        let isCamActive = false;
+        
+        // DOM Elements
+        const video = document.getElementById('camera-feed');
+        const selectDevice = document.getElementById('cam-select');
+        const btnToggle = document.getElementById('btn-toggle');
+        const btnText = document.getElementById('btn-text');
+        const btnSnap = document.getElementById('btn-snap');
+        const badge = document.getElementById('status-badge');
+        const dot = document.getElementById('status-dot');
+        const recIndicator = document.getElementById('rec-indicator');
+        const mirrorToggle = document.getElementById('mirror-toggle');
+        const gallery = document.getElementById('snapshot-gallery');
+        
+        // Telemetry DOM
+        const elRes = document.getElementById('res-display');
+        const elResBadge = document.getElementById('res-badge');
+        const elFps = document.getElementById('fps-display');
+        const elAspect = document.getElementById('aspect-display');
+
+        // Fetch physical devices
+        async function getDevices() {
+            try {
+                // Request temporary permission to read hardware labels
+                await navigator.mediaDevices.getUserMedia({ video: true }); 
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoInputs = devices.filter(d => d.kind === 'videoinput');
+                
+                selectDevice.innerHTML = '';
+                videoInputs.forEach((device, index) => {
+                    const opt = document.createElement('option');
+                    opt.value = device.deviceId;
+                    opt.text = device.label || `Camera ${index + 1}`;
+                    selectDevice.appendChild(opt);
+                });
+            } catch (err) {
+                console.warn("Device enumeration blocked until user grants permission.");
+            }
+        }
+
+        async function toggleCamera() {
+            if (isCamActive) stopCamera();
+            else startCamera();
+        }
+
+        async function startCamera() {
+            try {
+                const deviceId = selectDevice.value;
+                
+                // ARCHITECT FIX: Force maximum hardware resolution
+                const constraints = { 
+                    video: { 
+                        deviceId: deviceId ? { exact: deviceId } : undefined,
+                        width: { ideal: 3840 }, // Try to pull 4K
+                        height: { ideal: 2160 },
+                        frameRate: { ideal: 60 } // Try to pull 60fps
+                    } 
+                };
+                
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                
+                if(selectDevice.options.length <= 1) getDevices();
+
+                video.srcObject = stream;
+                isCamActive = true;
+                
+                // Extract Hardware Telemetry once the video metadata loads
+                video.onloadedmetadata = () => {
+                    const track = stream.getVideoTracks()[0];
+                    const settings = track.getSettings();
+                    
+                    const w = settings.width || video.videoWidth;
+                    const h = settings.height || video.videoHeight;
+                    const fps = settings.frameRate ? Math.round(settings.frameRate) : '--';
+                    
+                    elRes.innerText = `${w}x${h}`;
+                    elFps.innerHTML = `${fps} <span class="text-xs text-slate-500">fps</span>`;
+                    
+                    // Aspect Ratio Math
+                    const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
+                    const divisor = gcd(w, h);
+                    elAspect.innerText = `${w/divisor}:${h/divisor}`;
+
+                    // HD/4K Badge Logic
+                    if (h >= 2160) { elResBadge.innerText = "4K UHD"; elResBadge.className = "text-[10px] bg-purple-500 text-white px-2 py-0.5 rounded font-bold mb-1 shadow-[0_0_10px_rgba(168,85,247,0.5)]"; }
+                    else if (h >= 1080) { elResBadge.innerText = "1080p FHD"; elResBadge.className = "text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded font-bold mb-1 shadow-[0_0_10px_rgba(59,130,246,0.5)]"; }
+                    else if (h >= 720) { elResBadge.innerText = "720p HD"; elResBadge.className = "text-[10px] bg-cyan-500 text-white px-2 py-0.5 rounded font-bold mb-1"; }
+                    else { elResBadge.innerText = "SD"; elResBadge.className = "text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded font-bold mb-1"; }
+                };
+
+                // UI Updates
+                btnText.innerText = "Stop Camera";
+                btnToggle.classList.replace('bg-blue-600', 'bg-rose-600');
+                btnToggle.classList.replace('hover:bg-blue-500', 'hover:bg-rose-500');
+                btnToggle.classList.replace('shadow-[0_0_20px_rgba(37,99,235,0.4)]', 'shadow-[0_0_20px_rgba(225,29,72,0.4)]');
+                
+                badge.querySelector('span').innerText = "Live Feed Active";
+                badge.classList.replace('text-slate-500', 'text-emerald-400');
+                dot.classList.replace('bg-slate-500', 'bg-emerald-500');
+                dot.classList.add('animate-pulse');
+                
+                recIndicator.classList.add('active');
+                
+                btnSnap.disabled = false;
+                btnSnap.classList.replace('text-slate-500', 'text-emerald-400');
+                
+            } catch (err) {
+                alert("Camera access denied. Please check your browser permissions.");
+                console.error(err);
+            }
+        }
+
+        function stopCamera() {
+            if (stream) stream.getTracks().forEach(track => track.stop());
+            video.srcObject = null;
+            isCamActive = false;
+            
+            // UI Resets
+            btnText.innerText = "Start Camera";
+            btnToggle.classList.replace('bg-rose-600', 'bg-blue-600');
+            btnToggle.classList.replace('hover:bg-rose-500', 'hover:bg-blue-500');
+            btnToggle.classList.replace('shadow-[0_0_20px_rgba(225,29,72,0.4)]', 'shadow-[0_0_20px_rgba(37,99,235,0.4)]');
+            
+            badge.querySelector('span').innerText = "Lens Covered";
+            badge.classList.replace('text-emerald-400', 'text-slate-500');
+            dot.classList.replace('bg-emerald-500', 'bg-slate-500');
+            dot.classList.remove('animate-pulse');
+            
+            recIndicator.classList.remove('active');
+            btnSnap.disabled = true;
+            btnSnap.classList.replace('text-emerald-400', 'text-slate-500');
+
+            elRes.innerText = "0x0";
+            elResBadge.innerText = "SD";
+            elResBadge.className = "text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded font-bold mb-1";
+            elFps.innerHTML = `0 <span class="text-xs text-slate-500">fps</span>`;
+            elAspect.innerText = "-";
+        }
+
+        function switchCamera() {
+            if (isCamActive) {
+                stopCamera();
+                setTimeout(startCamera, 200); 
+            }
+        }
+
+        function toggleMirror() {
+            if(mirrorToggle.checked) video.classList.add('mirrored');
+            else video.classList.remove('mirrored');
+        }
+
+        // ARCHITECT: High-Res Snapshot Engine
+        function takeSnapshot() {
+            if (!isCamActive) return;
+            
+            // Create a hidden canvas at the exact hardware resolution
+            const snapCanvas = document.createElement('canvas');
+            snapCanvas.width = video.videoWidth;
+            snapCanvas.height = video.videoHeight;
+            const ctx = snapCanvas.getContext('2d');
+            
+            // If mirrored, flip the canvas before drawing so the saved image matches the screen
+            if(mirrorToggle.checked) {
+                ctx.translate(snapCanvas.width, 0);
+                ctx.scale(-1, 1);
+            }
+            
+            ctx.drawImage(video, 0, 0, snapCanvas.width, snapCanvas.height);
+            
+            // Convert to base64 image
+            const dataURL = snapCanvas.toDataURL('image/jpeg', 1.0);
+            
+            // Clear placeholder if first image
+            if(gallery.querySelector('div.italic')) gallery.innerHTML = '';
+
+            // Build Gallery Item
+            const item = document.createElement('div');
+            item.className = 'snap-item';
+            
+            const img = document.createElement('img');
+            img.src = dataURL;
+            
+            // Download Overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'snap-overlay';
+            overlay.innerHTML = `<svg class="w-6 h-6 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>`;
+            
+            overlay.onclick = () => {
+                const a = document.createElement('a');
+                a.href = dataURL;
+                a.download = `silenvault_camera_test_${Date.now()}.jpg`;
+                a.click();
+            };
+
+            item.appendChild(img);
+            item.appendChild(overlay);
+            
+            // Prepend so newest is on the left
+            gallery.insertBefore(item, gallery.firstChild);
+        }
+
+        // Ad-Sensing Logic
+        function monitorAds() {
+            const adSlot = document.querySelector('#sidebar-ad-wrapper ins.adsbygoogle');
+            const container = document.getElementById('#sidebar-ad-wrapper');
+            if (!adSlot) return;
+
+            const observer = new MutationObserver(() => {
+                if (adSlot.getAttribute('data-ad-status') === 'filled' || adSlot.innerHTML.includes('iframe')) {
+                    container.classList.remove('hidden');
+                    setTimeout(() => container.classList.add('opacity-100'), 50);
+                    observer.disconnect();
+                }
+            });
+            observer.observe(adSlot, { attributes: true, childList: true });
+        }
+
+        window.onload = monitorAds;
+    </script>
+</body>
+</html>
