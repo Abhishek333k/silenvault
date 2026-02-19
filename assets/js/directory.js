@@ -120,6 +120,17 @@ const silenVaultTools = [
         // Camera/Video Icon
         iconPath: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />`
     },
+    {
+        category: "hardware",
+        id: "sensor_tester",
+        title: "Device Sensor Hub",
+        desc: "Test gyroscope and accelerometer. Features digital bubble level and 3D compass.",
+        link: "tools/sensor_tester",
+        tag: "Mobile",
+        iconColors: "bg-indigo-500/10 text-indigo-400 group-hover:bg-indigo-500",
+        // Compass / Safari Icon
+        iconPath: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16l2.879-2.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />`
+    },
 
     // --- CREATOR TOOLS ---
     {
