@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Converter Pro | SilenVault</title>
+    <meta name="description" content="Convert WebP, AVIF, PNG, JPG, BMP, and GIF images instantly in your browser. 100% lossless-grade format switching.">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="../assets/js/layout.js" defer></script>
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
+        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .sv-select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; appearance: none; }
+        
+        .drag-active { border-color: #3b82f6 !important; background-color: rgba(59, 130, 246, 0.1) !important; transform: scale(1.02); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <sv-header base-path=".."></sv-header>
+
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-12 flex flex-col lg:flex-row gap-8">
+        
+        <div class="flex-1 space-y-6">
+            <div class="text-center mb-10">
+                <h1 class="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+                    Image <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Converter Pro</span>
+                </h1>
+                <p class="text-slate-400 max-w-lg mx-auto">
+                    Professional format switching supporting Next-Gen WebP and AVIF. 100% Local.
+                </p>
+            </div>
+
+            <div id="dropZone" class="glass-panel rounded-2xl p-16 mb-8 text-center cursor-pointer border-2 border-dashed border-slate-700 hover:border-blue-500 transition-all group" onclick="document.getElementById('fileInput').click()">
+                <input type="file" id="fileInput" accept="image/*" class="hidden">
+                <div class="pointer-events-none group-hover:scale-105 transition-transform">
+                    <div class="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-6 text-blue-500 border border-blue-500/20 group-hover:border-blue-500 shadow-inner">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Drop Image Here</h3>
+                    <p class="text-sm text-slate-500">Supports JPG, PNG, WebP, AVIF, HEIC, GIF</p>
+                </div>
+            </div>
+
+            <div id="converterArea" class="hidden space-y-8 animate-in fade-in duration-500">
+                <div class="glass-panel p-8 rounded-3xl border-blue-500/20">
+                    
+                    <div id="gifWarning" class="hidden bg-orange-500/10 border border-orange-500/30 text-orange-400 px-4 py-3 rounded-xl mb-6 flex items-start gap-3 text-sm">
+                        <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                        <div>
+                            <strong class="block">Animated GIF Detected</strong>
+                            HTML5 Canvas cannot process animations. If you proceed, the output will be a <b>static image</b> of the very first frame.
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                        <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-800 flex flex-col items-center justify-center min-h-[250px] relative overflow-hidden group">
+                            <img id="previewImg" class="max-h-56 max-w-full object-contain drop-shadow-2xl z-10">
+                            <div class="absolute inset-0 z-0 opacity-20" style="background-image: linear-gradient(45deg, #334155 25%, transparent 25%), linear-gradient(-45deg, #334155 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #334155 75%), linear-gradient(-45deg, transparent 75%, #334155 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px;"></div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div>
+                                <h3 class="text-white font-bold text-lg truncate w-full" id="originalFileName">Image.png</h3>
+                                <span id="fileInfo" class="text-xs text-slate-400 font-mono">Loading data...</span>
+                            </div>
+
+                            <div class="h-px w-full bg-slate-800"></div>
+
+                            <div>
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 block">Target Format</label>
+                                <select id="targetFormat" class="sv-select w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors">
+                                    <optgroup label="Next-Gen Web">
+                                        <option value="image/webp" selected>WebP (Highly Recommended)</option>
+                                        <option value="image/avif">AVIF (Ultra Compression)</option>
+                                    </optgroup>
+                                    <optgroup label="Standard Formats">
+                                        <option value="image/png">PNG (Lossless, Transparent)</option>
+                                        <option value="image/jpeg">JPG (Classic, Removes Transparency)</option>
+                                    </optgroup>
+                                    <optgroup label="Legacy Formats">
+                                        <option value="image/bmp">BMP (Uncompressed Windows)</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            
+                            <button onclick="convertImage()" id="convertBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-blue-500/20 flex justify-center gap-2 items-center">
+                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                Convert Format
+                            </button>
+                            
+                            <button onclick="resetConverter()" class="w-full text-xs text-slate-500 hover:text-white transition-colors border border-transparent hover:border-slate-700 py-2 rounded-lg">
+                                ← Convert another image
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="smart-ad-unit w-full text-center overflow-hidden transition-all duration-500">
+                    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="7594122081" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+                </div>
+            </div>
+        </div>
+
+        <aside class="w-full lg:w-80 flex flex-col gap-6 shrink-0">
+            <div class="glass-panel p-6 rounded-2xl border-blue-500/20">
+                <h3 class="font-bold text-white mb-4 uppercase tracking-wider text-xs">Architect's Note</h3>
+                <ul class="text-xs text-slate-400 space-y-4">
+                    <li class="flex gap-3">
+                        <span class="text-emerald-400">💡</span>
+                        <span><strong>Smart Matting:</strong> If you convert a transparent PNG to JPG or BMP, we automatically apply a clean white background to prevent rendering artifacts.</span>
+                    </li>
+                    <li class="flex gap-3">
+                        <span class="text-blue-400">🛡️</span>
+                        <span><strong>Browser Native:</strong> Chrome/Edge support AVIF natively. If you use an older browser, AVIF may automatically fall back to PNG.</span>
+                    </li>
+                    <li class="flex gap-3">
+                        <span class="text-purple-400">⚡</span>
+                        <span><strong>Compression:</strong> Need to shrink the file size? Use our dedicated <a href="image_compressor.html" class="text-white underline hover:text-blue-400">Smart Compressor</a> tool.</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="smart-ad-unit w-full text-center overflow-hidden transition-all duration-500 sticky top-24">
+                <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="9264203071" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+            </div>
+        </aside>
+
+    </main>
+
+    <sv-footer base-path=".."></sv-footer>
+
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-700 text-white px-6 py-4 rounded-xl text-sm font-bold shadow-2xl opacity-0 transition-all pointer-events-none translate-y-4 z-50 flex items-center gap-3">
+        <svg class="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+        <span id="toastMsg">Notification</span>
+    </div>
+
+    <script>
+        let originalFile = null;
+        let originalName = "";
+
+        // --- Drag & Drop Engine ---
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.add('drag-active'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => dropZone.classList.remove('drag-active'), false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            handleFile(e.dataTransfer.files[0]);
+        }, false);
+
+        fileInput.addEventListener('change', function() {
+            handleFile(this.files[0]);
+        });
+        // -------------------------
+
+        function handleFile(file) {
+            if (!file || !file.type.startsWith('image/')) {
+                alert("Please select a valid image file.");
+                return;
+            }
+            
+            originalFile = file;
+            originalName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+
+            // ARCHITECT FIX: Show warning if GIF is uploaded
+            const gifWarning = document.getElementById('gifWarning');
+            if(file.type === 'image/gif') {
+                gifWarning.classList.remove('hidden');
+            } else {
+                gifWarning.classList.add('hidden');
+            }
+
+            document.getElementById('originalFileName').innerText = file.name;
+            document.getElementById('fileInfo').innerText = `Original Format: ${file.type.split('/')[1].toUpperCase()} • Size: ${(file.size/1024).toFixed(1)} KB`;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('previewImg').src = e.target.result;
+                document.getElementById('dropZone').classList.add('hidden');
+                document.getElementById('converterArea').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function convertImage() {
+            const btn = document.getElementById('convertBtn');
+            const originalBtnHTML = btn.innerHTML;
+            btn.innerHTML = `Processing...`; 
+            
+            setTimeout(() => {
+                const img = document.getElementById('previewImg');
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const format = document.getElementById('targetFormat').value;
+
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+
+                if (format === 'image/jpeg' || format === 'image/bmp') {
+                    ctx.fillStyle = "#FFFFFF";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+
+                ctx.drawImage(img, 0, 0);
+
+                canvas.toBlob((blob) => {
+                    let finalExt = format.split('/')[1].replace('jpeg', 'jpg');
+                    
+                    // ARCHITECT FIX: Browser Fallback Detection & Toast
+                    if (blob.type !== format && format !== 'image/jpeg') {
+                        finalExt = 'png';
+                        showToast(`Your browser doesn't support writing ${format.split('/')[1].toUpperCase()} files natively. Safely backed up as PNG.`);
+                    }
+
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `${originalName}_converted.${finalExt}`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    
+                    btn.innerHTML = originalBtnHTML;
+                }, format, 1.0);
+            }, 50);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('opacity-0', 'translate-y-4');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-4');
+            }, 5000);
+        }
+
+        function resetConverter() {
+            originalFile = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('converterArea').classList.add('hidden');
+            document.getElementById('dropZone').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
