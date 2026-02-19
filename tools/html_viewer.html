@@ -9,84 +9,67 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
-    
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="../assets/js/layout.js" defer></script>
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/monokai.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css" />
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/comment/comment.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.11/beautify.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.11/beautify-css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.11/beautify-html.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; overflow-x: hidden; }
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f8fafc; overflow-x: hidden; transition: background-color 0.3s, color 0.3s; }
+        .dark body { background-color: #0f172a; color: #e2e8f0; }
+        
+        .editor-container { height: calc(100vh - 120px); min-height: 500px; }
+        .mono { font-family: 'Fira Code', monospace; }
         .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
         
-        /* IDE Specific Constraints */
-        .editor-container { height: calc(100vh - 200px); min-height: 600px; }
-        
-        /* Custom Scrollbar for IDE feel */
+        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
 
-        #editor-wrapper { position: relative; background: #0b1120; height: 100%; border-radius: 0 0 0 1rem; }
-
-        #highlight-overlay { pointer-events: none; user-select: none; position: absolute; inset: 0; overflow: hidden; }
-
-        /* ARCHITECT FIX: Mathematical Sync between Textarea and Pre */
-        #code-input, #highlight-overlay pre, #highlight-code {
-            font-family: 'Fira Code', monospace !important;
-            font-size: 14px !important;
-            line-height: 1.6 !important;
-            tab-size: 4 !important;
-        }
-
-        #highlight-overlay pre { margin: 0 !important; padding: 20px !important; height: 100%; overflow: auto; white-space: pre; background: transparent !important; }
-
-        #code-input {
-            color: transparent !important;
-            caret-color: #f8fafc !important;
-            background: transparent;
-            resize: none;
-            outline: none;
-            position: absolute;
-            inset: 0;
-            z-index: 10;
-            padding: 20px !important;
-            margin: 0 !important;
-            border: none !important;
-            width: 100%; height: 100%;
-        }
-
-        #code-input::selection { background: rgba(59, 130, 246, 0.3); }
-
-        .line-numbers {
-            background: #020617;
-            border-right: 1px solid #1e293b;
-            color: #475569;
-            padding: 20px 12px;
-            text-align: right;
-            user-select: none;
-            font-family: 'Fira Code', monospace;
-            font-size: 14px;
-            line-height: 1.6;
-            min-width: 50px;
-            border-radius: 1rem 0 0 0;
-        }
-
-        /* Tabs UI */
+        /* CodeMirror Overrides */
+        #editor-wrapper { position: relative; background: #0b1120; height: 100%; display: flex; flex-direction: column; }
+        .CodeMirror { flex: 1; height: 100%; font-family: 'Fira Code', monospace; font-size: 14px; line-height: 1.6; }
+        
+        /* Tabs */
         .tab { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); border-bottom: 2px solid transparent; }
         .tab-active { background: #0f172a; color: #3b82f6; border-bottom-color: #3b82f6; }
         .tab-inactive { color: #64748b; }
         .tab-inactive:hover { color: #e2e8f0; background: rgba(255,255,255,0.05); }
 
+        /* Error Console Styling */
+        #error-console { 
+            background: #1e1b4b; border-top: 1px solid #4c1d95; color: #fecaca; 
+            padding: 12px; max-height: 150px; overflow-y: auto; display: none; font-family: 'Fira Code', monospace; font-size: 12px;
+        }
+
+        /* Glass Settings Menu */
+        #settings-menu { 
+            display: none; position: absolute; right: 1rem; top: 3.5rem; 
+            z-index: 100; min-width: 250px; 
+        }
+        
         @media (max-width: 768px) {
             .editor-container { flex-direction: column; height: auto; }
             .editor-pane, .preview-pane { width: 100% !important; height: 50vh; }
-            #editor-wrapper, .line-numbers, .preview-pane { border-radius: 0; }
         }
     </style>
 </head>
@@ -94,207 +77,273 @@
 
     <sv-header base-path=".."></sv-header>
 
-    <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-8 flex flex-col gap-8">
-        
-        <div class="text-center mb-2">
-            <h1 class="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight">
-                Architect <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">Pro IDE</span>
-            </h1>
-            <p class="text-slate-400 max-w-lg mx-auto">
-                Secure local-first development. Code executes entirely within your browser's RAM.
-            </p>
+    <div class="h-14 bg-slate-900 border-b border-slate-800 flex flex-wrap items-center justify-between px-4 sticky top-0 z-40">
+        <div class="flex items-center gap-1 h-full overflow-x-auto no-scrollbar">
+            <button onclick="switchTab('html')" id="tab-html" class="tab tab-active h-full px-4 text-xs font-bold flex items-center gap-2 shrink-0">
+                <svg class="w-3.5 h-3.5 text-orange-500" fill="currentColor" viewBox="0 0 24 24"><path d="M1.5 22L0 2h24l-1.5 20L12 24l-10.5-2zM3 4l1.2 15.5L12 21.3l7.8-1.8L21 4H3z"/></svg>
+                index.html
+            </button>
+            <button onclick="switchTab('css')" id="tab-css" class="tab tab-inactive h-full px-4 text-xs font-bold flex items-center gap-2 shrink-0">
+                <svg class="w-3.5 h-3.5 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M1.5 22L0 2h24l-1.5 20L12 24l-10.5-2zM3 4l1.2 15.5L12 21.3l7.8-1.8L21 4H3z"/></svg>
+                style.css
+            </button>
+            <button onclick="switchTab('js')" id="tab-js" class="tab tab-inactive h-full px-4 text-xs font-bold flex items-center gap-2 shrink-0">
+                <svg class="w-3.5 h-3.5 text-yellow-500" fill="currentColor" viewBox="0 0 24 24"><path d="M3 3h18v18H3V3zm14.5 13.5v-4h-2v4h2zm-4.5 0v-9h-2v9h2z"/></svg>
+                script.js
+            </button>
+            <button onclick="switchTab('input')" id="tab-input" class="tab tab-inactive h-full px-4 text-xs font-bold flex items-center gap-2 shrink-0">
+                <svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 24 24"><path d="M3 3h18v18H3z"/></svg>
+                input.txt
+            </button>
         </div>
 
-        <div class="glass-panel rounded-2xl flex flex-col overflow-hidden border border-slate-700 shadow-2xl">
+        <div class="flex items-center gap-2 py-2">
+            <div id="save-indicator" class="text-[10px] font-mono text-emerald-500 opacity-0 transition-opacity hidden sm:block">Saved</div>
             
-            <div class="h-14 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-4 z-40">
-                <div class="flex items-center gap-1 h-full">
-                    <button onclick="switchTab('html')" id="tab-html" class="tab tab-active h-full px-4 text-xs font-bold flex items-center gap-2">
-                        <svg class="w-3.5 h-3.5 text-orange-500" fill="currentColor" viewBox="0 0 24 24"><path d="M1.5 22L0 2h24l-1.5 20L12 24l-10.5-2zM3 4l1.2 15.5L12 21.3l7.8-1.8L21 4H3z"/></svg>
-                        index.html
-                    </button>
-                    <button onclick="switchTab('css')" id="tab-css" class="tab tab-inactive h-full px-4 text-xs font-bold flex items-center gap-2">
-                        <svg class="w-3.5 h-3.5 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M1.5 22L0 2h24l-1.5 20L12 24l-10.5-2zM3 4l1.2 15.5L12 21.3l7.8-1.8L21 4H3z"/></svg>
-                        style.css
-                    </button>
-                    <button onclick="switchTab('js')" id="tab-js" class="tab tab-inactive h-full px-4 text-xs font-bold flex items-center gap-2">
-                        <svg class="w-3.5 h-3.5 text-yellow-500" fill="currentColor" viewBox="0 0 24 24"><path d="M3 3h18v18H3V3zm14.5 13.5v-4h-2v4h2zm-4.5 0v-9h-2v9h2z"/></svg>
-                        script.js
-                    </button>
-                </div>
+            <button onclick="runCode()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold px-3 py-1.5 rounded transition-all flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Run
+            </button>
+            
+            <button onclick="beautifyCode()" class="bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-bold px-3 py-1.5 rounded transition-all flex items-center gap-1.5">
+                Beautify
+            </button>
+            
+            <button onclick="shareProject()" class="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold px-3 py-1.5 rounded transition-all flex items-center gap-1.5">
+                Share
+            </button>
+            
+            <button onclick="toggleSettings()" class="bg-slate-700 hover:bg-slate-600 text-white text-[11px] font-bold px-3 py-1.5 rounded transition-all flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </button>
+        </div>
+    </div>
 
-                <div class="flex items-center gap-4">
-                    <div id="save-indicator" class="text-[10px] font-mono text-emerald-500 opacity-0 transition-opacity">Auto-compiled</div>
-                    <button onclick="downloadProject()" class="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-bold px-4 py-2 rounded-lg transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                        Export Zip
-                    </button>
-                </div>
+    <div id="settings-menu" class="glass-panel">
+        <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
+            <span class="text-xs font-bold text-white uppercase tracking-widest">IDE Settings</span>
+            <button onclick="toggleSettings()" class="text-slate-400 hover:text-white">&times;</button>
+        </div>
+        <div class="space-y-4 text-sm text-slate-300">
+            <div class="flex flex-col gap-1">
+                <label class="text-[10px] uppercase text-slate-500 font-bold">Editor Theme</label>
+                <select id="editor-theme-select" onchange="changeEditorTheme(this.value)" class="bg-slate-900 border border-slate-700 rounded p-1.5 outline-none">
+                    <option value="default">Light (Default)</option>
+                    <option value="monokai">Monokai (Dark)</option>
+                    <option value="material-darker">Material (Darker)</option>
+                </select>
             </div>
-
-            <div class="flex editor-container">
-                <section class="editor-pane w-1/2 flex relative border-r border-slate-800">
-                    <div id="line-numbers" class="line-numbers select-none">1</div>
-                    <div id="editor-wrapper" class="flex flex-1 overflow-hidden">
-                        <div id="highlight-overlay">
-                            <pre><code id="highlight-code" class="language-markup"></code></pre>
-                        </div>
-                        <textarea id="code-input" spellcheck="false" placeholder="Write code here..."></textarea>
-                    </div>
-                </section>
-
-                <section class="preview-pane w-1/2 flex flex-col bg-white">
-                    <div class="bg-slate-100 border-b border-slate-200 px-4 py-2 flex items-center justify-between">
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                            <svg class="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            Live Sandbox
-                        </span>
-                        <div class="flex gap-1.5">
-                            <div class="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
-                            <div class="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
-                            <div class="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
-                        </div>
-                    </div>
-                    <iframe id="preview-frame" class="flex-1 w-full h-full border-none" sandbox="allow-scripts allow-modals"></iframe>
-                </section>
+            <div class="flex flex-col gap-1">
+                <label class="text-[10px] uppercase text-slate-500 font-bold">Font Size (<span id="font-size-val">14</span>px)</label>
+                <input type="range" id="font-size-slider" min="12" max="24" value="14" oninput="changeFontSize(this.value)" class="w-full accent-blue-500">
             </div>
+            <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="word-wrap-toggle" onchange="toggleWordWrap(this.checked)" class="rounded bg-slate-900 border-slate-700 text-blue-500">
+                <span class="text-xs">Word Wrap</span>
+            </label>
+            <button onclick="downloadProject()" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-xs py-2 rounded transition-colors mt-2 border border-slate-700">
+                Download .html File
+            </button>
+        </div>
+    </div>
+
+    <main class="flex-1 flex flex-col">
+        <div class="flex editor-container">
+            
+            <section class="editor-pane w-1/2 flex flex-col border-r border-slate-800">
+                <div id="editor-wrapper"></div>
+            </section>
+
+            <section class="preview-pane w-1/2 flex flex-col bg-white relative">
+                <div class="bg-slate-100 border-b border-slate-200 px-4 py-2 flex items-center justify-between">
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sandboxed Live Preview</span>
+                    <div class="flex gap-1.5">
+                        <button onclick="clearConsole()" class="text-[10px] font-bold text-slate-400 hover:text-rose-500 transition-colors mr-2">Clear Console</button>
+                        <div class="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-slate-300"></div>
+                    </div>
+                </div>
+                
+                <iframe id="preview-frame" class="flex-1 w-full h-full border-none shadow-inner" sandbox="allow-scripts allow-modals"></iframe>
+                
+                <div id="error-console"></div>
+            </section>
         </div>
 
-        <div class="grid lg:grid-cols-3 gap-8 mt-4">
-            <div class="lg:col-span-2 glass-panel p-8 rounded-2xl border-slate-800">
-                <h2 class="text-2xl font-bold text-white mb-4">HTML Online Editor & Compiler</h2>
-                <p class="text-sm text-slate-400 leading-relaxed mb-8">
-                    Write, run, and share HTML code online using SilenVault's Pro Architect. This is a local-first environment, meaning your source code is processed entirely within your browser. We support HTML5, CSS3, and modern JavaScript (ES6+).
-                </p>
-
-                <h3 class="text-lg font-bold text-blue-400 mb-4">Syntax Fundamentals</h3>
-                <div class="space-y-3">
-                    <details class="bg-slate-900 border border-slate-800 rounded-xl p-4 group" open>
-                        <summary class="font-bold text-white cursor-pointer list-none flex justify-between items-center text-sm">
-                            Document Structure
-                            <svg class="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
-                        </summary>
-                        <div class="mt-4 text-xs text-slate-400 leading-relaxed">
-                            Every HTML document must start with <code class="text-emerald-400 font-mono bg-slate-950 px-1 rounded">&lt;!DOCTYPE html&gt;</code>. 
-                            The root element is <code class="text-emerald-400 font-mono bg-slate-950 px-1 rounded">&lt;html&gt;</code>, followed by the <code class="text-emerald-400 font-mono bg-slate-950 px-1 rounded">&lt;head&gt;</code> for metadata and <code class="text-emerald-400 font-mono bg-slate-950 px-1 rounded">&lt;body&gt;</code> for visible content.
-                        </div>
-                    </details>
-
-                    <details class="bg-slate-900 border border-slate-800 rounded-xl p-4 group">
-                        <summary class="font-bold text-white cursor-pointer list-none flex justify-between items-center text-sm">
-                            Styling with CSS
-                            <svg class="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
-                        </summary>
-                        <div class="mt-4 text-xs text-slate-400 leading-relaxed">
-                            SilenVault's Architect automatically injects code from the <span class="text-blue-400 font-bold">style.css</span> tab into the head of your document. You don't need to manually link the stylesheet; just write your rules and they will apply instantly.
-                        </div>
-                    </details>
-
-                    <details class="bg-slate-900 border border-slate-800 rounded-xl p-4 group">
-                        <summary class="font-bold text-white cursor-pointer list-none flex justify-between items-center text-sm">
-                            Interactive JS
-                            <svg class="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
-                        </summary>
-                        <div class="mt-4 text-xs text-slate-400 leading-relaxed">
-                            JavaScript written in the <span class="text-yellow-500 font-bold">script.js</span> tab is executed after the DOM has fully loaded. We utilize a secure <code class="font-mono bg-slate-950 px-1 rounded">&lt;iframe sandbox&gt;</code> to ensure your testing environment is isolated from the main site.
-                        </div>
-                    </details>
-                </div>
-            </div>
-
-            <aside class="space-y-6">
-                <div class="smart-ad-unit w-full text-center overflow-hidden transition-all duration-500 min-h-[250px] bg-slate-900/50 border border-slate-800 rounded-2xl flex flex-col items-center justify-center p-4">
-                    <span class="text-[10px] uppercase tracking-widest text-slate-600 block mb-2">Sponsored</span>
-                    <ins class="adsbygoogle"
-                         style="display:block"
-                         data-ad-client="ca-pub-5449371042798610"
-                         data-ad-slot="7594122081"
-                         data-ad-format="auto"
-                         data-full-width-responsive="true"></ins>
-                    <script>
-                         (adsbygoogle = window.adsbygoogle || []).push({});
-                    </script>
-                </div>
-
-                <div class="bg-blue-600/10 border border-blue-500/20 rounded-2xl p-6">
-                    <h4 class="text-blue-400 font-bold mb-2 flex items-center gap-2 text-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        Architect Tip
-                    </h4>
-                    <p class="text-xs text-slate-400 leading-relaxed">
-                        Use <code class="font-mono text-emerald-400 bg-slate-900 px-1 rounded">console.log()</code> in the JS tab and open your browser inspector (F12) to see debugging data in real-time.
+        <section class="bg-[#020617] border-t border-slate-800 py-16 px-6 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] z-20">
+            <div class="max-w-7xl mx-auto grid lg:grid-cols-3 gap-12">
+                <div class="lg:col-span-2 prose prose-invert prose-slate max-w-none">
+                    <h2 class="text-3xl font-bold text-white mb-6">HTML Online Editor & Compiler</h2>
+                    <p class="text-slate-400 leading-relaxed mb-6">
+                        Write, run, and share HTML code online using SilenVault's Pro Architect. This is a local-first environment, meaning your source code is processed entirely within your browser. We support HTML5, CSS3, and modern JavaScript (ES6+).
                     </p>
+
+                    <h3 class="text-xl font-bold text-blue-400 mt-10 mb-4">Syntax Help & Fundamentals</h3>
+                    <div class="space-y-4">
+                        <details class="glass-panel rounded-xl p-4 group" open>
+                            <summary class="font-bold text-white cursor-pointer list-none flex justify-between items-center">
+                                Document Structure
+                                <svg class="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+                            </summary>
+                            <div class="mt-4 text-sm text-slate-400">
+                                Every HTML document must start with <code class="text-emerald-400">&lt;!DOCTYPE html&gt;</code>. 
+                                The root element is <code class="text-emerald-400">&lt;html&gt;</code>, followed by the <code class="text-emerald-400">&lt;head&gt;</code> for metadata and <code class="text-emerald-400">&lt;body&gt;</code> for visible content.
+                            </div>
+                        </details>
+
+                        <details class="glass-panel rounded-xl p-4 group">
+                            <summary class="font-bold text-white cursor-pointer list-none flex justify-between items-center">
+                                Styling with CSS
+                                <svg class="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+                            </summary>
+                            <div class="mt-4 text-sm text-slate-400">
+                                SilenVault's Architect automatically injects code from the <span class="text-blue-400 font-bold">style.css</span> tab into the head of your document. You don't need to manually link the stylesheet; just write your rules and they will apply instantly.
+                            </div>
+                        </details>
+
+                        <details class="glass-panel rounded-xl p-4 group">
+                            <summary class="font-bold text-white cursor-pointer list-none flex justify-between items-center">
+                                Interactive JS
+                                <svg class="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+                            </summary>
+                            <div class="mt-4 text-sm text-slate-400">
+                                JavaScript written in the <span class="text-yellow-500 font-bold">script.js</span> tab is executed after the DOM has fully loaded. We utilize a secure <code>&lt;iframe sandbox&gt;</code> to ensure your testing environment is isolated from the main site.
+                            </div>
+                        </details>
+                    </div>
                 </div>
-            </aside>
-        </div>
+
+                <aside class="space-y-6">
+                    
+                    <div id="sidebar-ad-wrapper" class="hidden opacity-0 transition-opacity duration-1000">
+                        <div class="smart-ad-unit w-full text-center overflow-hidden min-h-[250px] glass-panel rounded-2xl flex flex-col items-center justify-center p-4">
+                            <span class="text-[10px] uppercase tracking-widest text-slate-600 block mb-2 pointer-events-none">Sponsored</span>
+                            <ins class="adsbygoogle" 
+                                 style="display:block" 
+                                 data-ad-client="ca-pub-5449371042798610" 
+                                 data-ad-slot="7594122081" 
+                                 data-ad-format="auto" 
+                                 data-full-width-responsive="true"></ins>
+                            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-600/10 border border-blue-500/20 rounded-2xl p-6">
+                        <h4 class="text-blue-400 font-bold mb-2">Architect Tip</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Use <code>console.log()</code> or <code>console.error()</code> in your JavaScript. Our custom sandbox bridge will beam the outputs directly to the console above the preview window.
+                        </p>
+                    </div>
+                </aside>
+            </div>
+        </section>
 
     </main>
 
     <sv-footer base-path=".."></sv-footer>
 
-    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-emerald-600 text-white px-6 py-3 rounded-full text-sm font-bold shadow-2xl opacity-0 transition-all pointer-events-none translate-y-4 z-50">
-        Project Exported Successfully
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded-full text-sm font-bold shadow-2xl opacity-0 transition-all pointer-events-none translate-y-4 z-50">
+        Action Completed
     </div>
 
     <script>
-        // State Management
+        // Store Architecture
         const store = {
             active: 'html',
             html: `\n<div class="hero">\n  <h1>Build Something Great</h1>\n  <p>Your local code sandbox is ready.</p>\n  <button id="mainBtn">Click Me</button>\n</div>`,
             css: `body { \n  background: #f0f4f8;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  height: 100vh;\n  margin: 0;\n  font-family: sans-serif;\n}\n.hero {\n  text-align: center;\n  padding: 3rem;\n  background: white;\n  border-radius: 20px;\n  box-shadow: 0 10px 25px rgba(0,0,0,0.1);\n}\nh1 { color: #2563eb; margin: 0; }\np { color: #64748b; }\nbutton {\n  background: #2563eb;\n  color: white;\n  border: none;\n  padding: 10px 24px;\n  border-radius: 8px;\n  cursor: pointer;\n  font-weight: bold;\n}`,
-            js: `document.getElementById('mainBtn').addEventListener('click', () => {\n  alert('Architect Pro Initialized!');\n});`
+            js: `document.getElementById('mainBtn').addEventListener('click', () => {\n  alert('Architect Pro Initialized!');\n});\n\n// Try logging an error!\nconsole.log("System Ready.");`,
+            input: ''
         };
 
         const els = {
-            input: document.getElementById('code-input'),
-            highlightCode: document.getElementById('highlight-code'),
-            lines: document.getElementById('line-numbers'),
+            wrapper: document.getElementById('editor-wrapper'),
             preview: document.getElementById('preview-frame'),
             saveTag: document.getElementById('save-indicator'),
-            toast: document.getElementById('toast')
+            toast: document.getElementById('toast'),
+            errorConsole: document.getElementById('error-console'),
+            settingsMenu: document.getElementById('settings-menu')
         };
 
+        let editors = {};
         let compileTimeout;
+        let currentBlobUrl;
+        
+        // Settings State
+        let editorTheme = localStorage.getItem('sv_editorTheme') || 'monokai';
+        let fontSize = localStorage.getItem('sv_fontSize') || 14;
+        let wordWrap = localStorage.getItem('sv_wordWrap') === 'true';
 
-        const debounceCompile = () => {
-            clearTimeout(compileTimeout);
-            els.saveTag.style.opacity = '1';
-            compileTimeout = setTimeout(compile, 400);
-        };
+        // 1. Initialize CodeMirror
+        function initEditors() {
+            ['html', 'css', 'js', 'input'].forEach(tab => {
+                const div = document.createElement('div');
+                div.id = `editor-${tab}`;
+                div.style.display = tab === 'html' ? 'block' : 'none';
+                div.style.height = '100%';
+                els.wrapper.appendChild(div);
 
-        function switchTab(tab) {
-            store[store.active] = els.input.value;
-            document.querySelectorAll('.tab').forEach(t => t.classList.replace('tab-active', 'tab-inactive'));
-            document.getElementById(`tab-${tab}`).classList.replace('tab-inactive', 'tab-active');
-            store.active = tab;
-            els.input.value = store[tab];
-            updateHighlight();
-            updateLineNumbers();
-            els.input.focus();
+                const mode = tab === 'html' ? 'htmlmixed' : tab === 'css' ? 'css' : tab === 'js' ? 'javascript' : 'text';
+                
+                editors[tab] = CodeMirror(div, {
+                    value: store[tab],
+                    mode: mode,
+                    lineNumbers: true,
+                    autoCloseBrackets: true,
+                    matchBrackets: true,
+                    indentUnit: 4,
+                    tabSize: 4,
+                    theme: editorTheme,
+                    lineWrapping: wordWrap,
+                    styleActiveLine: true
+                });
+
+                editors[tab].on('change', debounce(compile, 500));
+            });
+            
+            applySettingsToUI();
         }
 
-        function updateLineNumbers() {
-            const count = (els.input.value + '\n').split('\n').length - 1;
-            els.lines.innerHTML = Array.from({length: Math.max(count, 1)}, (_, i) => i + 1).join('<br>');
-        }
-
-        function updateHighlight() {
-            let code = (els.input.value || '') + '\n';
-            let lang = store.active === 'html' ? 'markup' : store.active;
-
-            els.highlightCode.className = `language-${lang}`;
-            els.highlightCode.textContent = code;
-            Prism.highlightElement(els.highlightCode);
+        // 2. Core Engine
+        function debounce(fn, delay) {
+            return (...args) => {
+                clearTimeout(compileTimeout);
+                els.saveTag.style.opacity = '1';
+                els.saveTag.innerText = "Typing...";
+                compileTimeout = setTimeout(() => fn(...args), delay);
+            };
         }
 
         function compile() {
-            store[store.active] = els.input.value;
+            store[store.active] = editors[store.active].getValue();
             
+            // Secure Iframe Error Bridge
+            const errorBridge = `
+                <script>
+                    window.onerror = function(msg, url, line) { 
+                        window.parent.postMessage({type: 'error', text: 'Line ' + line + ': ' + msg}, '*'); 
+                        return true; 
+                    };
+                    const ogLog = console.log;
+                    console.log = function(...args) {
+                        window.parent.postMessage({type: 'log', text: args.join(' ')}, '*');
+                        ogLog.apply(console, args);
+                    };
+                    const ogError = console.error;
+                    console.error = function(...args) {
+                        window.parent.postMessage({type: 'error', text: args.join(' ')}, '*');
+                        ogError.apply(console, args);
+                    };
+                <\/script>
+            `;
+
             const source = `
                 <!DOCTYPE html>
                 <html>
                     <head>
                         <style>${store.css}</style>
+                        ${errorBridge}
                     </head>
                     <body>
                         ${store.html}
@@ -303,27 +352,132 @@
                 </html>
             `;
 
+            if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
             const blob = new Blob([source], {type: 'text/html'});
-            
-            // ARCHITECT FIX: Prevent Memory Leak
-            if (els.preview.src) {
-                URL.revokeObjectURL(els.preview.src);
-            }
-            
-            els.preview.src = URL.createObjectURL(blob);
-            setTimeout(() => els.saveTag.style.opacity = '0', 1200);
+            currentBlobUrl = URL.createObjectURL(blob);
+            els.preview.src = currentBlobUrl;
+
+            localStorage.setItem('silenvault_code_cache', JSON.stringify(store));
+
+            els.saveTag.innerText = "Auto-saved";
+            setTimeout(() => els.saveTag.style.opacity = '0', 1000);
         }
 
+        function runCode() {
+            compile();
+            showToast('Code Executed');
+        }
+
+        // 3. UI Interactions
+        function switchTab(tab) {
+            store[store.active] = editors[store.active].getValue();
+            Object.keys(editors).forEach(t => document.getElementById(`editor-${t}`).style.display = t === tab ? 'block' : 'none');
+            document.querySelectorAll('.tab').forEach(t => t.classList.replace('tab-active', 'tab-inactive'));
+            document.getElementById(`tab-${tab}`).classList.replace('tab-inactive', 'tab-active');
+            
+            store.active = tab;
+            editors[tab].refresh();
+            editors[tab].focus();
+            if (tab !== 'input') compile();
+        }
+
+        function beautifyCode() {
+            const tab = store.active;
+            let val = editors[tab].getValue();
+            let beautified = val;
+            
+            if (tab === 'html') beautified = html_beautify(val, { indent_size: 4 });
+            else if (tab === 'css') beautified = css_beautify(val, { indent_size: 4 });
+            else if (tab === 'js') beautified = js_beautify(val, { indent_size: 4 });
+            
+            editors[tab].setValue(beautified);
+            showToast(`${tab.toUpperCase()} Beautified`);
+        }
+
+        // 4. File / Share Ops
         function downloadProject() {
             const combined = `<!DOCTYPE html>\n<html>\n<head>\n<style>\n${store.css}\n</style>\n</head>\n<body>\n${store.html}\n<script>\n${store.js}\n<\/script>\n</body>\n</html>`;
             const blob = new Blob([combined], {type: 'text/html'});
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `silenvault_project_${Date.now()}.html`;
+            a.download = `silenvault_export_${Date.now()}.html`;
             a.click();
-            URL.revokeObjectURL(url); // Clean up download blob
-            showToast('Project Exported');
+            URL.revokeObjectURL(url);
+            showToast('HTML File Downloaded');
+            els.settingsMenu.style.display = 'none';
+        }
+
+        function shareProject() {
+            const data = { html: store.html, css: store.css, js: store.js, input: store.input };
+            const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(data));
+            const shareUrl = `${window.location.origin}${window.location.pathname}?code=${compressed}`;
+            navigator.clipboard.writeText(shareUrl);
+            showToast('Share Link Copied!');
+        }
+
+        function loadFromShareOrCache() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const codeParam = urlParams.get('code');
+            
+            if (codeParam) {
+                try {
+                    const decompressed = LZString.decompressFromEncodedURIComponent(codeParam);
+                    Object.assign(store, JSON.parse(decompressed));
+                    showToast('Project Loaded from Link');
+                } catch (e) { showToast('Invalid Share Link'); }
+            } else {
+                const cache = localStorage.getItem('silenvault_code_cache');
+                if(cache) { Object.assign(store, JSON.parse(cache)); }
+            }
+        }
+
+        // 5. Settings Logic
+        function toggleSettings() {
+            els.settingsMenu.style.display = els.settingsMenu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function changeEditorTheme(newTheme) {
+            editorTheme = newTheme;
+            localStorage.setItem('sv_editorTheme', editorTheme);
+            Object.values(editors).forEach(e => e.setOption('theme', editorTheme));
+        }
+
+        function changeFontSize(size) {
+            fontSize = size;
+            localStorage.setItem('sv_fontSize', size);
+            document.getElementById('font-size-val').innerText = size;
+            document.querySelectorAll('.CodeMirror').forEach(el => el.style.fontSize = `${size}px`);
+            Object.values(editors).forEach(e => e.refresh());
+        }
+
+        function toggleWordWrap(enabled) {
+            wordWrap = enabled;
+            localStorage.setItem('sv_wordWrap', enabled);
+            Object.values(editors).forEach(e => e.setOption('lineWrapping', enabled));
+        }
+
+        function applySettingsToUI() {
+            document.getElementById('editor-theme-select').value = editorTheme;
+            document.getElementById('font-size-slider').value = fontSize;
+            document.getElementById('font-size-val').innerText = fontSize;
+            document.getElementById('word-wrap-toggle').checked = wordWrap;
+            document.querySelectorAll('.CodeMirror').forEach(el => el.style.fontSize = `${fontSize}px`);
+        }
+
+        // 6. Iframe Console Receiver
+        window.addEventListener('message', (e) => {
+            if (e.data && e.data.type) {
+                els.errorConsole.style.display = 'block';
+                const color = e.data.type === 'error' ? 'text-rose-400' : 'text-blue-400';
+                els.errorConsole.innerHTML += `<div class="${color} mb-1">> ${e.data.text}</div>`;
+                els.errorConsole.scrollTop = els.errorConsole.scrollHeight;
+            }
+        });
+
+        function clearConsole() {
+            els.errorConsole.innerHTML = '';
+            els.errorConsole.style.display = 'none';
         }
 
         function showToast(msg) {
@@ -333,54 +487,41 @@
             setTimeout(() => {
                 els.toast.classList.remove('opacity-100', 'translate-y-0');
                 els.toast.classList.add('opacity-0', 'translate-y-4');
-            }, 3200);
+            }, 3000);
         }
 
-        function syncScroll() {
-            els.lines.scrollTop = els.input.scrollTop;
-            document.getElementById('highlight-overlay').scrollTop = els.input.scrollTop;
-            document.getElementById('highlight-overlay').scrollLeft = els.input.scrollLeft;
+        // ARCHITECT: Ad-Sensing Logic
+        function monitorAds() {
+            const adSlot = document.querySelector('#sidebar-ad-wrapper ins.adsbygoogle');
+            const container = document.getElementById('sidebar-ad-wrapper');
+            if (!adSlot) return;
+
+            const observer = new MutationObserver(() => {
+                const status = adSlot.getAttribute('data-ad-status');
+                if (status === 'filled' || adSlot.innerHTML.includes('iframe')) {
+                    container.classList.remove('hidden');
+                    // Small delay to allow the CSS to recognize the display block before fading
+                    setTimeout(() => container.classList.add('opacity-100'), 50);
+                    observer.disconnect();
+                } else if (status === 'unfilled') {
+                    container.classList.add('hidden');
+                }
+            });
+
+            observer.observe(adSlot, { attributes: true, childList: true });
+            
+            // Failsafe: if AdSense network fails entirely, remove the empty box
+            setTimeout(() => { 
+                if (!adSlot.innerHTML.includes('iframe')) container.style.display = 'none'; 
+            }, 5000);
         }
 
-        // Event Listeners
-        els.input.addEventListener('input', () => {
-            updateLineNumbers();
-            updateHighlight();
-            debounceCompile();
-            syncScroll();
-        });
-
-        els.input.addEventListener('scroll', syncScroll);
-
-        // ARCHITECT FIX: Preserving Undo/Redo stack via execCommand
-        els.input.addEventListener('keydown', function(e) {
-            if (e.key === 'Tab') {
-                e.preventDefault();
-                document.execCommand('insertText', false, '    ');
-                updateHighlight();
-                debounceCompile();
-            }
-            else if (e.key === 'Enter') {
-                e.preventDefault();
-                const start = this.selectionStart;
-                const before = this.value.substring(0, start);
-                const currentLine = before.split('\n').pop() || '';
-                const indent = currentLine.match(/^\s*/)[0];
-                
-                document.execCommand('insertText', false, '\n' + indent);
-                updateHighlight();
-                updateLineNumbers();
-                debounceCompile();
-                syncScroll();
-            }
-        });
-
-        // Initialize
+        // Boot
         window.onload = () => {
-            els.input.value = store.html;
-            updateLineNumbers();
-            updateHighlight();
+            loadFromShareOrCache();
+            initEditors();
             compile();
+            monitorAds();
         };
     </script>
 </body>
