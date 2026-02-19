@@ -12,74 +12,41 @@
     <meta property="og:description" content="Local-first tools: Invoice Generator, Loan Calculator, File Converter. Zero data leaks.">
     <meta property="og:image" content="https://silenvault.com/assets/img/SILENVAULT_LOGO.png">
 
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://silenvault.com/">
-    <meta property="twitter:title" content="SilenVault | Encrypted in Style">
-    <meta property="twitter:description" content="Local-first tools: Invoice Generator, Loan Calculator, File Converter. Zero data leaks.">
-    <meta property="twitter:image" content="https://silenvault.com/assets/img/SILENVAULT_LOGO.png">
-
     <link rel="icon" type="image/png" href="assets/img/SILENVAULT_LOGO.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <script src="assets/js/layout.js" defer></script>
-
-    <style>
+    <script src="assets/js/directory.js" defer></script> <style>
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
         
-        /* Fixed Background Mesh */
         .fixed-bg {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -2;
-            background: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 100%);
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -2; background: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 100%);
         }
 
-        /* ARCHITECT FIX: Mobile-Responsive Center Watermark Crest */
         .bg-crest {
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100%; height: 100%;
-            background-image: url('assets/img/SILENVAULT_LOGO.png');
-            background-repeat: no-repeat;
-            background-position: center;
-            /* vmin perfectly scales it to fit within whichever screen edge is smallest */
-            background-size: 85vmin; 
-            opacity: 0.03; 
-            z-index: -1;
-            pointer-events: none; 
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 100%; height: 100%; background-image: url('assets/img/SILENVAULT_LOGO.png');
+            background-repeat: no-repeat; background-position: center; background-size: 85vmin; 
+            opacity: 0.03; z-index: -1; pointer-events: none; 
         }
 
-        .bento-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-            gap: 2rem; 
-        }
+        .bento-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; }
 
         .tool-card { 
-            background: rgba(30, 41, 59, 0.4); 
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(51, 65, 85, 0.5);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            height: 100%; 
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start; 
+            background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px);
+            border: 1px solid rgba(51, 65, 85, 0.5); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 100%; display: flex; flex-direction: column; justify-content: flex-start; 
         }
         
         .tool-card:hover { 
-            transform: translateY(-4px); 
-            border-color: #3b82f6; 
-            background: rgba(30, 41, 59, 0.6);
+            transform: translateY(-4px); border-color: #3b82f6; background: rgba(30, 41, 59, 0.6);
             box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.2); 
         }
 
-        .search-wrapper:focus-within { 
-            box-shadow: 0 0 20px -5px rgba(59, 130, 246, 0.5); 
-            border-color: #3b82f6; 
-        }
-        
+        .search-wrapper:focus-within { box-shadow: 0 0 20px -5px rgba(59, 130, 246, 0.5); border-color: #3b82f6; }
         html { scroll-behavior: smooth; }
     </style>
 </head>
@@ -101,9 +68,9 @@
 
         <div class="max-w-xl mx-auto relative search-wrapper border border-slate-700/50 rounded-2xl bg-slate-900/50 backdrop-blur-md transition-all">
             <svg class="absolute left-4 top-3.5 w-5 h-5 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-            <input type="text" id="toolSearch" aria-label="Search tools" placeholder="Search tools (e.g., 'Invoice', 'JSON', 'Tax')..." 
+            <input type="text" id="toolSearch" aria-label="Search tools" placeholder="Search tools (e.g., 'Invoice', 'JSON', 'JWT')..." 
                    class="w-full bg-transparent border-none text-white px-12 py-3 focus:outline-none rounded-2xl placeholder-slate-500 font-medium"
-                   onkeyup="filterTools()">
+                   onkeyup="renderEngine()">
         </div>
     </header>
 
@@ -111,7 +78,7 @@
         
         <div class="flex-1">
             
-            <div class="mb-24 tool-section" id="business">
+            <div class="mb-24 tool-section" id="sec-business">
                 <div class="flex items-center justify-between mb-8">
                     <h2 class="text-xl font-bold text-white flex items-center gap-3 uppercase tracking-wider">
                         <span class="w-1.5 h-6 bg-emerald-500 rounded-full shadow-[0_0_10px_#10b981]"></span>
@@ -119,104 +86,28 @@
                     </h2>
                 </div>
                 
-                <div class="bento-grid">
-                    <a href="tools/invoice_generator" class="tool-card p-8 rounded-2xl group relative overflow-hidden block">
-                        <div class="w-14 h-14 bg-blue-500/10 rounded-xl flex items-center justify-center mb-6 text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-all shadow-inner">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-3">Invoice Architect</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">Generate, edit, and print professional PDF invoices instantly.</p>
-                    </a>
-                    
-                    <a href="tools/budget_planner" class="tool-card p-8 rounded-2xl group relative overflow-hidden block">
-                        <div class="w-14 h-14 bg-indigo-500/10 rounded-xl flex items-center justify-center mb-6 text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-all shadow-inner">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-3">Budget Architect</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">Securely track project costs with auto-save and category breakdowns.</p>
-                    </a>
-
-                    <a href="tools/loan_calculator" class="tool-card p-8 rounded-2xl group block relative overflow-hidden">
-                        <div class="w-14 h-14 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-6 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-inner">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-3">Loan Architect</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">Calculate EMI for Home & Car loans with amortization charts.</p>
-                    </a>
-                    
-                    <a href="tools/salary_tax_calculator" class="tool-card p-8 rounded-2xl group block relative overflow-hidden">
-                        <div class="w-14 h-14 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-6 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-inner">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-3">Salary Architect Pro</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">Calculate take-home pay and compare Old vs New tax regimes securely.</p>
-                    </a>
-
-                    <a href="tools/gst_calculator" class="tool-card p-8 rounded-2xl group relative block">
-                        <div class="w-14 h-14 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-6 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-inner">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-3">GST & Tax Engine</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">Instant tax breakdown for 50+ countries. RCM supported.</p>
-                    </a>
-
-                    <div class="ad-unit-wrapper smart-ad-unit w-full text-center overflow-hidden transition-all duration-500">
-                        <ins class="adsbygoogle"
-                             style="display:block"
-                             data-ad-client="ca-pub-5449371042798610"
-                             data-ad-slot="7594122081"
-                             data-ad-format="auto"
-                             data-full-width-responsive="true"></ins>
-                        <script>
-                             (adsbygoogle = window.adsbygoogle || []).push({});
-                        </script>
+                <div class="bento-grid mb-8" id="grid-business">
                     </div>
+
+                <div class="ad-unit-wrapper smart-ad-unit w-full text-center overflow-hidden transition-all duration-500">
+                    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="7594122081" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
                 </div>
             </div>
             
-            <div class="mb-24 tool-section" id="creator-tools">
+            <div class="mb-24 tool-section" id="sec-creator">
                 <div class="flex items-center justify-between mb-8">
                     <h2 class="text-xl font-bold text-white flex items-center gap-3 uppercase tracking-wider">
                         <span class="w-1.5 h-6 bg-red-500 rounded-full shadow-[0_0_10px_#ef4444]"></span>
                         Creator Tools
                     </h2>
                 </div>
-                <div class="bento-grid">
-                    <a href="tools/yt_thumbnail" class="tool-card p-8 rounded-2xl group block relative overflow-hidden">
-                        <div class="w-14 h-14 bg-red-500/10 rounded-xl flex items-center justify-center mb-6 text-red-500 group-hover:bg-red-500 group-hover:text-white transition-all shadow-inner">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-3">YouTube Thumbnails</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">Extract 4K/HD thumbnails from any video instantly.</p>
-                    </a>
-                    
-                    <a href="tools/image_converter" class="tool-card p-8 rounded-2xl group relative overflow-hidden block">
-                        <div class="w-14 h-14 bg-blue-500/10 rounded-xl flex items-center justify-center mb-6 text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-all shadow-inner">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-3">Image Converter Pro</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">Convert between WebP, AVIF, PNG, and JPG locally and instantly.</p>
-                    </a>
-                                        
-                    <a href="tools/exif_remover" class="tool-card p-8 rounded-2xl group block relative overflow-hidden">
-                        <div class="w-14 h-14 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-6 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-inner">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-3">EXIF Shield</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">Scan & remove GPS location data from your photos.</p>
-                    </a>
-
-                    <a href="tools/image_compressor" class="tool-card p-8 rounded-2xl group block relative overflow-hidden">
-                        <div class="w-14 h-14 bg-indigo-500/10 rounded-xl flex items-center justify-center mb-6 text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-all shadow-inner">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-3">Smart Compressor</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">Reduce file size by up to 80% without losing quality.</p>
-                    </a>
-                </div>
+                
+                <div class="bento-grid mb-8" id="grid-creator">
+                     </div>
             </div>
             
-            <div class="mb-24 tool-section" id="dev-tools">
+            <div class="mb-24 tool-section" id="sec-dev">
                 <div class="flex items-center justify-between mb-8">
                     <h2 class="text-xl font-bold text-white flex items-center gap-3 uppercase tracking-wider">
                         <span class="w-1.5 h-6 bg-blue-500 rounded-full shadow-[0_0_10px_#3b82f6]"></span>
@@ -224,60 +115,8 @@
                     </h2>
                 </div>
                 
-                <div class="bento-grid">
-                    <a href="tools/html_viewer" class="tool-card p-8 rounded-2xl group block">
-                        <div class="w-14 h-14 bg-purple-500/10 rounded-xl flex items-center justify-center mb-6 text-purple-400 group-hover:bg-purple-500 group-hover:text-white transition-all shadow-inner">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-3">Architect Pro IDE</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">Professional sandboxed HTML/CSS/JS editor with real-time compilation.</p>
-                    </a>
-                    
-                    <a href="tools/markdown_converter" class="tool-card p-8 rounded-2xl group block relative overflow-hidden">
-                        <div class="w-14 h-14 bg-cyan-500/10 rounded-xl flex items-center justify-center mb-6 text-cyan-400 group-hover:bg-cyan-500 group-hover:text-white transition-all shadow-inner">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-3">Markdown Architect</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">Real-time Markdown to HTML compiler with syntax highlighting & telemetry.</p>
-                    </a>
-
-                    <a href="tools/base64_converter" class="tool-card p-8 rounded-2xl group block relative overflow-hidden">
-                        <div class="w-14 h-14 bg-violet-500/10 rounded-xl flex items-center justify-center mb-6 text-violet-500 group-hover:bg-violet-500 group-hover:text-white transition-all shadow-inner">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-3">Base64 Engine</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">Convert images to Data URI strings and back for development.</p>
-                    </a>
-
-                    <a href="tools/json_tool" class="tool-card p-8 rounded-2xl group block">
-                        <div class="w-14 h-14 bg-pink-500/10 rounded-xl flex items-center justify-center mb-6 text-pink-400 group-hover:bg-pink-500 group-hover:text-white transition-all shadow-inner">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-3">JSON Architect</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">Clean, format, and validate JSON data locally.</p>
-                    </a>
-
-                    <a href="tools/jwt_architect" class="tool-card p-8 rounded-2xl group block relative overflow-hidden">
-                        <div class="w-14 h-14 bg-rose-500/10 rounded-xl flex items-center justify-center mb-6 text-rose-500 group-hover:bg-rose-500 group-hover:text-white transition-all shadow-inner">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                            </svg>
-                        </div>
-                        <div class="absolute top-4 right-4">
-                            <span class="bg-rose-500/20 text-rose-400 text-[10px] font-black px-2 py-0.5 rounded-full tracking-widest uppercase">Security</span>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-3">JWT Architect Pro</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">Local-first JWT debugger. Encode, decode, and sign tokens with real-time two-way binding.</p>
-                    </a>
-
-                     <a href="tools/unit_converter" class="tool-card p-8 rounded-2xl group block">
-                        <div class="w-14 h-14 bg-orange-500/10 rounded-xl flex items-center justify-center mb-6 text-orange-400 group-hover:bg-orange-500 group-hover:text-white transition-all shadow-inner">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-3">Omni-Converter</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">Length, Weight, and Digital Unit translation.</p>
-                    </a>
-                </div>
+                <div class="bento-grid mb-8" id="grid-dev">
+                     </div>
             </div>
         </div>
 
@@ -300,15 +139,8 @@
                 </ul>
                 
                 <div class="smart-ad-unit mt-8 w-full text-center overflow-hidden transition-all duration-500">
-                    <ins class="adsbygoogle"
-                         style="display:block; width: 100%; height: 100%;"
-                         data-ad-client="ca-pub-5449371042798610"
-                         data-ad-slot="9264203071"
-                         data-ad-format="auto"
-                         data-full-width-responsive="true"></ins>
-                    <script>
-                         (adsbygoogle = window.adsbygoogle || []).push({});
-                    </script>
+                    <ins class="adsbygoogle" style="display:block; width: 100%; height: 100%;" data-ad-client="ca-pub-5449371042798610" data-ad-slot="9264203071" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
                 </div>
             </div>
         </aside>
@@ -317,57 +149,72 @@
     <sv-footer base-path="."></sv-footer>
 
     <script>
-        // ARCHITECT: Advanced Smart Filter
-        let sections = [];
+    // ARCHITECT: DOM Generator & Search Engine
+    function renderEngine() {
+        const query = document.getElementById('toolSearch').value.toLowerCase();
         
-        window.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.tool-section').forEach(sec => {
-                const cards = sec.querySelectorAll('.tool-card');
-                const adUnit = sec.querySelector('.ad-unit-wrapper');
-                
-                let cardData = [];
-                cards.forEach(card => {
-                    cardData.push({
-                        element: card,
-                        title: card.querySelector('h3').innerText.toUpperCase(),
-                        desc: card.querySelector('p').innerText.toUpperCase()
-                    });
-                });
+        // 1. Group tools by category based on the search query
+        const filteredTools = {
+            business: [],
+            creator: [],
+            dev: []
+        };
 
-                sections.push({
-                    section: sec,
-                    cards: cardData,
-                    ad: adUnit
-                });
-            });
+        silenVaultTools.forEach(tool => {
+            if (tool.title.toLowerCase().includes(query) || tool.desc.toLowerCase().includes(query)) {
+                filteredTools[tool.category].push(tool);
+            }
         });
 
-        function filterTools() {
-            const input = document.getElementById('toolSearch');
-            const filter = input.value.toUpperCase();
+        // 2. Render HTML for each section
+        Object.keys(filteredTools).forEach(category => {
+            const gridElement = document.getElementById(`grid-${category}`);
+            const sectionElement = document.getElementById(`sec-${category}`);
+            const adElement = sectionElement.querySelector('.ad-unit-wrapper'); // Target the ad inside this section
             
-            sections.forEach(secData => {
-                let visibleCards = 0;
+            gridElement.innerHTML = ''; // Clear previous cards
 
-                secData.cards.forEach(item => {
-                    if (item.title.includes(filter) || item.desc.includes(filter)) {
-                        item.element.style.display = "block";
-                        visibleCards++;
-                    } else {
-                        item.element.style.display = "none";
-                    }
-                });
-
-                if (visibleCards === 0) {
-                    secData.section.style.display = "none";
-                } else {
-                    secData.section.style.display = "block";
-                    if (secData.ad) {
-                        secData.ad.style.display = (filter.length > 0) ? "none" : "block"; 
-                    }
+            if (filteredTools[category].length === 0) {
+                // Hide entire category if nothing matches
+                sectionElement.style.display = 'none'; 
+            } else {
+                // Show category
+                sectionElement.style.display = 'block'; 
+                
+                // ARCHITECT FIX: Hide Ad Unit while searching to declutter UI
+                if (adElement) {
+                    adElement.style.display = (query.length > 0) ? 'none' : 'block';
                 }
-            });
+                
+                // Rebuild the grid with perfectly spaced cards
+                filteredTools[category].forEach(tool => {
+                    const tagHTML = tool.tag ? `<div class="absolute top-4 right-4"><span class="bg-rose-500/20 text-rose-400 text-[10px] font-black px-2 py-0.5 rounded-full tracking-widest uppercase">${tool.tag}</span></div>` : '';
+                    
+                    gridElement.innerHTML += `
+                        <a href="${tool.link}" class="tool-card p-8 rounded-2xl group block relative overflow-hidden">
+                            <div class="w-14 h-14 ${tool.iconColors} rounded-xl flex items-center justify-center mb-6 transition-all shadow-inner">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="${tool.iconPath.includes('stroke') ? 'none' : 'currentColor'}" viewBox="0 0 24 24" stroke="currentColor">
+                                    ${tool.iconPath}
+                                </svg>
+                            </div>
+                            ${tagHTML}
+                            <h3 class="text-lg font-bold text-white mb-3">${tool.title}</h3>
+                            <p class="text-sm text-slate-400 leading-relaxed">${tool.desc}</p>
+                        </a>
+                    `;
+                });
+            }
+        });
+    }
+
+    // Initialize grid on load
+    window.addEventListener('DOMContentLoaded', () => {
+        if (typeof silenVaultTools !== 'undefined') {
+            renderEngine();
+        } else {
+            console.error("Architect Error: directory.js failed to load.");
         }
-    </script>
+    });
+</script>
 </body>
 </html>
