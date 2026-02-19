@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend Web IDE & Sandbox | SilenVault</title>
+    <meta name="description" content="Professional in-browser HTML, CSS, and JavaScript IDE. Sandboxed live preview with syntax highlighting and auto-save.">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="../assets/js/layout.js" defer></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/closetag.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/closebrackets.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f8fafc; overflow-x: hidden; }
+        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .mono { font-family: 'Fira Code', monospace; }
+
+        /* CodeMirror Customization to match SilenVault */
+        .CodeMirror { height: 100%; font-family: 'Fira Code', monospace; font-size: 13px; background: transparent !important; }
+        .cm-s-dracula.CodeMirror { box-shadow: none; border: none; }
+        .cm-s-dracula .CodeMirror-gutters { background-color: #0f172a; border-right: 1px solid #1e293b; }
+        
+        .ide-container {
+            display: flex; flex-direction: column; height: 75vh; min-height: 600px;
+            background: #0f172a; border-radius: 1rem; border: 1px solid #1e293b;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6); overflow: hidden;
+        }
+
+        .editor-row { display: flex; flex-direction: column; flex: 1; border-bottom: 2px solid #1e293b; }
+        @media (min-width: 1024px) { .editor-row { flex-direction: row; } }
+
+        .editor-pane { flex: 1; display: flex; flex-direction: column; border-bottom: 1px solid #1e293b; }
+        @media (min-width: 1024px) { 
+            .editor-pane { border-bottom: none; border-right: 1px solid #1e293b; }
+            .editor-pane:last-child { border-right: none; }
+        }
+
+        .pane-header {
+            background: #020617; padding: 8px 16px; font-size: 11px; font-weight: bold;
+            color: #64748b; text-transform: uppercase; letter-spacing: 1px;
+            border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .preview-row { flex: 1; background: #ffffff; position: relative; }
+        #preview-frame { width: 100%; height: 100%; border: none; background: white; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <sv-header base-path=".."></sv-header>
+
+    <main class="flex-1 max-w-[1600px] mx-auto w-full px-4 py-8 flex flex-col gap-6">
+        
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-2">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight">
+                    Web <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">IDE</span>
+                </h1>
+                <p class="text-sm text-slate-400 mt-1">Sandboxed HTML, CSS, and JS engine with live compilation.</p>
+            </div>
+            
+            <div class="flex items-center gap-3 w-full md:w-auto">
+                <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl">
+                    <span id="save-status" class="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Saved
+                    </span>
+                </div>
+                
+                <button onclick="downloadCode()" class="bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold px-6 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)] flex items-center gap-2 shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Export .html
+                </button>
+            </div>
+        </div>
+
+        <div class="ide-container">
+            
+            <div class="editor-row">
+                <div class="editor-pane">
+                    <div class="pane-header">
+                        <span class="text-rose-400 flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg> index.html</span>
+                    </div>
+                    <div class="flex-1 relative"><textarea id="html-code"></textarea></div>
+                </div>
+                
+                <div class="editor-pane">
+                    <div class="pane-header">
+                        <span class="text-blue-400 flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg> style.css</span>
+                    </div>
+                    <div class="flex-1 relative"><textarea id="css-code"></textarea></div>
+                </div>
+
+                <div class="editor-pane">
+                    <div class="pane-header">
+                        <span class="text-amber-400 flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> script.js</span>
+                    </div>
+                    <div class="flex-1 relative"><textarea id="js-code"></textarea></div>
+                </div>
+            </div>
+
+            <div class="preview-row">
+                <div class="absolute top-0 right-0 bg-slate-900/80 text-white text-[10px] font-mono px-3 py-1 m-2 rounded backdrop-blur border border-slate-700 z-10 pointer-events-none">Live Output</div>
+                <iframe id="preview-frame" sandbox="allow-scripts allow-modals"></iframe>
+            </div>
+
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-8 mt-4">
+            <div class="lg:col-span-2 glass-panel p-8 rounded-2xl border-slate-800 prose prose-invert max-w-none">
+                <h2 class="text-xl font-bold text-white mb-4">Frontend Development Sandbox</h2>
+                <ul class="text-sm text-slate-400 leading-relaxed space-y-3 m-0 p-0 list-none">
+                    <li><strong class="text-purple-400">Sandboxed Execution:</strong> The output preview runs inside an isolated HTML5 iframe. It supports JavaScript execution (<code>allow-scripts</code>), but protects your main browser tab from malicious loops or DOM hijacking.</li>
+                    <li><strong class="text-slate-200">Local-First Storage:</strong> You do not need to create an account to save your code. As you type, the engine continuously saves your HTML, CSS, and JS data securely into your browser's <code>localStorage</code>. Refreshing the page will never delete your work.</li>
+                    <li><strong class="text-slate-200">Export to Production:</strong> When your prototype is finished, hit "Export .html". The IDE mathematically merges your CSS into a <code>&lt;style&gt;</code> block and your JS into a <code>&lt;script&gt;</code> block, downloading a single, production-ready index.html file to your hard drive.</li>
+                </ul>
+            </div>
+
+            <div class="space-y-6">
+                <div id="sidebar-ad-wrapper" class="hidden opacity-0 transition-opacity duration-1000">
+                    <aside class="smart-ad-unit bg-slate-900/50 border border-slate-800 rounded-2xl flex flex-col items-center justify-center p-4 min-h-[250px]">
+                        <span class="text-[10px] uppercase tracking-widest text-slate-600 block mb-2 pointer-events-none">Sponsored</span>
+                        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="7594122081" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                    </aside>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <sv-footer base-path=".."></sv-footer>
+
+    <script>
+        // Default Template
+        const defaultHTML = `<div class="container">\n  <h1>Hello, SilenVault!</h1>\n  <p>Start typing to see live updates.</p>\n</div>`;
+        const defaultCSS = `body {\n  margin: 0;\n  padding: 20px;\n  font-family: system-ui, sans-serif;\n  background-color: #f1f5f9;\n}\n\n.container {\n  background: white;\n  padding: 30px;\n  border-radius: 12px;\n  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);\n}\n\nh1 {\n  color: #a855f7;\n  margin-top: 0;\n}`;
+        const defaultJS = `console.log("IDE initialized successfully.");`;
+
+        // Load from LocalStorage or use Defaults
+        const initHTML = localStorage.getItem('sv_ide_html') || defaultHTML;
+        const initCSS = localStorage.getItem('sv_ide_css') || defaultCSS;
+        const initJS = localStorage.getItem('sv_ide_js') || defaultJS;
+
+        // Initialize CodeMirror Editors
+        const cmOptions = {
+            theme: "dracula",
+            lineNumbers: true,
+            lineWrapping: true,
+            autoCloseTags: true,
+            autoCloseBrackets: true,
+            tabSize: 2
+        };
+
+        const editorHTML = CodeMirror.fromTextArea(document.getElementById("html-code"), { ...cmOptions, mode: "xml", htmlMode: true });
+        const editorCSS = CodeMirror.fromTextArea(document.getElementById("css-code"), { ...cmOptions, mode: "css" });
+        const editorJS = CodeMirror.fromTextArea(document.getElementById("js-code"), { ...cmOptions, mode: "javascript" });
+
+        editorHTML.setValue(initHTML);
+        editorCSS.setValue(initCSS);
+        editorJS.setValue(initJS);
+
+        const iframe = document.getElementById('preview-frame');
+        const saveStatus = document.getElementById('save-status');
+        let timeout;
+
+        // Engine: Compile and Render
+        function compilePreview() {
+            const html = editorHTML.getValue();
+            const css = editorCSS.getValue();
+            const js = editorJS.getValue();
+
+            // Save to LocalStorage
+            localStorage.setItem('sv_ide_html', html);
+            localStorage.setItem('sv_ide_css', css);
+            localStorage.setItem('sv_ide_js', js);
+
+            // Construct Document
+            const srcdoc = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>${css}</style>
+                </head>
+                <body>
+                    ${html}
+                    <script>${js}<\/script>
+                </body>
+                </html>
+            `;
+            iframe.srcdoc = srcdoc;
+
+            // Update Status UI
+            saveStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Saved`;
+            saveStatus.className = "text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-2";
+        }
+
+        // Event Listeners with Debounce (Prevents crashing while typing fast)
+        function handleInput() {
+            saveStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span> Typing...`;
+            saveStatus.className = "text-[10px] font-mono font-bold text-amber-400 uppercase tracking-widest flex items-center gap-2";
+            
+            clearTimeout(timeout);
+            timeout = setTimeout(compilePreview, 500); // Wait 500ms after user stops typing to render
+        }
+
+        editorHTML.on("change", handleInput);
+        editorCSS.on("change", handleInput);
+        editorJS.on("change", handleInput);
+
+        // Initial Render
+        compilePreview();
+
+        // Export Function
+        function downloadCode() {
+            const html = editorHTML.getValue();
+            const css = editorCSS.getValue();
+            const js = editorJS.getValue();
+
+            const finalCode = `<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>SilenVault Export</title>\n<style>\n${css}\n</style>\n</head>\n<body>\n${html}\n<script>\n${js}\n<\/script>\n</body>\n</html>`;
+
+            const blob = new Blob([finalCode], { type: "text/html" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "silenvault_project.html";
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
