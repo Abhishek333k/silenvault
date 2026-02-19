@@ -18,7 +18,6 @@
         .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
         .mono { font-family: 'Fira Code', monospace; }
 
-        /* Sleek Inputs */
         input, textarea, select {
             width: 100%; background: #0f172a; border: 1px solid #1e293b; color: #f8fafc;
             border-radius: 0.5rem; padding: 0.75rem 1rem; font-size: 0.875rem;
@@ -26,22 +25,20 @@
         }
         input:focus, textarea:focus, select:focus { border-color: #3b82f6; }
         textarea { resize: vertical; min-height: 80px; }
+        
+        input[type="file"] { padding: 0.5rem; background: #0b1120; border: 1px dashed #334155; cursor: pointer; }
+        input[type="file"]::file-selector-button { background: #1e293b; border: none; color: #94a3b8; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer; margin-right: 1rem; font-weight: bold; font-size: 0.75rem; transition: background 0.2s; }
+        input[type="file"]::file-selector-button:hover { background: #334155; color: white; }
 
-        /* A4 Live Preview Wrapper */
         .preview-wrapper {
             background: #000; padding: 20px; border-radius: 1rem; 
             border: 1px solid #1e293b; overflow: hidden;
             display: flex; justify-content: center;
         }
         
-        /* The Actual Paper (Fixed A4 aspect ratio scaled to fit) */
         .a4-paper {
-            width: 800px; 
-            min-height: 1131px; 
-            background: white; 
-            transform-origin: top center;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-            /* Scaling will be handled by JS based on screen width */
+            width: 800px; min-height: 1131px; background: white; 
+            transform-origin: top center; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
         }
     </style>
 </head>
@@ -56,11 +53,21 @@
                 <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight">
                     Invoice <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">Generator</span>
                 </h1>
-                <p class="text-sm text-slate-400 mt-1">Live data binding. Select a template and export to PDF.</p>
+                <p class="text-sm text-slate-400 mt-1">Live data binding. Auto-saves locally to your browser.</p>
             </div>
             
-            <div class="flex gap-3">
-                <button onclick="downloadPDF()" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-6 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] flex items-center gap-2">
+            <div class="flex flex-wrap gap-3">
+                <div class="flex gap-2 bg-slate-900 border border-slate-800 p-1.5 rounded-xl">
+                    <button onclick="exportJSON()" class="px-4 py-2 text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors" title="Download invoice data to load later">
+                        Export JSON
+                    </button>
+                    <label class="px-4 py-2 text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer" title="Load an existing JSON profile">
+                        Import
+                        <input type="file" id="import-json" accept=".json" class="hidden" onchange="importJSON(event)">
+                    </label>
+                </div>
+                
+                <button onclick="downloadPDF()" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-6 py-2 rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] flex items-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     Download PDF
                 </button>
@@ -74,18 +81,19 @@
                 <div class="glass-panel p-6 rounded-2xl flex flex-col gap-4">
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Document Settings</span>
+                        <button onclick="clearForm()" class="text-[10px] text-rose-400 hover:text-rose-300 font-bold uppercase tracking-widest">Clear Form</button>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Template</label>
-                            <select id="theme-select" onchange="renderPreview()">
+                            <select id="theme-select" onchange="triggerUpdate()">
                                 <option value="modern">Modern Accent</option>
                                 <option value="standard">Standard Corporate</option>
                             </select>
                         </div>
                         <div>
                             <label class="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Currency</label>
-                            <select id="currency-select" onchange="renderPreview()">
+                            <select id="currency-select" onchange="triggerUpdate()">
                                 <option value="$">USD ($)</option>
                                 <option value="€">EUR (€)</option>
                                 <option value="£">GBP (£)</option>
@@ -99,15 +107,15 @@
                     <div class="grid grid-cols-3 gap-4 mt-2">
                         <div>
                             <label class="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Invoice No.</label>
-                            <input type="text" id="inp-no" value="INV-0001" oninput="renderPreview()">
+                            <input type="text" id="inp-no" value="INV-0001" oninput="triggerUpdate()">
                         </div>
                         <div>
                             <label class="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Issue Date</label>
-                            <input type="date" id="inp-date" onchange="renderPreview()">
+                            <input type="date" id="inp-date" onchange="triggerUpdate()">
                         </div>
                         <div>
                             <label class="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Due Date</label>
-                            <input type="date" id="inp-due" onchange="renderPreview()">
+                            <input type="date" id="inp-due" onchange="triggerUpdate()">
                         </div>
                     </div>
                 </div>
@@ -116,15 +124,19 @@
                     <div>
                         <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 block">Billed By (You)</span>
                         <div class="space-y-3">
-                            <input type="text" id="inp-from-name" placeholder="Your Company Name" oninput="renderPreview()">
-                            <textarea id="inp-from-address" placeholder="Your Address & Contact Info" oninput="renderPreview()"></textarea>
+                            <div>
+                                <label class="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Company Logo (Optional)</label>
+                                <input type="file" id="inp-logo" accept="image/*" onchange="handleLogoUpload(event)">
+                            </div>
+                            <input type="text" id="inp-from-name" placeholder="Your Company Name" oninput="triggerUpdate()">
+                            <textarea id="inp-from-address" placeholder="Your Address & Contact Info" oninput="triggerUpdate()"></textarea>
                         </div>
                     </div>
                     <div>
                         <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 block">Billed To (Client)</span>
                         <div class="space-y-3">
-                            <input type="text" id="inp-to-name" placeholder="Client Name" oninput="renderPreview()">
-                            <textarea id="inp-to-address" placeholder="Client Address & Contact Info" oninput="renderPreview()"></textarea>
+                            <input type="text" id="inp-to-name" placeholder="Client Name" oninput="triggerUpdate()">
+                            <textarea id="inp-to-address" placeholder="Client Address & Contact Info" oninput="triggerUpdate()"></textarea>
                         </div>
                     </div>
                 </div>
@@ -142,47 +154,45 @@
                     <div class="grid grid-cols-2 gap-6 mt-6 pt-6 border-t border-slate-800">
                         <div>
                             <label class="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Tax %</label>
-                            <input type="number" id="inp-tax" value="0" min="0" oninput="renderPreview()">
+                            <input type="number" id="inp-tax" value="0" min="0" oninput="triggerUpdate()">
                         </div>
                         <div>
                             <label class="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Flat Discount</label>
-                            <input type="number" id="inp-discount" value="0" min="0" oninput="renderPreview()">
+                            <input type="number" id="inp-discount" value="0" min="0" oninput="triggerUpdate()">
                         </div>
                     </div>
                 </div>
 
                 <div class="glass-panel p-6 rounded-2xl">
                     <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 block">Terms & Notes</span>
-                    <textarea id="inp-notes" placeholder="Thank you for your business..." oninput="renderPreview()"></textarea>
+                    <textarea id="inp-notes" placeholder="Thank you for your business..." oninput="triggerUpdate()"></textarea>
                 </div>
             </div>
 
             <div class="lg:col-span-7 sticky top-24">
                 <div class="flex justify-between items-end mb-3 px-2">
                     <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Live A4 Preview</span>
-                    <span class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/30">Auto-Sync Active</span>
+                    <span id="save-status" class="text-[10px] font-mono text-slate-400">All changes saved locally</span>
                 </div>
                 
                 <div class="preview-wrapper" id="preview-wrapper">
                     <div style="width: 100%; display: flex; justify-content: center;">
-                        <div id="a4-document" class="a4-paper">
-                            </div>
+                        <div id="a4-document" class="a4-paper"></div>
                     </div>
                 </div>
-
             </div>
 
         </div>
+
         <div class="grid lg:grid-cols-3 gap-8 mt-8">
             <div class="lg:col-span-2 glass-panel p-8 rounded-2xl border-slate-800 prose prose-invert max-w-none">
                 <h2 class="text-xl font-bold text-white mb-4">Professional Free Invoice Generator</h2>
                 <ul class="text-sm text-slate-400 leading-relaxed space-y-3 m-0 p-0 list-none">
-                    <li><strong class="text-blue-400">100% Local Privacy:</strong> Unlike standard cloud billing software, SilenVault processes all your financial data locally in your browser's RAM. No client addresses, pricing, or company details are ever uploaded to our servers.</li>
+                    <li><strong class="text-blue-400">100% Local Privacy:</strong> Unlike standard cloud billing software, SilenVault processes all your financial data locally. No client addresses, pricing, or company details are ever uploaded to our servers.</li>
                     <li><strong class="text-slate-200">No Watermarks, High-Res PDF:</strong> Generate pixel-perfect, print-ready A4 PDF documents instantly. Your invoices belong to you, so we never force our logo or watermark onto your professional documents.</li>
-                    <li><strong class="text-slate-200">Live Auto-Sync Engine:</strong> Watch your invoice build in real-time. Choose from premium templates inspired by enterprise tools, switch international currencies, and apply instant tax and discount calculations without page reloads.</li>
+                    <li><strong class="text-slate-200">Persistent Auto-Save & JSON Export:</strong> Your draft is securely saved in your browser's local storage. You can safely close the tab and return tomorrow. Use the "Export JSON" button to save reusable client profiles.</li>
                 </ul>
             </div>
-
             <div class="space-y-6">
                 <div id="sidebar-ad-wrapper" class="hidden opacity-0 transition-opacity duration-1000">
                     <aside class="smart-ad-unit bg-slate-900/50 border border-slate-800 rounded-2xl flex flex-col items-center justify-center p-4 min-h-[200px]">
@@ -192,23 +202,62 @@
                 </div>
             </div>
         </div>
+
     </main>
 
     <sv-footer base-path=".."></sv-footer>
 
     <script>
-        // Data State
-        let items = [
-            { id: 1, desc: "Web Development Services", qty: 1, rate: 1500 }
-        ];
+        // --- Core State ---
+        let items = [{ id: 1, desc: "Web Development Services", qty: 1, rate: 1500 }];
+        let logoBase64 = null;
 
-        // Initialize Defaults
-        document.getElementById('inp-date').valueAsDate = new Date();
-        const nextWeek = new Date();
-        nextWeek.setDate(nextWeek.getDate() + 7);
-        document.getElementById('inp-due').valueAsDate = nextWeek;
+        // --- DOM Elements ---
+        const els = {
+            theme: document.getElementById('theme-select'),
+            currency: document.getElementById('currency-select'),
+            no: document.getElementById('inp-no'),
+            date: document.getElementById('inp-date'),
+            due: document.getElementById('inp-due'),
+            fName: document.getElementById('inp-from-name'),
+            fAddr: document.getElementById('inp-from-address'),
+            tName: document.getElementById('inp-to-name'),
+            tAddr: document.getElementById('inp-to-address'),
+            tax: document.getElementById('inp-tax'),
+            discount: document.getElementById('inp-discount'),
+            notes: document.getElementById('inp-notes'),
+            saveStatus: document.getElementById('save-status')
+        };
 
-        // Render Items Form Array
+        // --- Initialization ---
+        function init() {
+            const savedData = localStorage.getItem('sv_invoice_draft');
+            if (savedData) {
+                loadDataToUI(JSON.parse(savedData));
+            } else {
+                els.date.valueAsDate = new Date();
+                const nextWeek = new Date();
+                nextWeek.setDate(nextWeek.getDate() + 7);
+                els.due.valueAsDate = nextWeek;
+                renderItemsForm();
+                renderPreview();
+            }
+            setTimeout(scalePreview, 100);
+        }
+
+        // --- Logo Handler ---
+        function handleLogoUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                logoBase64 = event.target.result;
+                triggerUpdate();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // --- Line Items Logic ---
         function renderItemsForm() {
             const container = document.getElementById('items-container');
             container.innerHTML = '';
@@ -224,7 +273,7 @@
                         <input type="number" placeholder="Qty" value="${item.qty}" min="1" oninput="updateItem(${index}, 'qty', this.value)">
                     </div>
                     <div class="w-28">
-                        <input type="number" placeholder="Rate" value="${item.rate}" min="0" oninput="updateItem(${index}, 'rate', this.value)">
+                        <input type="number" placeholder="Rate" value="${item.rate}" min="0" step="0.01" oninput="updateItem(${index}, 'rate', this.value)">
                     </div>
                     <button onclick="removeItem(${index})" class="p-3 text-slate-500 hover:text-rose-400 bg-slate-900 border border-slate-800 rounded-lg transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -237,84 +286,151 @@
         function addItem() {
             items.push({ id: Date.now(), desc: "", qty: 1, rate: 0 });
             renderItemsForm();
-            renderPreview();
+            triggerUpdate();
         }
 
         function updateItem(index, field, value) {
             items[index][field] = field === 'desc' ? value : parseFloat(value) || 0;
-            renderPreview();
+            triggerUpdate();
         }
 
         function removeItem(index) {
             items.splice(index, 1);
             renderItemsForm();
-            renderPreview();
+            triggerUpdate();
         }
 
-        // --- Core Template Engine ---
-        function renderPreview() {
-            // 1. Collect Data
+        // --- Core Sync Engine ---
+        function triggerUpdate() {
+            renderPreview();
+            saveToLocal();
+        }
+
+        function getCurrentData() {
             const subtotal = items.reduce((sum, item) => sum + (item.qty * item.rate), 0);
-            const taxRate = parseFloat(document.getElementById('inp-tax').value) || 0;
+            const taxRate = parseFloat(els.tax.value) || 0;
             const taxAmount = subtotal * (taxRate / 100);
-            const discount = parseFloat(document.getElementById('inp-discount').value) || 0;
+            const discount = parseFloat(els.discount.value) || 0;
             const total = subtotal + taxAmount - discount;
 
-            const invoiceData = {
-                theme: document.getElementById('theme-select').value,
-                currencySym: document.getElementById('currency-select').value,
-                invoiceNo: document.getElementById('inp-no').value,
-                date: document.getElementById('inp-date').value,
-                dueDate: document.getElementById('inp-due').value,
-                fromName: document.getElementById('inp-from-name').value,
-                fromAddress: document.getElementById('inp-from-address').value,
-                toName: document.getElementById('inp-to-name').value,
-                toAddress: document.getElementById('inp-to-address').value,
-                notes: document.getElementById('inp-notes').value,
+            return {
+                theme: els.theme.value,
+                currencySym: els.currency.value,
+                invoiceNo: els.no.value,
+                date: els.date.value,
+                dueDate: els.due.value,
+                fromName: els.fName.value,
+                fromAddress: els.fAddr.value,
+                toName: els.tName.value,
+                toAddress: els.tAddr.value,
+                notes: els.notes.value,
+                tax: taxRate,
+                discount: discount,
+                logo: logoBase64,
                 items: items,
                 subtotal: subtotal,
-                tax: taxRate,
                 taxAmount: taxAmount,
-                discount: discount,
-                total: Math.max(0, total) // Prevent negative totals
+                total: Math.max(0, total)
             };
+        }
 
-            // 2. Fetch HTML from Template Bundle
-            const templateFunc = window.InvoiceThemes[invoiceData.theme];
-            const htmlString = templateFunc ? templateFunc(invoiceData) : window.InvoiceThemes['modern'](invoiceData);
-
-            // 3. Inject into A4 Container
+        function renderPreview() {
+            const data = getCurrentData();
+            const templateFunc = window.InvoiceThemes[data.theme];
+            const htmlString = templateFunc ? templateFunc(data) : window.InvoiceThemes['modern'](data);
             document.getElementById('a4-document').innerHTML = htmlString;
         }
 
-        // --- Responsive Scaling Logic ---
+        // --- Storage & Profiles ---
+        function saveToLocal() {
+            const data = getCurrentData();
+            localStorage.setItem('sv_invoice_draft', JSON.stringify(data));
+            els.saveStatus.innerText = "Saving...";
+            els.saveStatus.classList.replace('text-slate-400', 'text-emerald-400');
+            setTimeout(() => {
+                els.saveStatus.innerText = "All changes saved locally";
+                els.saveStatus.classList.replace('text-emerald-400', 'text-slate-400');
+            }, 1000);
+        }
+
+        function loadDataToUI(data) {
+            if(!data) return;
+            els.theme.value = data.theme || 'modern';
+            els.currency.value = data.currencySym || '$';
+            els.no.value = data.invoiceNo || '';
+            els.date.value = data.date || '';
+            els.due.value = data.dueDate || '';
+            els.fName.value = data.fromName || '';
+            els.fAddr.value = data.fromAddress || '';
+            els.tName.value = data.toName || '';
+            els.tAddr.value = data.toAddress || '';
+            els.notes.value = data.notes || '';
+            els.tax.value = data.tax || 0;
+            els.discount.value = data.discount || 0;
+            
+            logoBase64 = data.logo || null;
+            items = data.items && data.items.length > 0 ? data.items : [{ id: 1, desc: "", qty: 1, rate: 0 }];
+            
+            renderItemsForm();
+            renderPreview();
+        }
+
+        function exportJSON() {
+            const data = getCurrentData();
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", `client_profile_${data.toName || 'invoice'}.json`);
+            dlAnchorElem.click();
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    loadDataToUI(parsed);
+                    saveToLocal();
+                    event.target.value = ''; // Reset input
+                } catch(err) {
+                    alert("Invalid JSON profile file.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function clearForm() {
+            if(confirm("Are you sure you want to clear all data? This cannot be undone.")) {
+                localStorage.removeItem('sv_invoice_draft');
+                location.reload();
+            }
+        }
+
+        // --- Visual Scaling ---
         function scalePreview() {
             const wrapper = document.getElementById('preview-wrapper');
             const doc = document.getElementById('a4-document');
-            
-            // The wrapper padding is 40px (20px each side).
             const availableWidth = wrapper.clientWidth - 40; 
-            const targetWidth = 800; // Fixed A4 pixel width
+            const targetWidth = 800;
             
             if (availableWidth < targetWidth) {
                 const scale = availableWidth / targetWidth;
                 doc.style.transform = `scale(${scale})`;
-                // Adjust height of wrapper so it doesn't leave massive blank space
                 doc.style.marginBottom = `-${1131 * (1 - scale)}px`; 
             } else {
                 doc.style.transform = `scale(1)`;
                 doc.style.marginBottom = `0px`;
             }
         }
-
         window.addEventListener('resize', scalePreview);
 
-        // --- PDF Generation ---
+        // --- Export to PDF ---
         function downloadPDF() {
             const element = document.getElementById('a4-document');
-            const invoiceNo = document.getElementById('inp-no').value || 'invoice';
+            const invoiceNo = els.no.value || 'invoice';
             
-            // Temporarily remove scaling for crisp PDF render
             element.style.transform = 'scale(1)';
             element.style.marginBottom = '0px';
 
@@ -326,17 +442,10 @@
                 jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
             };
 
-            // Generate and restore scale
-            html2pdf().set(opt).from(element).save().then(() => {
-                scalePreview();
-            });
+            html2pdf().set(opt).from(element).save().then(() => scalePreview());
         }
 
-        // Init
-        renderItemsForm();
-        renderPreview();
-        setTimeout(scalePreview, 100);
-
+        window.onload = init;
     </script>
 </body>
 </html>
