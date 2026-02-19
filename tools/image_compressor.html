@@ -4,322 +4,425 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Image Compressor | SilenVault</title>
+    <meta name="description" content="Free, local-first image compressor. Reduce JPEG, PNG, and WebP file sizes locally. No server uploads.">
     
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="../assets/js/layout.js" defer></script>
-    
+
+    <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/upng-js@2.1.0/UPNG.min.js"></script>
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f8fafc; overflow-x: hidden; }
         .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .mono { font-family: 'Fira Code', monospace; }
+
+        .drop-zone {
+            border: 2px dashed #334155; border-radius: 1.5rem; background: rgba(15, 23, 42, 0.4);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 350px; transition: all 0.3s ease; cursor: pointer; position: relative; overflow: hidden;
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: #6366f1; background: rgba(99, 102, 241, 0.1); box-shadow: inset 0 0 30px rgba(99, 102, 241, 0.2);
+        }
+        .drop-zone input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
+
+        input[type=range].custom-slider { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range].custom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%;
+            background: #6366f1; cursor: pointer; margin-top: -8px;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.6); transition: transform 0.1s;
+        }
+        input[type=range].custom-slider::-webkit-slider-thumb:active { transform: scale(1.1); }
+        input[type=range].custom-slider::-webkit-slider-runnable-track {
+            width: 100%; height: 8px; cursor: pointer; background: #1e293b;
+            border-radius: 4px; border: 1px solid #334155;
+        }
+
+        .stat-box { background: #0b1120; border: 1px solid #1e293b; border-radius: 12px; padding: 16px; text-align: center; }
+
+        .comparison-container {
+            position: relative; width: 100%; height: 500px; overflow: hidden; border-radius: 12px;
+            background-color: #0b1120;
+            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAACVJREFUKFNjZCASMDKgAnv37v3PBEWQQRTFMAkMmAwwKTIBAJ2cAxVqFpY7AAAAAElFTkSuQmCC');
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            user-select: none;
+        }
+        .comparison-img {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: contain; pointer-events: none;
+        }
+        .comparison-slider {
+            position: absolute; top: 0; bottom: 0; left: 50%; width: 2px;
+            background: #6366f1; cursor: ew-resize; z-index: 20; transform: translateX(-50%);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .comparison-slider::before {
+            content: '< >'; display: flex; align-items: center; justify-content: center;
+            width: 36px; height: 36px; background: #6366f1; color: white;
+            font-weight: bold; border-radius: 50%; font-size: 14px; letter-spacing: -2px;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.8);
+        }
         
-        /* Tech Slider */
-        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
-        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 8px; background: #0f172a; border-radius: 4px; border: 1px solid #1e293b; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%; background: #3b82f6; border: 2px solid #60a5fa; cursor: pointer; margin-top: -9px; box-shadow: 0 0 15px rgba(59, 130, 246, 0.6); transition: transform 0.1s; }
-        .scale-tick { position: relative; height: 6px; width: 1px; background: #334155; margin-top: 4px; }
-        .scale-label { font-size: 10px; color: #64748b; margin-top: 4px; text-align: center; width: 20px; margin-left: -10px; }
-        .sv-select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; appearance: none; }
+        .label-before { position: absolute; bottom: 16px; left: 16px; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); color: white; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; text-transform: uppercase; z-index: 10; border: 1px solid rgba(255,255,255,0.1); }
+        .label-after { position: absolute; bottom: 16px; right: 16px; background: rgba(99,102,241,0.8); backdrop-filter: blur(4px); color: white; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; text-transform: uppercase; z-index: 10; border: 1px solid rgba(255,255,255,0.2); }
+
+        #processing-overlay {
+            position: absolute; inset: 0; background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(8px);
+            z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.3s ease; opacity: 0; pointer-events: none;
+        }
+        #processing-overlay.active { opacity: 1; pointer-events: all; }
+        .loader-ring { width: 50px; height: 50px; border: 4px solid rgba(99, 102, 241, 0.2); border-top-color: #6366f1; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="flex flex-col min-h-screen">
 
     <sv-header base-path=".."></sv-header>
 
-    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-12 flex flex-col lg:flex-row gap-8">
+    <main class="flex-1 max-w-[1400px] mx-auto w-full px-4 py-8 flex flex-col gap-6">
         
-        <div class="flex-1">
-            <div id="dropZone" class="glass-panel rounded-2xl p-12 mb-8 text-center cursor-pointer border-2 border-dashed border-slate-700 hover:border-blue-500 transition-colors group" onclick="document.getElementById('fileInput').click()">
-                <input type="file" id="fileInput" accept="image/jpeg, image/png, image/webp" class="hidden" onchange="handleFile(this.files[0])">
-                <div class="pointer-events-none group-hover:scale-105 transition-transform">
-                    <div class="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-6 text-blue-500 border border-blue-500/20 group-hover:border-blue-500">
-                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                    </div>
-                    <h3 class="text-2xl font-bold text-white mb-2">Drop Image Here</h3>
-                    <p class="text-sm text-slate-500">Supports JPG, PNG, WebP (Max 20MB)</p>
-                </div>
-            </div>
-
-            <div id="editorArea" class="hidden space-y-8">
-                
-                <div class="glass-panel p-8 rounded-3xl border-blue-500/20">
-                    <div class="grid md:grid-cols-2 gap-8 mb-8">
-                        <div>
-                            <div class="flex justify-between items-end mb-4">
-                                <div>
-                                    <label class="text-sm font-bold text-slate-300 uppercase tracking-wider">Quality Level</label>
-                                    <p class="text-xs text-slate-500 mt-1">Lower = Smaller File</p>
-                                </div>
-                                <div class="text-right bg-slate-900 px-3 py-1 rounded border border-slate-800">
-                                    <span id="qualityVal" class="text-xl font-mono font-bold text-blue-400">75%</span>
-                                </div>
-                            </div>
-                            <div class="relative px-2">
-                                <input type="range" id="qualitySlider" min="1" max="100" value="75" oninput="updateCompression()">
-                                <div class="flex justify-between mt-2 select-none">
-                                    <div><div class="scale-tick"></div><div class="scale-label">0</div></div>
-                                    <div><div class="scale-tick"></div><div class="scale-label">50</div></div>
-                                    <div><div class="scale-tick"></div><div class="scale-label">100</div></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="space-y-4">
-                            <div>
-                                <label class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-2 block">Max Width</label>
-                                <select id="resizeSelect" onchange="updateCompression()" class="sv-select w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors">
-                                    <option value="0">Original Dimensions</option>
-                                    <option value="1920">1920px (Full HD)</option>
-                                    <option value="1280">1280px (HD)</option>
-                                    <option value="800">800px (Web)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-2 block">Output Format</label>
-                                <select id="formatSelect" onchange="updateCompression()" class="sv-select w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors">
-                                    <option value="image/webp">WebP (Best Compression)</option>
-                                    <option value="image/jpeg">JPEG (Standard)</option>
-                                    <option value="image/png">PNG (Lossless)</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div id="advisorBox" class="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 flex gap-4 items-center">
-                        <div class="p-2 bg-blue-500/20 rounded-lg text-blue-400">
-                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        </div>
-                        <div>
-                            <h4 id="advisorTitle" class="font-bold text-white text-sm">Balanced Optimization</h4>
-                            <p id="advisorText" class="text-xs text-slate-400 mt-0.5">Best for websites. Good reduction with sharp details.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div class="glass-panel p-4 rounded-2xl opacity-60">
-                        <div class="flex justify-between mb-3 text-sm border-b border-slate-700 pb-2">
-                            <span class="text-slate-400 font-medium">Original</span>
-                            <div class="text-right">
-                                <span id="origSize" class="font-mono text-white block">0 KB</span>
-                                <span id="origDims" class="text-[10px] text-slate-500">0x0</span>
-                            </div>
-                        </div>
-                        <div class="h-64 flex items-center justify-center bg-slate-900/50 rounded-lg overflow-hidden">
-                            <img id="origImg" class="max-w-full max-h-full object-contain">
-                        </div>
-                    </div>
-
-                    <div class="glass-panel p-4 rounded-2xl border-blue-500/30 relative group">
-                        <div class="flex justify-between mb-3 text-sm border-b border-slate-700 pb-2">
-                            <span class="text-blue-400 font-bold">Result</span>
-                            <div class="text-right">
-                                <span id="compSize" class="font-mono text-white block">0 KB</span>
-                                <span id="compDims" class="text-[10px] text-slate-500">0x0</span>
-                            </div>
-                        </div>
-                        
-                        <div class="h-64 flex items-center justify-center bg-slate-900/50 rounded-lg overflow-hidden relative">
-                            <div class="absolute top-2 right-2 bg-slate-900/80 backdrop-blur-md text-slate-300 text-xs font-bold px-3 py-1 rounded-full shadow-lg border border-slate-700 z-10" id="savedBadge">
-                                Ready
-                            </div>
-                            <img id="compImg" class="max-w-full max-h-full object-contain">
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-3 mt-4">
-                            <button onclick="resetTool()" class="py-3 rounded-xl border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 font-bold transition-all text-sm">
-                                Start Over
-                            </button>
-                            <button onclick="downloadCompressed()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-blue-500/20 flex justify-center gap-2 items-center">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                Save File
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="mt-12 glass-panel p-4 rounded-2xl flex flex-col items-center justify-center min-h-[150px]">
-                <span class="text-[10px] uppercase tracking-widest text-slate-600 mb-2">Sponsored</span>
-                <ins class="adsbygoogle"
-                     style="display:block; width: 100%;"
-                     data-ad-client="ca-pub-5449371042798610"
-                     data-ad-slot="7594122081"
-                     data-ad-format="auto"
-                     data-full-width-responsive="true"></ins>
-                <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-2">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight">
+                    Smart Image <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500">Compressor</span>
+                </h1>
+                <p class="text-sm text-slate-400 mt-1">Reduce image file size instantly in your browser. Features local PNG Quantization.</p>
             </div>
         </div>
 
-        <aside class="w-full lg:w-80 flex flex-col gap-6 shrink-0">
-            <div class="glass-panel p-6 rounded-2xl">
-                <h3 class="font-bold text-white mb-4">Format Guide</h3>
-                <div class="space-y-4 text-xs">
-                    <div class="flex gap-3">
-                        <div class="font-bold text-blue-400 w-12">WebP</div>
-                        <span class="text-slate-400">Modern standard. 30% smaller than JPEG. Best for everything.</span>
+        <div id="upload-stage" class="glass-panel p-2 rounded-[2rem]">
+            <div id="drop-zone" class="drop-zone">
+                <div class="bg-indigo-500/20 p-4 rounded-full mb-4 pointer-events-none">
+                    <svg class="w-10 h-10 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2 pointer-events-none">Drag & Drop Image Here</h3>
+                <p class="text-sm text-slate-400 pointer-events-none">Supports JPEG, PNG, and WebP</p>
+                <input type="file" id="file-input" accept="image/jpeg, image/png, image/webp, image/jpg">
+            </div>
+        </div>
+
+        <div id="workspace-stage" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                
+                <div class="glass-panel p-6 rounded-3xl border-slate-700">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-sm font-bold text-slate-300 uppercase tracking-widest">Compression Engine</h2>
+                        <span id="file-type-badge" class="bg-indigo-500/20 text-indigo-400 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest border border-indigo-500/30">JPEG</span>
                     </div>
-                    <div class="flex gap-3">
-                        <div class="font-bold text-slate-300 w-12">JPEG</div>
-                        <span class="text-slate-400">Classic compatibility. Good for photos, bad for text.</span>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-3">
+                            <label class="text-xs font-bold text-slate-400">Target File Size / Quality</label>
+                            <span id="quality-val" class="text-sm font-bold text-indigo-400 mono">80%</span>
+                        </div>
+                        <input type="range" id="quality-slider" class="custom-slider" min="1" max="100" value="80">
+                        <p id="png-note" class="text-[10px] text-emerald-500 mt-3 hidden border border-emerald-500/30 bg-emerald-500/10 p-2 rounded">
+                            UPNG.js Quantization Engine active. Adjusting slider will reduce available color palette to save space.
+                        </p>
                     </div>
-                    <div class="flex gap-3">
-                        <div class="font-bold text-slate-300 w-12">PNG</div>
-                        <span class="text-slate-400">Lossless. Huge file size. Only for transparent backgrounds.</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="stat-box">
+                        <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Original Size</span>
+                        <span id="size-original" class="text-lg font-bold text-slate-300 mono">0 KB</span>
+                    </div>
+                    <div class="stat-box relative overflow-hidden">
+                        <div class="absolute inset-0 bg-emerald-500/10 hidden" id="save-glow"></div>
+                        <span class="block text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-1 relative z-10">Compressed</span>
+                        <span id="size-new" class="text-lg font-bold text-emerald-400 mono relative z-10">0 KB</span>
+                    </div>
+                    <div class="col-span-2 stat-box border-indigo-500/30 bg-indigo-950/20 relative overflow-hidden">
+                        <span class="block text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-1">Memory Saved</span>
+                        <span id="size-saved" class="text-2xl font-black text-white mono">0%</span>
+                        
+                        <div id="inflation-warning" class="absolute inset-0 bg-slate-900/95 flex flex-col items-center justify-center rounded-xl border border-slate-700 hidden z-20">
+                            <span class="text-amber-400 font-bold text-sm">Optimization Capped</span>
+                            <span class="text-slate-300 text-[10px] mt-1">Output locked to original file size.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    <button onclick="downloadImage()" id="btn-download" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold px-6 py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(99,102,241,0.4)] flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        Download Image
+                    </button>
+                    
+                    <button onclick="resetApp()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-bold px-6 py-3 rounded-xl transition-all border border-slate-700 flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        Compress Another Image
+                    </button>
+                </div>
+            </div>
+
+            <div class="lg:col-span-8 p-1">
+                <div class="comparison-container" id="comp-container">
+                    <img id="img-original" class="comparison-img" alt="Original Image">
+                    <div class="label-before">Original</div>
+                    
+                    <img id="img-compressed" class="comparison-img" alt="Compressed Image" style="clip-path: inset(0 0 0 50%);">
+                    <div class="label-after">Compressed</div>
+
+                    <div class="comparison-slider" id="comp-slider"></div>
+
+                    <div id="processing-overlay">
+                        <div class="loader-ring"></div>
+                        <span class="text-indigo-400 font-bold tracking-widest uppercase text-sm mt-4">Running Compression...</span>
                     </div>
                 </div>
             </div>
-            <div class="glass-panel p-4 rounded-2xl flex flex-col items-center justify-center min-h-[600px] sticky top-24">
-                <span class="text-[10px] uppercase tracking-widest text-slate-600 mb-2">Partner</span>
-                <ins class="adsbygoogle" style="display:block; width: 100%; height: 100%;" data-ad-client="ca-pub-5449371042798610" data-ad-slot="9264203071" data-ad-format="auto" data-full-width-responsive="true"></ins>
-                <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+        </div>
+
+        <canvas id="compress-canvas" class="hidden"></canvas>
+
+        <div class="grid lg:grid-cols-3 gap-8 mt-6">
+            <div class="lg:col-span-2 glass-panel p-8 rounded-2xl border-slate-800 prose prose-invert max-w-none">
+                <h2 class="text-xl font-bold text-white mb-4">The Quantization Engine</h2>
+                <ul class="text-sm text-slate-400 leading-relaxed space-y-3 m-0 p-0 list-none">
+                    <li><strong class="text-indigo-400">Zero Server Uploads:</strong> SilenVault utilizes your browser's internal engines to process the image directly in your RAM. It is 100% private.</li>
+                    <li><strong class="text-slate-200">Solving the PNG Problem:</strong> Browsers native engines cannot compress PNG files effectively. SilenVault solves this by injecting the open-source <strong>UPNG.js Quantization Engine</strong>. When you slide the quality bar on a PNG, we mathematically reduce the color palette from 16 million colors down to 256, cutting the file size dramatically while maintaining transparency.</li>
+                    <li><strong class="text-slate-200">The Capped Optimization Limit:</strong> If an image is already highly compressed, processing it again might theoretically increase its size due to encoding overhead. Our engine instantly detects this, safely discarding the bloated data and returning your original file untouched. You will never accidentally inflate a file.</li>
+                </ul>
             </div>
-        </aside>
+
+            <div class="space-y-6">
+                <div id="sidebar-ad-wrapper" class="hidden opacity-0 transition-opacity duration-1000">
+                    <aside class="smart-ad-unit bg-slate-900/50 border border-slate-800 rounded-2xl flex flex-col items-center justify-center p-4 min-h-[250px]">
+                        <span class="text-[10px] uppercase tracking-widest text-slate-600 block mb-2 pointer-events-none">Sponsored</span>
+                        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="7594122081" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                    </aside>
+                </div>
+            </div>
+        </div>
 
     </main>
 
     <sv-footer base-path=".."></sv-footer>
 
     <script>
+        let originalImageObj = new Image();
         let originalFile = null;
-        let compressedBlob = null;
+        let originalSize = 0;
+        let finalDownloadBlob = null; 
+        let debounceTimer;
+
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const stageUpload = document.getElementById('upload-stage');
+        const stageWorkspace = document.getElementById('workspace-stage');
+        const canvas = document.getElementById('compress-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        const qualitySlider = document.getElementById('quality-slider');
+        const qualityVal = document.getElementById('quality-val');
+        const fileTypeBadge = document.getElementById('file-type-badge');
+        const pngNote = document.getElementById('png-note');
+        
+        const elSizeOrig = document.getElementById('size-original');
+        const elSizeNew = document.getElementById('size-new');
+        const elSizeSaved = document.getElementById('size-saved');
+        const saveGlow = document.getElementById('save-glow');
+        const inflationWarning = document.getElementById('inflation-warning');
+        const overlay = document.getElementById('processing-overlay');
+
+        const imgOrig = document.getElementById('img-original');
+        const imgComp = document.getElementById('img-compressed');
+        const compContainer = document.getElementById('comp-container');
+        const compSlider = document.getElementById('comp-slider');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, preventDefaults));
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+        ['dragenter', 'dragover'].forEach(e => dropZone.classList.add('dragover'));
+        ['dragleave', 'drop'].forEach(e => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', e => handleFile(e.dataTransfer.files[0]));
+        fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
 
         function handleFile(file) {
-            if (!file) return;
-            if (!file.type.match('image.*')) {
-                alert("Please select a valid image file (JPG, PNG, WebP).");
-                return;
-            }
+            if (!file || !file.type.match('image.*')) { alert("Please drop a valid image file."); return; }
+
             originalFile = file;
+            originalSize = file.size;
             
-            const img = new Image();
-            img.src = URL.createObjectURL(file);
-            img.onload = () => {
-                document.getElementById('origSize').innerText = formatBytes(file.size);
-                document.getElementById('origDims').innerText = `${img.width}x${img.height}`;
-                document.getElementById('origImg').src = img.src;
-                
-                // Smart Defaults
-                if (img.width > 2500) document.getElementById('resizeSelect').value = "1920";
-                
-                document.getElementById('dropZone').classList.add('hidden');
-                document.getElementById('editorArea').classList.remove('hidden');
-                updateCompression();
-            };
-        }
+            const ext = file.type.split('/')[1].toUpperCase();
+            fileTypeBadge.innerText = ext;
 
-        function resetTool() {
-            originalFile = null;
-            compressedBlob = null;
-            document.getElementById('fileInput').value = '';
-            document.getElementById('editorArea').classList.add('hidden');
-            document.getElementById('dropZone').classList.remove('hidden');
-        }
-
-        let timeout;
-        function updateCompression() {
-            const quality = document.getElementById('qualitySlider').value;
-            document.getElementById('qualityVal').innerText = quality + '%';
-            updateAdvisor(parseInt(quality));
-
-            clearTimeout(timeout);
-            timeout = setTimeout(() => {
-                performCompression(quality);
-            }, 50);
-        }
-
-        function performCompression(quality) {
-            if (!originalFile) return;
+            if (file.type === 'image/png') {
+                pngNote.classList.remove('hidden');
+                qualitySlider.value = 80;
+            } else {
+                pngNote.classList.add('hidden');
+                qualitySlider.value = 80;
+            }
+            qualityVal.innerText = `${qualitySlider.value}%`;
 
             const reader = new FileReader();
-            reader.readAsDataURL(originalFile);
-            reader.onload = event => {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-                    
-                    // Resize Logic
-                    const maxWidth = parseInt(document.getElementById('resizeSelect').value);
-                    if (maxWidth > 0 && width > maxWidth) {
-                        const ratio = maxWidth / width;
-                        width = maxWidth;
-                        height = img.height * ratio;
-                    }
+            reader.onload = function(event) {
+                const url = event.target.result;
+                imgOrig.src = url; 
+                
+                originalImageObj.onload = function() {
+                    stageUpload.classList.add('hidden');
+                    stageWorkspace.classList.remove('hidden');
+                    triggerProcess();
+                };
+                originalImageObj.src = url;
+            };
+            reader.readAsDataURL(file);
+        }
 
-                    // ARCHITECT FIX: Integer Math
-                    canvas.width = Math.floor(width);
-                    canvas.height = Math.floor(height);
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, Math.floor(width), Math.floor(height));
+        function triggerProcess() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                overlay.classList.add('active');
+                setTimeout(executeCompression, 800); 
+            }, 300); 
+        }
 
-                    // ARCHITECT FIX: User Selected Format (Defaults to WebP)
-                    const format = document.getElementById('formatSelect').value;
+        function executeCompression() {
+            canvas.width = originalImageObj.width;
+            canvas.height = originalImageObj.height;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (originalFile.type === 'image/jpeg') {
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            ctx.drawImage(originalImageObj, 0, 0, canvas.width, canvas.height);
 
-                    canvas.toBlob(blob => {
-                        if (!blob) return;
-                        compressedBlob = blob;
-                        document.getElementById('compImg').src = URL.createObjectURL(blob);
-                        document.getElementById('compSize').innerText = formatBytes(blob.size);
-                        document.getElementById('compDims').innerText = `${canvas.width}x${canvas.height}`;
-                        
-                        const savings = ((originalFile.size - blob.size) / originalFile.size) * 100;
-                        const badge = document.getElementById('savedBadge');
-                        
-                        if (savings > 0) {
-                            badge.innerText = 'SAVED ' + Math.round(savings) + '%';
-                            badge.className = "absolute top-2 right-2 bg-emerald-500/90 backdrop-blur-md text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-10 border border-emerald-400/30";
-                        } else {
-                            badge.innerText = 'LARGER'; 
-                            badge.className = "absolute top-2 right-2 bg-red-500/90 backdrop-blur-md text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-10 border border-red-400/30";
-                        }
-                    }, format, quality / 100);
+            const qualityValNum = parseInt(qualitySlider.value);
+
+            if (originalFile.type === 'image/png') {
+                let colors = 0; 
+                if (qualityValNum < 100) {
+                    colors = Math.max(2, Math.floor((qualityValNum / 100) * 256));
                 }
-            }
-        }
-
-        function updateAdvisor(q) {
-            const title = document.getElementById('advisorTitle');
-            const text = document.getElementById('advisorText');
-            
-            if (q >= 90) {
-                title.innerText = "Archival Quality";
-                text.innerText = "Maximum detail. Minimal compression.";
-            } else if (q >= 75) {
-                title.innerText = "Balanced Optimization";
-                text.innerText = "The sweet spot. Great savings, sharp details.";
+                
+                const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                try {
+                    const buffer = UPNG.encode([imgData.data.buffer], canvas.width, canvas.height, colors);
+                    const blob = new Blob([buffer], { type: 'image/png' });
+                    finishCompression(blob);
+                } catch(e) {
+                    console.error("UPNG Error", e);
+                    finishCompression(originalFile);
+                }
             } else {
-                title.innerText = "Aggressive Compression";
-                text.innerText = "Max savings. Visible artifacts possible.";
+                canvas.toBlob((blob) => {
+                    finishCompression(blob);
+                }, originalFile.type, qualityValNum / 100);
             }
         }
 
-        function downloadCompressed() {
-            if (!compressedBlob) return;
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(compressedBlob);
-            
-            const q = document.getElementById('qualitySlider').value;
-            const format = document.getElementById('formatSelect').value;
-            // Map MIME type to extension
-            const extMap = { 'image/webp': 'webp', 'image/jpeg': 'jpg', 'image/png': 'png' };
-            const outExt = extMap[format] || 'jpg';
-            
-            const name = originalFile.name.split('.')[0];
-            a.download = `${name}_opt_${q}.${outExt}`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+        function finishCompression(compressedBlob) {
+            updateTelemetry(compressedBlob);
+            const url = URL.createObjectURL(finalDownloadBlob); 
+            imgComp.onload = () => URL.revokeObjectURL(url);
+            imgComp.src = url;
+            overlay.classList.remove('active');
         }
 
         function formatBytes(bytes) {
             if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            const k = 1024, i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + ['Bytes', 'KB', 'MB'][i];
+        }
+
+        function updateTelemetry(compressedBlob) {
+            elSizeOrig.innerText = formatBytes(originalSize);
+            const newSize = compressedBlob.size;
+
+            // ARCHITECT FIX: Hard UI Cap
+            if (newSize >= originalSize) {
+                finalDownloadBlob = originalFile; 
+                
+                inflationWarning.classList.remove('hidden');
+                saveGlow.classList.add('hidden');
+                
+                // Lock UI to original file values
+                elSizeNew.innerText = formatBytes(originalSize);
+                elSizeNew.className = "text-lg font-bold text-slate-400 mono relative z-10";
+                
+                elSizeSaved.innerText = "0%";
+                elSizeSaved.className = "text-2xl font-black text-slate-400 mono";
+            } else {
+                finalDownloadBlob = compressedBlob; 
+                
+                inflationWarning.classList.add('hidden');
+                saveGlow.classList.remove('hidden');
+                
+                // Show actual compressed values
+                elSizeNew.innerText = formatBytes(newSize);
+                elSizeNew.className = "text-lg font-bold text-emerald-400 mono relative z-10";
+                
+                const savings = ((originalSize - newSize) / originalSize) * 100;
+                elSizeSaved.innerText = `↓ ${savings.toFixed(1)}%`;
+                elSizeSaved.className = "text-2xl font-black text-emerald-400 mono";
+            }
+        }
+
+        qualitySlider.addEventListener('input', (e) => {
+            qualityVal.innerText = `${e.target.value}%`;
+            triggerProcess();
+        });
+
+        // Comparison Slider
+        let isDraggingSlider = false;
+        function moveSlider(clientX) {
+            const rect = compContainer.getBoundingClientRect();
+            let x = clientX - rect.left;
+            if (x < 0) x = 0;
+            if (x > rect.width) x = rect.width;
+            
+            const percent = (x / rect.width) * 100;
+            compSlider.style.left = `${percent}%`;
+            imgComp.style.clipPath = `inset(0 0 0 ${percent}%)`;
+        }
+
+        compSlider.addEventListener('mousedown', () => isDraggingSlider = true);
+        window.addEventListener('mouseup', () => isDraggingSlider = false);
+        window.addEventListener('mousemove', (e) => { if (isDraggingSlider) moveSlider(e.clientX); });
+        compSlider.addEventListener('touchstart', () => isDraggingSlider = true);
+        window.addEventListener('touchend', () => isDraggingSlider = false);
+        window.addEventListener('touchmove', (e) => { if (isDraggingSlider) moveSlider(e.touches[0].clientX); });
+
+
+        function downloadImage() {
+            if (!finalDownloadBlob) return;
+            const origName = originalFile.name;
+            const dotIndex = origName.lastIndexOf('.');
+            const name = origName.substring(0, dotIndex);
+            const ext = origName.substring(dotIndex);
+            
+            const newFilename = finalDownloadBlob === originalFile ? origName : `${name}_min${ext}`;
+
+            const url = URL.createObjectURL(finalDownloadBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = newFilename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function resetApp() {
+            stageWorkspace.classList.add('hidden');
+            stageUpload.classList.remove('hidden');
+            fileInput.value = '';
+            originalImageObj = new Image();
+            finalDownloadBlob = null;
+            inflationWarning.classList.add('hidden');
+            
+            compSlider.style.left = '50%';
+            imgComp.style.clipPath = 'inset(0 0 0 50%)';
         }
     </script>
 </body>
