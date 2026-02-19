@@ -3,130 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice Architect | SilenVault</title>
-    <meta name="description" content="Free local-first invoice generator. Create professional PDF invoices with custom logo, GST/VAT calculation, and instant print.">
+    <title>Invoice Generator | SilenVault</title>
+    <meta name="description" content="Generate, edit, and print professional PDF invoices instantly. Local-first, zero server uploads.">
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="../assets/js/layout.js" defer></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="../assets/templates/invoices/theme_bundle.js"></script>
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
-        .invoice-preview { background: white; color: black; width: 210mm; min-height: 297mm; padding: 20mm; margin: 0 auto; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .editable:empty:before { content: attr(placeholder); color: #94a3b8; }
-        .editable:hover { background-color: rgba(0,0,0,0.02); outline: 1px dashed #cbd5e1; cursor: text; }
-        @media print {
-            body * { visibility: hidden; }
-            #invoice-container, #invoice-container * { visibility: visible; }
-            #invoice-container { position: absolute; left: 0; top: 0; width: 100%; margin: 0; box-shadow: none; }
-            sv-header, sv-footer, .controls { display: none !important; }
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f8fafc; overflow-x: hidden; }
+        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .mono { font-family: 'Fira Code', monospace; }
+
+        /* Sleek Inputs */
+        input, textarea, select {
+            width: 100%; background: #0f172a; border: 1px solid #1e293b; color: #f8fafc;
+            border-radius: 0.5rem; padding: 0.75rem 1rem; font-size: 0.875rem;
+            transition: border-color 0.2s; outline: none;
+        }
+        input:focus, textarea:focus, select:focus { border-color: #3b82f6; }
+        textarea { resize: vertical; min-height: 80px; }
+
+        /* A4 Live Preview Wrapper */
+        .preview-wrapper {
+            background: #000; padding: 20px; border-radius: 1rem; 
+            border: 1px solid #1e293b; overflow: hidden;
+            display: flex; justify-content: center;
+        }
+        
+        /* The Actual Paper (Fixed A4 aspect ratio scaled to fit) */
+        .a4-paper {
+            width: 800px; 
+            min-height: 1131px; 
+            background: white; 
+            transform-origin: top center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            /* Scaling will be handled by JS based on screen width */
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="flex flex-col min-h-screen">
 
     <sv-header base-path=".."></sv-header>
 
-    <main class="flex-1 flex flex-col lg:flex-row max-w-[1600px] mx-auto w-full p-6 gap-8">
+    <main class="flex-1 max-w-[1600px] mx-auto w-full px-4 py-8 flex flex-col gap-6">
         
-        <aside class="w-full lg:w-80 flex flex-col gap-6 controls">
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sticky top-24">
-                <h2 class="text-xl font-bold text-white mb-4">Invoice Controls</h2>
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-2">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight">
+                    Invoice <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">Generator</span>
+                </h1>
+                <p class="text-sm text-slate-400 mt-1">Live data binding. Select a template and export to PDF.</p>
+            </div>
+            
+            <div class="flex gap-3">
+                <button onclick="downloadPDF()" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-6 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Download PDF
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <div class="lg:col-span-5 flex flex-col gap-6" id="invoice-form">
                 
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Currency Symbol</label>
-                        <select id="currency" onchange="updateCurrency()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
-                            <option value="₹">INR (₹)</option>
-                            <option value="$">USD ($)</option>
-                            <option value="€">EUR (€)</option>
-                            <option value="£">GBP (£)</option>
-                        </select>
+                <div class="glass-panel p-6 rounded-2xl flex flex-col gap-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Document Settings</span>
                     </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Tax Rate (%)</label>
-                        <input type="number" id="taxRate" value="18" oninput="calculateTotal()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-white">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Template</label>
+                            <select id="theme-select" onchange="renderPreview()">
+                                <option value="modern">Modern Accent</option>
+                                <option value="standard">Standard Corporate</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Currency</label>
+                            <select id="currency-select" onchange="renderPreview()">
+                                <option value="$">USD ($)</option>
+                                <option value="€">EUR (€)</option>
+                                <option value="£">GBP (£)</option>
+                                <option value="₹">INR (₹)</option>
+                                <option value="¥">JPY (¥)</option>
+                                <option value="C$">CAD (C$)</option>
+                                <option value="A$">AUD (A$)</option>
+                            </select>
+                        </div>
                     </div>
-
-                    <button onclick="addItem()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-2 rounded-lg border border-slate-700 transition-all">
-                        + Add Item Row
-                    </button>
-
-                    <button onclick="window.print()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                        Download PDF
-                    </button>
+                    <div class="grid grid-cols-3 gap-4 mt-2">
+                        <div>
+                            <label class="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Invoice No.</label>
+                            <input type="text" id="inp-no" value="INV-0001" oninput="renderPreview()">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Issue Date</label>
+                            <input type="date" id="inp-date" onchange="renderPreview()">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Due Date</label>
+                            <input type="date" id="inp-due" onchange="renderPreview()">
+                        </div>
+                    </div>
                 </div>
 
-                <div class="mt-8 text-xs text-slate-500">
-                    <p><strong>Tip:</strong> Click directly on any text in the preview to edit it.</p>
+                <div class="glass-panel p-6 rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 block">Billed By (You)</span>
+                        <div class="space-y-3">
+                            <input type="text" id="inp-from-name" placeholder="Your Company Name" oninput="renderPreview()">
+                            <textarea id="inp-from-address" placeholder="Your Address & Contact Info" oninput="renderPreview()"></textarea>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 block">Billed To (Client)</span>
+                        <div class="space-y-3">
+                            <input type="text" id="inp-to-name" placeholder="Client Name" oninput="renderPreview()">
+                            <textarea id="inp-to-address" placeholder="Client Address & Contact Info" oninput="renderPreview()"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-2xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Line Items</span>
+                        <button onclick="addItem()" class="text-xs font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg> Add Row
+                        </button>
+                    </div>
+                    
+                    <div id="items-container" class="space-y-3"></div>
+
+                    <div class="grid grid-cols-2 gap-6 mt-6 pt-6 border-t border-slate-800">
+                        <div>
+                            <label class="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Tax %</label>
+                            <input type="number" id="inp-tax" value="0" min="0" oninput="renderPreview()">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-500 uppercase font-bold mb-1 block">Flat Discount</label>
+                            <input type="number" id="inp-discount" value="0" min="0" oninput="renderPreview()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-2xl">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 block">Terms & Notes</span>
+                    <textarea id="inp-notes" placeholder="Thank you for your business..." oninput="renderPreview()"></textarea>
                 </div>
             </div>
-        </aside>
 
-        <div class="flex-1 overflow-x-auto bg-slate-900/50 rounded-3xl p-8 flex justify-center">
-            <div id="invoice-container" class="invoice-preview rounded-sm">
-                <div class="flex justify-between items-start mb-12">
-                    <div>
-                        <h1 class="text-4xl font-bold text-slate-800 editable" contenteditable="true" placeholder="INVOICE">INVOICE</h1>
-                        <div class="mt-2 text-slate-500 text-sm editable" contenteditable="true">
-                            #INV-2026-001<br>
-                            Date: Feb 18, 2026
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-xl font-bold text-slate-800 editable" contenteditable="true">Your Company Name</div>
-                        <div class="text-sm text-slate-500 mt-1 editable" contenteditable="true">
-                            123 Business Rd, Tech Park<br>
-                            Bangalore, India 560001<br>
-                            GSTIN: 29ABCDE1234F1Z5
-                        </div>
+            <div class="lg:col-span-7 sticky top-24">
+                <div class="flex justify-between items-end mb-3 px-2">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Live A4 Preview</span>
+                    <span class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/30">Auto-Sync Active</span>
+                </div>
+                
+                <div class="preview-wrapper" id="preview-wrapper">
+                    <div style="width: 100%; display: flex; justify-content: center;">
+                        <div id="a4-document" class="a4-paper">
+                            </div>
                     </div>
                 </div>
 
-                <div class="mb-12">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Bill To:</h3>
-                    <div class="text-lg font-bold text-slate-800 editable" contenteditable="true">Client Name / Company</div>
-                    <div class="text-sm text-slate-500 editable" contenteditable="true">
-                        Client Address Line 1<br>
-                        City, State, Zip
-                    </div>
-                </div>
-
-                <table class="w-full mb-8 border-collapse">
-                    <thead>
-                        <tr class="border-b-2 border-slate-200">
-                            <th class="text-left py-3 text-sm font-bold text-slate-600 uppercase w-1/2">Description</th>
-                            <th class="text-right py-3 text-sm font-bold text-slate-600 uppercase">Qty</th>
-                            <th class="text-right py-3 text-sm font-bold text-slate-600 uppercase">Price</th>
-                            <th class="text-right py-3 text-sm font-bold text-slate-600 uppercase">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody id="items-list">
-                        </tbody>
-                </table>
-
-                <div class="flex justify-end">
-                    <div class="w-64 space-y-2">
-                        <div class="flex justify-between text-slate-600">
-                            <span>Subtotal</span>
-                            <span id="val-subtotal">0.00</span>
-                        </div>
-                        <div class="flex justify-between text-slate-600">
-                            <span>Tax (<span id="txt-tax-rate">18</span>%)</span>
-                            <span id="val-tax">0.00</span>
-                        </div>
-                        <div class="flex justify-between font-bold text-xl text-slate-800 border-t border-slate-200 pt-2 mt-2">
-                            <span>Total</span>
-                            <span id="val-total">0.00</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-12 pt-8 border-t border-slate-100 text-center text-sm text-slate-400 editable" contenteditable="true">
-                    Thank you for your business!<br>
-                    Payment Terms: Net 30. Please make checks payable to Your Company Name.
-                </div>
             </div>
+
         </div>
 
     </main>
@@ -134,54 +179,146 @@
     <sv-footer base-path=".."></sv-footer>
 
     <script>
-        let currencySym = '₹';
+        // Data State
+        let items = [
+            { id: 1, desc: "Web Development Services", qty: 1, rate: 1500 }
+        ];
 
-        function updateCurrency() {
-            currencySym = document.getElementById('currency').value;
-            calculateTotal();
-        }
+        // Initialize Defaults
+        document.getElementById('inp-date').valueAsDate = new Date();
+        const nextWeek = new Date();
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        document.getElementById('inp-due').valueAsDate = nextWeek;
 
-        function createRow() {
-            const tr = document.createElement('tr');
-            tr.className = "border-b border-slate-100 item-row group hover:bg-slate-50";
-            tr.innerHTML = `
-                <td class="py-3 pr-4"><div class="editable w-full" contenteditable="true" placeholder="Item Description">Web Development Services</div></td>
-                <td class="py-3 text-right"><input type="number" value="1" class="w-16 text-right bg-transparent outline-none font-mono qty" oninput="calculateTotal()"></td>
-                <td class="py-3 text-right"><input type="number" value="1000" class="w-24 text-right bg-transparent outline-none font-mono price" oninput="calculateTotal()"></td>
-                <td class="py-3 text-right font-mono font-medium row-total">0.00</td>
-                <td class="w-0 p-0"><button onclick="this.closest('tr').remove(); calculateTotal()" class="text-red-400 opacity-0 group-hover:opacity-100 hover:text-red-600 ml-2">×</button></td>
-            `;
-            return tr;
+        // Render Items Form Array
+        function renderItemsForm() {
+            const container = document.getElementById('items-container');
+            container.innerHTML = '';
+            
+            items.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = "flex gap-2 items-start";
+                row.innerHTML = `
+                    <div class="flex-1">
+                        <input type="text" placeholder="Description" value="${item.desc}" oninput="updateItem(${index}, 'desc', this.value)">
+                    </div>
+                    <div class="w-20">
+                        <input type="number" placeholder="Qty" value="${item.qty}" min="1" oninput="updateItem(${index}, 'qty', this.value)">
+                    </div>
+                    <div class="w-28">
+                        <input type="number" placeholder="Rate" value="${item.rate}" min="0" oninput="updateItem(${index}, 'rate', this.value)">
+                    </div>
+                    <button onclick="removeItem(${index})" class="p-3 text-slate-500 hover:text-rose-400 bg-slate-900 border border-slate-800 rounded-lg transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                `;
+                container.appendChild(row);
+            });
         }
 
         function addItem() {
-            document.getElementById('items-list').appendChild(createRow());
-            calculateTotal();
+            items.push({ id: Date.now(), desc: "", qty: 1, rate: 0 });
+            renderItemsForm();
+            renderPreview();
         }
 
-        function calculateTotal() {
-            let subtotal = 0;
-            const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
-            document.getElementById('txt-tax-rate').innerText = taxRate;
+        function updateItem(index, field, value) {
+            items[index][field] = field === 'desc' ? value : parseFloat(value) || 0;
+            renderPreview();
+        }
 
-            document.querySelectorAll('.item-row').forEach(row => {
-                const qty = parseFloat(row.querySelector('.qty').value) || 0;
-                const price = parseFloat(row.querySelector('.price').value) || 0;
-                const total = qty * price;
-                subtotal += total;
-                row.querySelector('.row-total').innerText = currencySym + total.toFixed(2);
+        function removeItem(index) {
+            items.splice(index, 1);
+            renderItemsForm();
+            renderPreview();
+        }
+
+        // --- Core Template Engine ---
+        function renderPreview() {
+            // 1. Collect Data
+            const subtotal = items.reduce((sum, item) => sum + (item.qty * item.rate), 0);
+            const taxRate = parseFloat(document.getElementById('inp-tax').value) || 0;
+            const taxAmount = subtotal * (taxRate / 100);
+            const discount = parseFloat(document.getElementById('inp-discount').value) || 0;
+            const total = subtotal + taxAmount - discount;
+
+            const invoiceData = {
+                theme: document.getElementById('theme-select').value,
+                currencySym: document.getElementById('currency-select').value,
+                invoiceNo: document.getElementById('inp-no').value,
+                date: document.getElementById('inp-date').value,
+                dueDate: document.getElementById('inp-due').value,
+                fromName: document.getElementById('inp-from-name').value,
+                fromAddress: document.getElementById('inp-from-address').value,
+                toName: document.getElementById('inp-to-name').value,
+                toAddress: document.getElementById('inp-to-address').value,
+                notes: document.getElementById('inp-notes').value,
+                items: items,
+                subtotal: subtotal,
+                tax: taxRate,
+                taxAmount: taxAmount,
+                discount: discount,
+                total: Math.max(0, total) // Prevent negative totals
+            };
+
+            // 2. Fetch HTML from Template Bundle
+            const templateFunc = window.InvoiceThemes[invoiceData.theme];
+            const htmlString = templateFunc ? templateFunc(invoiceData) : window.InvoiceThemes['modern'](invoiceData);
+
+            // 3. Inject into A4 Container
+            document.getElementById('a4-document').innerHTML = htmlString;
+        }
+
+        // --- Responsive Scaling Logic ---
+        function scalePreview() {
+            const wrapper = document.getElementById('preview-wrapper');
+            const doc = document.getElementById('a4-document');
+            
+            // The wrapper padding is 40px (20px each side).
+            const availableWidth = wrapper.clientWidth - 40; 
+            const targetWidth = 800; // Fixed A4 pixel width
+            
+            if (availableWidth < targetWidth) {
+                const scale = availableWidth / targetWidth;
+                doc.style.transform = `scale(${scale})`;
+                // Adjust height of wrapper so it doesn't leave massive blank space
+                doc.style.marginBottom = `-${1131 * (1 - scale)}px`; 
+            } else {
+                doc.style.transform = `scale(1)`;
+                doc.style.marginBottom = `0px`;
+            }
+        }
+
+        window.addEventListener('resize', scalePreview);
+
+        // --- PDF Generation ---
+        function downloadPDF() {
+            const element = document.getElementById('a4-document');
+            const invoiceNo = document.getElementById('inp-no').value || 'invoice';
+            
+            // Temporarily remove scaling for crisp PDF render
+            element.style.transform = 'scale(1)';
+            element.style.marginBottom = '0px';
+
+            const opt = {
+                margin: 0,
+                filename: `${invoiceNo}.pdf`,
+                image: { type: 'jpeg', quality: 1.0 },
+                html2canvas: { scale: 2, useCORS: true, logging: false },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            // Generate and restore scale
+            html2pdf().set(opt).from(element).save().then(() => {
+                scalePreview();
             });
-
-            const tax = subtotal * (taxRate / 100);
-            const finalTotal = subtotal + tax;
-
-            document.getElementById('val-subtotal').innerText = currencySym + subtotal.toFixed(2);
-            document.getElementById('val-tax').innerText = currencySym + tax.toFixed(2);
-            document.getElementById('val-total').innerText = currencySym + finalTotal.toFixed(2);
         }
 
         // Init
-        window.onload = () => { addItem(); };
+        renderItemsForm();
+        renderPreview();
+        setTimeout(scalePreview, 100);
+
     </script>
 </body>
 </html>
