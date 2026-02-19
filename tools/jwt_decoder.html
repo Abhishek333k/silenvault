@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT Architect Pro | SilenVault</title>
+    <meta name="description" content="Encode, Decode, and Verify JSON Web Tokens (JWT) locally. A secure, real-time JWT debugger.">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="../assets/js/layout.js" defer></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
+        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .mono { font-family: 'Fira Code', monospace; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* JWT Color Coding */
+        .text-header { color: #fb7185 !important; }   /* Rose */
+        .text-payload { color: #c084fc !important; }  /* Purple */
+        .text-sign { color: #38bdf8 !important; }     /* Light Blue */
+
+        .border-header { border-top: 3px solid #fb7185; }
+        .border-payload { border-top: 3px solid #c084fc; }
+        .border-sign { border-top: 3px solid #38bdf8; }
+
+        /* Dual-Layer JWT Input Architecture */
+        #jwt-container { position: relative; height: 100%; min-height: 500px; }
+        
+        #jwt-visualizer, #jwt-input {
+            position: absolute; inset: 0; padding: 1.5rem;
+            font-family: 'Fira Code', monospace; font-size: 1.05rem;
+            line-height: 1.6; word-break: break-all; white-space: pre-wrap;
+            border-radius: 0 0 1rem 1rem;
+        }
+
+        #jwt-visualizer { pointer-events: none; z-index: 1; font-weight: 500; overflow-y: auto; }
+        
+        #jwt-input {
+            color: transparent !important; caret-color: #f8fafc; background: transparent;
+            resize: none; outline: none; z-index: 2;
+            border: 1px solid rgba(51, 65, 85, 0.5); border-top: none; transition: all 0.2s;
+            overflow-y: auto;
+        }
+
+        #jwt-input:focus { border-color: #3b82f6; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.05); }
+        #jwt-input::selection { background: rgba(59, 130, 246, 0.3); }
+
+        /* Auto-expanding Textareas */
+        .json-editor {
+            width: 100%; background: transparent; resize: none; overflow: hidden;
+            outline: none; font-family: 'Fira Code', monospace; font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        
+        .tab-btn { border-bottom: 2px solid transparent; transition: all 0.2s; }
+        .tab-btn.active { border-bottom: 2px solid #3b82f6; color: #3b82f6; font-weight: bold; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <sv-header base-path=".."></sv-header>
+
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-12 flex flex-col gap-8">
+        
+        <div class="text-center mb-6">
+            <h1 class="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+                JWT <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-blue-500">Architect Pro</span>
+            </h1>
+            <p class="text-slate-400 max-w-lg mx-auto">
+                Encode, Decode, and Verify JSON Web Tokens in real-time. Zero server uploads.
+            </p>
+        </div>
+
+        <div class="flex justify-center border-b border-slate-800 mb-4">
+            <button onclick="switchTab('debugger')" id="tab-debugger" class="tab-btn active px-6 py-3 text-sm text-slate-400 hover:text-slate-200 uppercase tracking-widest flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                Debugger & Encoder
+            </button>
+            <button onclick="switchTab('intro')" id="tab-intro" class="tab-btn px-6 py-3 text-sm text-slate-400 hover:text-slate-200 uppercase tracking-widest flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                Introduction
+            </button>
+        </div>
+
+        <div id="pane-debugger" class="grid lg:grid-cols-2 gap-8 animate-in fade-in duration-500">
+            
+            <div class="space-y-0 flex flex-col h-full">
+                <div class="bg-slate-900 border border-slate-700 border-b-0 rounded-t-2xl px-4 py-3 flex justify-between items-center">
+                    <h2 class="text-xs font-bold text-slate-300 uppercase tracking-widest">Encoded (JWT)</h2>
+                    <div class="flex items-center gap-2">
+                        <button onclick="copyJWT()" class="text-[10px] uppercase font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 px-3 py-1.5 rounded transition-colors">Copy</button>
+                        <button onclick="clearAll()" class="text-[10px] uppercase font-bold bg-slate-800 text-slate-300 hover:bg-rose-500/20 hover:text-rose-400 px-3 py-1.5 rounded transition-colors">Clear</button>
+                    </div>
+                </div>
+                
+                <div id="jwt-container" class="bg-slate-950/80 rounded-b-2xl shadow-inner relative flex-1 min-h-[500px]">
+                    <div id="jwt-visualizer"></div>
+                    <textarea id="jwt-input" spellcheck="false" placeholder="Paste a JWT here..."></textarea>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 mt-4">
+                    <div id="formatBadge" class="glass-panel p-3 rounded-xl border-slate-700 flex items-center gap-3">
+                        <div id="formatDot" class="w-2.5 h-2.5 rounded-full bg-slate-600"></div>
+                        <span id="formatText" class="text-xs text-slate-400 font-mono uppercase tracking-wider">Format</span>
+                    </div>
+                    <div id="signBadge" class="glass-panel p-3 rounded-xl border-slate-700 flex items-center gap-3">
+                        <div id="signDot" class="w-2.5 h-2.5 rounded-full bg-slate-600"></div>
+                        <span id="signText" class="text-xs text-slate-400 font-mono uppercase tracking-wider">Signature</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                
+                <div class="glass-panel rounded-2xl bg-slate-900/50 border-header relative focus-within:ring-2 ring-rose-500/50 transition-all">
+                    <div class="bg-slate-950/50 px-4 py-2 border-b border-slate-800 flex justify-between items-center">
+                        <span class="text-xs font-bold uppercase tracking-widest text-header">Header <span class="text-slate-500 font-normal ml-1">(Algorithm)</span></span>
+                    </div>
+                    <div class="p-4">
+                        <textarea id="json-header" class="json-editor text-header" spellcheck="false" oninput="autoResize(this); handleJSONInput()"></textarea>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-2xl bg-slate-900/50 border-payload relative focus-within:ring-2 ring-purple-500/50 transition-all">
+                    <div class="bg-slate-950/50 px-4 py-2 border-b border-slate-800 flex justify-between items-center">
+                        <span class="text-xs font-bold uppercase tracking-widest text-payload">Payload <span class="text-slate-500 font-normal ml-1">(Data & Claims)</span></span>
+                        <button onclick="injectTimestamps()" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded transition-colors" title="Set iat/exp to Current Time">
+                            Sync Timestamps
+                        </button>
+                    </div>
+                    <div class="p-4">
+                        <textarea id="json-payload" class="json-editor text-payload" spellcheck="false" oninput="autoResize(this); handleJSONInput()"></textarea>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-2xl bg-slate-900/50 border-sign relative focus-within:ring-2 ring-blue-500/50 transition-all">
+                    <div class="bg-slate-950/50 px-4 py-2 border-b border-slate-800 flex justify-between items-center">
+                        <span class="text-xs font-bold uppercase tracking-widest text-sign">Verify & Sign</span>
+                    </div>
+                    <div class="p-4 mono text-sm text-sign space-y-2">
+                        <div id="sign-algo">HMACSHA256(</div>
+                        <div class="pl-4 opacity-80 text-xs">
+                            <span class="text-header">base64UrlEncode(header)</span> + "." + <br>
+                            <span class="text-payload">base64UrlEncode(payload)</span>,
+                        </div>
+                        <div class="pl-4 mt-2">
+                            <input type="text" id="secret-input" placeholder="your-256-bit-secret" class="bg-slate-950 border border-slate-700 text-white px-3 py-2 rounded outline-none focus:border-blue-500 w-full max-w-[300px] shadow-inner font-mono text-sm">
+                        </div>
+                        <div class="flex items-center gap-3">
+                            ) 
+                            <label class="flex items-center gap-2 text-xs text-slate-400 cursor-pointer">
+                                <input type="checkbox" id="secret-base64" class="rounded bg-slate-800 border-slate-700 text-blue-500">
+                                secret is base64 encoded
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="pane-intro" class="hidden animate-in fade-in duration-500 max-w-4xl mx-auto w-full">
+            <div class="glass-panel p-8 md:p-12 rounded-3xl border-slate-700 prose prose-invert prose-slate max-w-none">
+                <h2 class="text-3xl font-bold text-white mb-6">The Real-Time Developer Engine</h2>
+                <p class="text-slate-400 leading-relaxed text-lg mb-8">
+                    JSON Web Token (JWT) is an open standard (<a href="https://tools.ietf.org/html/rfc7519" target="_blank" class="text-blue-400">RFC 7519</a>). SilenVault's Architect Pro acts as a <strong>two-way binding engine</strong>. Edit the token to see the JSON, or edit the JSON to instantly forge a new token.
+                </p>
+                <div class="grid md:grid-cols-3 gap-6 mb-12">
+                    <div class="bg-rose-950/20 border border-rose-500/20 p-5 rounded-2xl">
+                        <h3 class="text-rose-400 font-bold mb-2">1. Header</h3>
+                        <p class="text-sm text-slate-400">Dictates the crypto algorithm (e.g., HS256). Editing this box re-encodes the first segment of the JWT.</p>
+                    </div>
+                    <div class="bg-purple-950/20 border border-purple-500/20 p-5 rounded-2xl">
+                        <h3 class="text-purple-400 font-bold mb-2">2. Payload</h3>
+                        <p class="text-sm text-slate-400">The core data (claims). Editing this box re-encodes the middle segment of the JWT.</p>
+                    </div>
+                    <div class="bg-blue-950/20 border border-blue-500/20 p-5 rounded-2xl">
+                        <h3 class="text-blue-400 font-bold mb-2">3. Signature</h3>
+                        <p class="text-sm text-slate-400">Type a secret key to test validity, or use it to forge a brand new mathematically valid signature.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="smart-ad-unit w-full text-center overflow-hidden transition-all duration-500">
+            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="7594122081" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </main>
+
+    <sv-footer base-path=".."></sv-footer>
+
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-700 text-white px-6 py-3 rounded-full text-sm font-bold shadow-2xl opacity-0 transition-all pointer-events-none translate-y-4 z-50">
+        Copied to clipboard!
+    </div>
+
+    <script>
+        const jwtInput = document.getElementById('jwt-input');
+        const jwtVisualizer = document.getElementById('jwt-visualizer');
+        const jsonHeader = document.getElementById('json-header');
+        const jsonPayload = document.getElementById('json-payload');
+        const secretInput = document.getElementById('secret-input');
+        const secretBase64 = document.getElementById('secret-base64');
+        const signAlgoText = document.getElementById('sign-algo');
+        
+        const defaultHeader = { "alg": "HS256", "typ": "JWT" };
+        const defaultPayload = { "sub": "1234567890", "name": "John Doe", "admin": true, "iat": Math.floor(Date.now() / 1000) };
+        const defaultSecret = "your-256-bit-secret";
+
+        let isUpdatingFromJWT = false;
+        let isUpdatingFromJSON = false;
+
+        // --- UI Utilities ---
+        function autoResize(el) {
+            el.style.height = 'auto';
+            el.style.height = (el.scrollHeight) + 'px';
+        }
+
+        function setBadge(type, state, text) {
+            const dot = document.getElementById(`${type}Dot`);
+            const box = document.getElementById(`${type}Badge`);
+            const textEl = document.getElementById(`${type}Text`);
+            
+            textEl.innerText = text;
+            dot.className = 'w-2.5 h-2.5 rounded-full';
+            box.className = 'glass-panel p-3 rounded-xl border flex items-center gap-3 transition-colors duration-300';
+
+            if (state === 'success') {
+                dot.classList.add('bg-emerald-500', 'shadow-[0_0_8px_#10b981]');
+                box.classList.add('border-emerald-500/30', 'bg-emerald-900/10');
+            } else if (state === 'error') {
+                dot.classList.add('bg-rose-500', 'shadow-[0_0_8px_#f43f5e]');
+                box.classList.add('border-rose-500/30', 'bg-rose-900/10');
+            } else {
+                dot.classList.add('bg-slate-600');
+                box.classList.add('border-slate-700');
+            }
+        }
+
+        function safeJSONParse(str) {
+            try { return JSON.parse(str); } 
+            catch (e) {
+                // Minor sanitizer (removes trailing commas)
+                try { return JSON.parse(str.replace(/,\s*([\]}])/g, "$1")); }
+                catch (err) { return null; }
+            }
+        }
+
+        // --- Crypto Logic ---
+        function base64UrlEncode(str) {
+            let base64 = CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(str));
+            return base64.replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+        }
+
+        function base64UrlDecode(str) {
+            try {
+                let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+                while (base64.length % 4) { base64 += '='; }
+                return decodeURIComponent(escape(window.atob(base64)));
+            } catch (e) { return null; }
+        }
+
+        function generateSignature(encodedHeader, encodedPayload, secret, alg = "HS256") {
+            const data = encodedHeader + "." + encodedPayload;
+            let key = secret;
+            if (secretBase64.checked && secret) {
+                try { key = CryptoJS.enc.Base64.parse(secret); } catch(e){}
+            }
+            
+            // Default to SHA256 if alg is unsupported by this simple implementation
+            let hash;
+            if (alg === "HS512") hash = CryptoJS.HmacSHA512(data, key);
+            else if (alg === "HS384") hash = CryptoJS.HmacSHA384(data, key);
+            else hash = CryptoJS.HmacSHA256(data, key);
+            
+            let base64 = CryptoJS.enc.Base64.stringify(hash);
+            return base64.replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+        }
+
+        // --- Core Events ---
+        function handleJWTInput() {
+            if (isUpdatingFromJSON) return;
+            isUpdatingFromJWT = true;
+
+            const token = jwtInput.value.trim();
+            const parts = token.split('.');
+            
+            jwtVisualizer.innerHTML = `
+                ${parts[0] !== undefined ? `<span class="text-header">${parts[0]}</span>` : ''}
+                ${parts.length > 1 ? `<span class="text-slate-500">.</span><span class="text-payload">${parts[1]}</span>` : ''}
+                ${parts.length > 2 ? `<span class="text-slate-500">.</span><span class="text-sign">${parts[2]}</span>` : ''}
+            `;
+
+            if (parts.length < 2) {
+                setBadge('format', 'error', 'Invalid Format');
+                setBadge('sign', 'waiting', 'Signature N/A');
+                isUpdatingFromJWT = false;
+                return;
+            }
+
+            let isValidFormat = true;
+            let currentAlg = "HS256";
+
+            // Decode Header
+            const decodedH = base64UrlDecode(parts[0]);
+            if (decodedH) {
+                const parsed = safeJSONParse(decodedH);
+                if(parsed) {
+                    jsonHeader.value = JSON.stringify(parsed, null, 2);
+                    if(parsed.alg) currentAlg = parsed.alg;
+                } else { jsonHeader.value = decodedH; }
+            } else { isValidFormat = false; }
+
+            signAlgoText.innerText = `HMAC${currentAlg.replace('HS', '')}(`;
+
+            // Decode Payload
+            const decodedP = base64UrlDecode(parts[1]);
+            if (decodedP) {
+                const parsed = safeJSONParse(decodedP);
+                if(parsed) {
+                    jsonPayload.value = JSON.stringify(parsed, null, 2);
+                } else { jsonPayload.value = decodedP; }
+            } else { isValidFormat = false; }
+
+            // Validate
+            if (isValidFormat && parts.length === 3) {
+                setBadge('format', 'success', 'Valid JWT');
+                const expectedSign = generateSignature(parts[0], parts[1], secretInput.value, currentAlg);
+                if (expectedSign === parts[2]) setBadge('sign', 'success', 'Signature Verified');
+                else setBadge('sign', 'error', 'Invalid Signature');
+            } else {
+                setBadge('format', 'error', 'Invalid Format');
+                setBadge('sign', 'error', 'Invalid Signature');
+            }
+
+            autoResize(jsonHeader);
+            autoResize(jsonPayload);
+            isUpdatingFromJWT = false;
+        }
+
+        function handleJSONInput() {
+            if (isUpdatingFromJWT) return;
+            isUpdatingFromJSON = true;
+
+            const parsedH = safeJSONParse(jsonHeader.value);
+            const parsedP = safeJSONParse(jsonPayload.value);
+
+            if (parsedH && parsedP) {
+                const encodedH = base64UrlEncode(JSON.stringify(parsedH));
+                const encodedP = base64UrlEncode(JSON.stringify(parsedP));
+                const alg = parsedH.alg || "HS256";
+                const encodedS = generateSignature(encodedH, encodedP, secretInput.value, alg);
+
+                signAlgoText.innerText = `HMAC${alg.replace('HS', '')}(`;
+
+                const newToken = `${encodedH}.${encodedP}.${encodedS}`;
+                jwtInput.value = newToken;
+                
+                jwtVisualizer.innerHTML = `<span class="text-header">${encodedH}</span><span class="text-slate-500">.</span><span class="text-payload">${encodedP}</span><span class="text-slate-500">.</span><span class="text-sign">${encodedS}</span>`;
+                
+                setBadge('format', 'success', 'Valid JSON');
+                setBadge('sign', 'success', 'Signature Generated');
+            } else {
+                setBadge('format', 'error', 'Fix JSON Syntax');
+                setBadge('sign', 'waiting', 'Waiting for valid JSON');
+            }
+
+            isUpdatingFromJSON = false;
+        }
+
+        function injectTimestamps() {
+            const parsed = safeJSONParse(jsonPayload.value);
+            if(parsed) {
+                const now = Math.floor(Date.now() / 1000);
+                parsed.iat = now;
+                // Default exp to 1 hour from now if it exists or user wants it
+                if(parsed.exp) parsed.exp = now + 3600; 
+                jsonPayload.value = JSON.stringify(parsed, null, 2);
+                autoResize(jsonPayload);
+                handleJSONInput();
+            }
+        }
+
+        jwtInput.addEventListener('scroll', () => {
+            jwtVisualizer.scrollTop = jwtInput.scrollTop;
+            jwtVisualizer.scrollLeft = jwtInput.scrollLeft;
+        });
+
+        jwtInput.addEventListener('input', handleJWTInput);
+        secretInput.addEventListener('input', handleJSONInput);
+        secretBase64.addEventListener('change', handleJSONInput);
+
+        function clearAll() {
+            jwtInput.value = ''; jsonHeader.value = ''; jsonPayload.value = ''; secretInput.value = '';
+            jwtVisualizer.innerHTML = '';
+            setBadge('format', 'waiting', 'Waiting for input');
+            setBadge('sign', 'waiting', 'Signature N/A');
+        }
+
+        function copyJWT() {
+            navigator.clipboard.writeText(jwtInput.value).then(() => {
+                const toast = document.getElementById('toast');
+                toast.classList.remove('opacity-0', 'translate-y-4');
+                toast.classList.add('opacity-100', 'translate-y-0');
+                setTimeout(() => {
+                    toast.classList.remove('opacity-100', 'translate-y-0');
+                    toast.classList.add('opacity-0', 'translate-y-4');
+                }, 2000);
+            });
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            document.getElementById('pane-debugger').classList.toggle('hidden', tabId !== 'debugger');
+            document.getElementById('pane-intro').classList.toggle('hidden', tabId !== 'intro');
+        }
+
+        window.onload = () => {
+            jsonHeader.value = JSON.stringify(defaultHeader, null, 2);
+            jsonPayload.value = JSON.stringify(defaultPayload, null, 2);
+            secretInput.value = defaultSecret;
+            autoResize(jsonHeader);
+            autoResize(jsonPayload);
+            handleJSONInput();
+        };
+    </script>
+</body>
+</html>
