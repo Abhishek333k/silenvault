@@ -57,7 +57,7 @@ const silenVaultTools = [
     {
         category: "hardware",
         id: "keyboard_tester",
-        title: "Keyboard Architect",
+        title: "Keyboard & Mouse Tester",
         desc: "Test hardware keys, analyze ghosting, and extract raw JS event codes.",
         link: "tools/keyboard_tester",
         tag: "Hardware",
