@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Keyboard Tester | SilenVault</title>
-    <meta name="description" content="Test your keyboard keys, check for ghosting, track mouse polling, and verify hardware layouts for Windows and Apple.">
+    <title>Keyboard & Mouse Tester | SilenVault</title>
+    <meta name="description" content="Professional hardware diagnostic tool. Test keyboard ghosting, mouse polling, and verify broken keys.">
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
 
@@ -17,59 +17,67 @@
         .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
         .mono { font-family: 'Fira Code', monospace; }
 
-        /* Mathematical Keyboard Layout Engine */
+        /* Mathematical Scaling Engine */
         :root {
-            --key-size: 3rem; /* 48px base unit */
-            --gap: 0.5rem;
+            --key-size: 48px; /* Dynamically overwritten by JS to prevent scrolling */
+            --gap: 0.4rem;
         }
 
-        .keyboard-wrapper { display: flex; gap: 1.5rem; justify-content: center; max-width: 1200px; margin: 0 auto; padding: 2rem; background: #0b1120; border-radius: 1.5rem; border: 1px solid #1e293b; box-shadow: inset 0 0 40px rgba(0,0,0,0.5); overflow-x: auto; }
+        /* Keyboard Layout */
+        #kb-wrapper {
+            width: 100%; display: flex; justify-content: center; align-items: center; 
+            padding: 2rem 1rem; background: #0b1120; border-radius: 1.5rem; 
+            border: 1px solid #1e293b; box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
+            overflow: hidden; /* No scrolling */
+        }
+        
+        #keyboard-container { display: flex; gap: calc(var(--gap) * 3); transition: all 0.2s; }
         
         .kb-section { display: flex; flex-direction: column; gap: var(--gap); }
         .kb-row { display: flex; gap: var(--gap); }
         
-        /* Grid definitions for perfectly aligned blocks */
         .nav-grid { display: grid; grid-template-columns: repeat(3, var(--key-size)); grid-auto-rows: var(--key-size); gap: var(--gap); margin-bottom: var(--gap); }
         .arrow-grid { display: grid; grid-template-columns: repeat(3, var(--key-size)); grid-auto-rows: var(--key-size); gap: var(--gap); margin-top: auto; }
         .numpad-grid { display: grid; grid-template-columns: repeat(4, var(--key-size)); grid-auto-rows: var(--key-size); gap: var(--gap); margin-top: auto; }
         
-        /* Specific Grid Spans for Numpad */
-        .num-plus { grid-column: 4; grid-row: 2 / span 2; height: 100%; }
-        .num-enter { grid-column: 4; grid-row: 4 / span 2; height: 100%; }
-        .num-zero { grid-column: 1 / span 2; width: 100%; }
+        /* Numpad specific spans */
+        .num-plus { grid-column: 4; grid-row: 2 / span 2; height: 100% !important; }
+        .num-enter { grid-column: 4; grid-row: 4 / span 2; height: 100% !important; }
+        .num-zero { grid-column: 1 / span 2; width: 100% !important; }
 
-        /* Key Styling */
+        /* Physical Key UI */
         .key {
             background: #1e293b; border: 1px solid #334155; border-bottom-width: 4px;
-            color: #94a3b8; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.75rem;
+            color: #94a3b8; font-family: 'Inter', sans-serif; font-weight: 600; font-size: calc(var(--key-size) * 0.28);
             display: flex; align-items: center; justify-content: center; text-align: center;
-            border-radius: 0.4rem; padding: 0 0.25rem; box-sizing: border-box;
-            transition: all 0.05s; user-select: none; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            border-radius: calc(var(--key-size) * 0.15); padding: 0 0.25rem; box-sizing: border-box;
+            transition: all 0.05s; user-select: none; cursor: crosshair;
         }
 
-        .key:not(.num-plus):not(.num-enter) {
-            height: var(--key-size);
-        }
+        .key:not(.num-plus):not(.num-enter) { height: var(--key-size); }
 
-        /* Active & Tested States */
-        .key.active {
-            background: #3b82f6; color: white; border-color: #2563eb;
-            border-bottom-width: 1px; transform: translateY(3px);
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
-        }
+        /* Key States */
+        .key.active { background: #3b82f6; color: white; border-color: #2563eb; border-bottom-width: 1px; transform: translateY(3px); box-shadow: 0 0 15px rgba(59, 130, 246, 0.6); }
+        .key.tested { background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: #059669; }
+        
+        /* Failed State (Right Click) */
+        .key.failed { background: rgba(225, 29, 72, 0.2) !important; color: #f43f5e !important; border-color: #e11d48 !important; box-shadow: 0 0 15px rgba(225, 29, 72, 0.4) !important; border-bottom-width: 1px !important; transform: translateY(3px); }
 
-        .key.tested {
-            background: rgba(16, 185, 129, 0.15); color: #34d399;
-            border-color: #059669;
-        }
+        .data-box { background: #020617; border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1rem; position: relative; }
+        
+        /* Visual Mouse UI */
+        .mouse-body { position: relative; width: 80px; height: 130px; background: #0f172a; border: 2px solid #334155; border-radius: 40px; margin: 0 auto; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .m-left { position: absolute; top: 0; left: 0; width: 48%; height: 55px; border-right: 2px solid #334155; border-bottom: 2px solid #334155; border-top-left-radius: 40px; transition: 0.1s; }
+        .m-right { position: absolute; top: 0; right: 0; width: 48%; height: 55px; border-bottom: 2px solid #334155; border-top-right-radius: 40px; transition: 0.1s; }
+        .m-wheel { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); width: 12px; height: 24px; background: #475569; border-radius: 6px; z-index: 10; transition: 0.1s; }
+        .m-side-fwd { position: absolute; top: 40px; left: -2px; width: 6px; height: 20px; background: #475569; border-radius: 0 4px 4px 0; transition: 0.1s; }
+        .m-side-back { position: absolute; top: 65px; left: -2px; width: 6px; height: 20px; background: #475569; border-radius: 0 4px 4px 0; transition: 0.1s; }
+        
+        /* Mouse Active States */
+        .m-active { background: #10b981 !important; box-shadow: 0 0 15px rgba(16, 185, 129, 0.6); }
+        .m-wheel-up { transform: translateX(-50%) translateY(-4px); background: #3b82f6; }
+        .m-wheel-down { transform: translateX(-50%) translateY(4px); background: #3b82f6; }
 
-        /* Data Boxes */
-        .data-box { background: #020617; border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1rem; position: relative; overflow: hidden; }
-        .data-box::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, #3b82f6, transparent); opacity: 0.5; }
-
-        /* Mouse Tester */
-        .mouse-btn { background: #1e293b; border: 1px solid #334155; border-radius: 0.25rem; padding: 0.25rem 0.5rem; font-size: 0.7rem; color: #64748b; transition: all 0.1s; }
-        .mouse-btn.active { background: #10b981; color: white; border-color: #059669; box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
@@ -81,23 +89,22 @@
         <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-2">
             <div>
                 <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight">
-                    Keyboard <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-500">Tester</span>
+                    Hardware <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-blue-500">Diagnostics</span>
                 </h1>
-                <p class="text-sm text-slate-400 mt-1">Hardware diagnostics: Keyboard polling, Ghosting, and Mouse validation.</p>
             </div>
 
             <div class="glass-panel p-2 rounded-xl flex items-center gap-3">
                 <select id="os-select" onchange="updateLayout()" class="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded p-1.5 outline-none cursor-pointer">
-                    <option value="win">Windows PC</option>
-                    <option value="mac">Apple macOS</option>
+                    <option value="win">Windows OS</option>
+                    <option value="mac">macOS</option>
                 </select>
                 <select id="size-select" onchange="updateLayout()" class="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded p-1.5 outline-none cursor-pointer">
-                    <option value="full">Full Size (104)</option>
-                    <option value="tkl">Tenkeyless (87)</option>
+                    <option value="full">104-Key (Full)</option>
+                    <option value="tkl">87-Key (TKL)</option>
                 </select>
                 <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-400 px-2 border-l border-slate-700">
                     <input type="checkbox" id="sound-toggle" checked class="accent-emerald-500">
-                    Key Sound
+                    Switch Sound
                 </label>
             </div>
         </div>
@@ -106,55 +113,63 @@
             
             <div class="md:col-span-3 grid grid-cols-3 gap-4">
                 <div class="data-box shadow-inner flex flex-col justify-center">
-                    <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">event.key</span>
-                    <span id="out-key" class="text-xl font-bold text-white mono truncate">-</span>
+                    <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">Last Key</span>
+                    <span id="out-key" class="text-2xl font-bold text-white mono truncate">-</span>
                 </div>
                 <div class="data-box shadow-inner flex flex-col justify-center">
-                    <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">event.code</span>
-                    <span id="out-code" class="text-lg font-bold text-emerald-400 mono truncate">-</span>
+                    <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">JS event.code</span>
+                    <span id="out-code" class="text-lg font-bold text-blue-400 mono truncate">-</span>
                 </div>
                 <div class="data-box shadow-inner flex flex-col justify-center relative">
-                    <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">Key Health</span>
-                    <span class="text-xl font-bold text-purple-400 mono"><span id="tested-count">0</span> / <span id="total-count">0</span></span>
+                    <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">Hardware Health</span>
+                    <div class="flex justify-between items-end">
+                        <span class="text-2xl font-bold text-emerald-400 mono"><span id="health-pct">0</span>%</span>
+                        <span class="text-xs text-slate-500 font-bold mb-1"><span id="tested-count">0</span>/<span id="total-count">0</span> Keys</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                        <div id="health-bar" class="bg-emerald-500 h-full w-0 transition-all duration-300"></div>
+                    </div>
                     <button onclick="resetTester()" class="absolute right-3 top-3 text-[9px] bg-slate-800 hover:bg-rose-500 hover:text-white text-slate-400 px-2 py-1 rounded transition-colors uppercase font-bold tracking-wider">Reset</button>
                 </div>
             </div>
 
-            <div class="md:col-span-2 data-box shadow-inner" id="mouse-tester-zone" oncontextmenu="return false;">
-                <div class="flex justify-between items-start mb-2">
-                    <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold">Mouse Tester</span>
-                    <span class="text-[10px] text-slate-600">Test Here</span>
-                </div>
-                <div class="flex flex-wrap gap-2 mb-3">
-                    <div id="mouse-0" class="mouse-btn">Left</div>
-                    <div id="mouse-1" class="mouse-btn">Middle</div>
-                    <div id="mouse-2" class="mouse-btn">Right</div>
-                    <div id="mouse-3" class="mouse-btn">Back</div>
-                    <div id="mouse-4" class="mouse-btn">Fwd</div>
-                </div>
-                <div class="flex justify-between items-end border-t border-slate-800 pt-2">
+            <div class="md:col-span-2 data-box shadow-inner flex items-center justify-between" id="mouse-tester-zone" oncontextmenu="return false;">
+                <div class="flex flex-col h-full justify-between w-1/2">
                     <div>
-                        <span class="text-[9px] text-slate-500 uppercase">Wheel Scroll</span>
-                        <div id="mouse-wheel" class="text-xs font-bold text-slate-300 mono mt-0.5">Idle</div>
+                        <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">Mouse Polling</span>
+                        <div class="text-xs text-slate-400">Move inside box</div>
                     </div>
-                    <div class="text-right">
-                        <span class="text-[9px] text-slate-500 uppercase">Coordinates</span>
-                        <div class="text-xs font-bold text-blue-400 mono mt-0.5">X:<span id="mouse-x">0</span> Y:<span id="mouse-y">0</span></div>
+                    <div>
+                        <div class="text-[10px] text-slate-500 uppercase mb-1">Coordinates</div>
+                        <div class="text-sm font-bold text-blue-400 mono">X: <span id="mouse-x">0</span></div>
+                        <div class="text-sm font-bold text-blue-400 mono">Y: <span id="mouse-y">0</span></div>
+                    </div>
+                </div>
+
+                <div class="w-1/2 flex justify-center">
+                    <div class="mouse-body">
+                        <div id="m-btn-0" class="m-left"></div>
+                        <div id="m-btn-2" class="m-right"></div>
+                        <div id="m-btn-1" class="m-wheel"></div>
+                        <div id="m-btn-4" class="m-side-fwd"></div>
+                        <div id="m-btn-3" class="m-side-back"></div>
                     </div>
                 </div>
             </div>
 
         </div>
 
-        <div id="keyboard-container" class="keyboard-wrapper"></div>
+        <div id="kb-wrapper">
+            <div id="keyboard-container"></div>
+        </div>
 
         <div class="grid lg:grid-cols-3 gap-8 mt-4">
             <div class="lg:col-span-2 glass-panel p-8 rounded-2xl border-slate-800 prose prose-invert max-w-none">
-                <h2 class="text-xl font-bold text-white mb-4">Hardware Diagnostic Guide</h2>
+                <h2 class="text-xl font-bold text-white mb-4">How to Use the Diagnostic Tool</h2>
                 <ul class="text-sm text-slate-400 leading-relaxed space-y-3">
-                    <li><strong>Key Ghosting Test:</strong> Also known as N-Key Rollover (NKRO). Press and hold multiple keys simultaneously (e.g., A, S, D, F, Space). If a key fails to light up <span class="text-blue-400">Blue</span>, your keyboard hardware cannot process that many inputs at once.</li>
-                    <li><strong>Mouse Polling & Buttons:</strong> Move your cursor inside the "Mouse Tester" box to track X/Y coordinate refresh rates. Test side-buttons (Back/Forward) to ensure your drivers are functioning.</li>
-                    <li><strong>Apple vs Windows:</strong> Physical hardware codes differ between OS environments. Use the settings dropdown to adapt the visualizer to your specific layout.</li>
+                    <li><strong>Test Switches:</strong> Press every key. Functional switches light up <span class="text-emerald-400 font-bold">Green</span> permanently.</li>
+                    <li><strong>Report Broken Keys:</strong> If a physical key is dead, <span class="text-rose-400 font-bold">Right-Click</span> it on the virtual screen to mark it as Failed. This deducts from your Health Score.</li>
+                    <li><strong>Test Ghosting (NKRO):</strong> Press and hold multiple keys simultaneously (e.g., A, S, D, F). If some virtual keys don't light up <span class="text-blue-400 font-bold">Blue</span>, your hardware suffers from ghosting.</li>
                 </ul>
             </div>
 
@@ -174,29 +189,23 @@
     <sv-footer base-path=".."></sv-footer>
 
     <script>
-        // Mathematical Layout Definitions based on Standard Key Units (U)
+        // ARCHITECT: Exact Mathematical Units for ANSI Layout
         const kbBlocks = {
             main: [
-                // Row 0
-                [{c:'Escape', l:'Esc'}, {spacer: 1}, {c:'F1', l:'F1'}, {c:'F2', l:'F2'}, {c:'F3', l:'F3'}, {c:'F4', l:'F4'}, {spacer: 0.5}, {c:'F5', l:'F5'}, {c:'F6', l:'F6'}, {c:'F7', l:'F7'}, {c:'F8', l:'F8'}, {spacer: 0.5}, {c:'F9', l:'F9'}, {c:'F10', l:'F10'}, {c:'F11', l:'F11'}, {c:'F12', l:'F12'}],
-                // Row 1
-                [{c:'Backquote', l:'~'}, {c:'Digit1', l:'1'}, {c:'Digit2', l:'2'}, {c:'Digit3', l:'3'}, {c:'Digit4', l:'4'}, {c:'Digit5', l:'5'}, {c:'Digit6', l:'6'}, {c:'Digit7', l:'7'}, {c:'Digit8', l:'8'}, {c:'Digit9', l:'9'}, {c:'Digit0', l:'0'}, {c:'Minus', l:'-'}, {c:'Equal', l:'='}, {c:'Backspace', l:'Backspace', u: 2}],
-                // Row 2
+                [{c:'Escape', l:'Esc'}, {s: 1}, {c:'F1', l:'F1'}, {c:'F2', l:'F2'}, {c:'F3', l:'F3'}, {c:'F4', l:'F4'}, {s: 0.5}, {c:'F5', l:'F5'}, {c:'F6', l:'F6'}, {c:'F7', l:'F7'}, {c:'F8', l:'F8'}, {s: 0.5}, {c:'F9', l:'F9'}, {c:'F10', l:'F10'}, {c:'F11', l:'F11'}, {c:'F12', l:'F12'}],
+                [{c:'Backquote', l:'~'}, {c:'Digit1', l:'1'}, {c:'Digit2', l:'2'}, {c:'Digit3', l:'3'}, {c:'Digit4', l:'4'}, {c:'Digit5', l:'5'}, {c:'Digit6', l:'6'}, {c:'Digit7', l:'7'}, {c:'Digit8', l:'8'}, {c:'Digit9', l:'9'}, {c:'Digit0', l:'0'}, {c:'Minus', l:'-'}, {c:'Equal', l:'='}, {c:'Backspace', l:'Back', u: 2}],
                 [{c:'Tab', l:'Tab', u: 1.5}, {c:'KeyQ', l:'Q'}, {c:'KeyW', l:'W'}, {c:'KeyE', l:'E'}, {c:'KeyR', l:'R'}, {c:'KeyT', l:'T'}, {c:'KeyY', l:'Y'}, {c:'KeyU', l:'U'}, {c:'KeyI', l:'I'}, {c:'KeyO', l:'O'}, {c:'KeyP', l:'P'}, {c:'BracketLeft', l:'['}, {c:'BracketRight', l:']'}, {c:'Backslash', l:'\\', u: 1.5}],
-                // Row 3
-                [{c:'CapsLock', l:'Caps Lock', u: 1.75}, {c:'KeyA', l:'A'}, {c:'KeyS', l:'S'}, {c:'KeyD', l:'D'}, {c:'KeyF', l:'F'}, {c:'KeyG', l:'G'}, {c:'KeyH', l:'H'}, {c:'KeyJ', l:'J'}, {c:'KeyK', l:'K'}, {c:'KeyL', l:'L'}, {c:'Semicolon', l:';'}, {c:'Quote', l:"'"}, {c:'Enter', l:'Enter', u: 2.25}],
-                // Row 4
+                [{c:'CapsLock', l:'Caps', u: 1.75}, {c:'KeyA', l:'A'}, {c:'KeyS', l:'S'}, {c:'KeyD', l:'D'}, {c:'KeyF', l:'F'}, {c:'KeyG', l:'G'}, {c:'KeyH', l:'H'}, {c:'KeyJ', l:'J'}, {c:'KeyK', l:'K'}, {c:'KeyL', l:'L'}, {c:'Semicolon', l:';'}, {c:'Quote', l:"'"}, {c:'Enter', l:'Enter', u: 2.25}],
                 [{c:'ShiftLeft', l:'Shift', u: 2.25}, {c:'KeyZ', l:'Z'}, {c:'KeyX', l:'X'}, {c:'KeyC', l:'C'}, {c:'KeyV', l:'V'}, {c:'KeyB', l:'B'}, {c:'KeyN', l:'N'}, {c:'KeyM', l:'M'}, {c:'Comma', l:','}, {c:'Period', l:'.'}, {c:'Slash', l:'/'}, {c:'ShiftRight', l:'Shift', u: 2.75}],
-                // Row 5
                 [{c:'ControlLeft', l:'Ctrl', u: 1.25}, {c:'MetaLeft', l:'Win', u: 1.25}, {c:'AltLeft', l:'Alt', u: 1.25}, {c:'Space', l:'Space', u: 6.25}, {c:'AltRight', l:'Alt', u: 1.25}, {c:'MetaRight', l:'Win', u: 1.25}, {c:'ContextMenu', l:'Menu', u: 1.25}, {c:'ControlRight', l:'Ctrl', u: 1.25}]
             ],
             nav: [
-                {c:'PrintScreen', l:'PrtSc'}, {c:'ScrollLock', l:'Scrl\nLock'}, {c:'Pause', l:'Pause'},
+                {c:'PrintScreen', l:'PrtSc'}, {c:'ScrollLock', l:'Scrl'}, {c:'Pause', l:'Pause'},
                 {c:'Insert', l:'Ins'}, {c:'Home', l:'Home'}, {c:'PageUp', l:'PgUp'},
                 {c:'Delete', l:'Del'}, {c:'End', l:'End'}, {c:'PageDown', l:'PgDn'}
             ],
             arrows: [
-                {spacer: true}, {c:'ArrowUp', l:'↑'}, {spacer: true},
+                {s: true}, {c:'ArrowUp', l:'↑'}, {s: true},
                 {c:'ArrowLeft', l:'←'}, {c:'ArrowDown', l:'↓'}, {c:'ArrowRight', l:'→'}
             ],
             numpad: [
@@ -209,14 +218,14 @@
         };
 
         const container = document.getElementById('keyboard-container');
+        const wrapper = document.getElementById('kb-wrapper');
         const testedKeys = new Set();
+        const failedKeys = new Set();
         let totalKeys = 0;
         let audioCtx;
 
-        function initAudio() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-
+        // --- Sound Engine ---
+        function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
         function playClick() {
             if(!document.getElementById('sound-toggle').checked) return;
             if(!audioCtx) initAudio();
@@ -224,20 +233,35 @@
             
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            
             osc.type = 'square';
             osc.frequency.setValueAtTime(150, audioCtx.currentTime);
             osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.03);
-            
             gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
-            
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start();
             osc.stop(audioCtx.currentTime + 0.03);
         }
 
+        // --- Scaling Engine (Prevents Scrolling) ---
+        function resizeKeyboard() {
+            const size = document.getElementById('size-select').value;
+            const wrapWidth = wrapper.clientWidth - 32; // padding
+            // Full size = ~23 units wide. TKL = ~18.5 units wide.
+            const totalUnits = size === 'full' ? 22.5 : 18.5;
+            let keySize = Math.floor(wrapWidth / totalUnits);
+            
+            // Cap sizes
+            if (keySize > 50) keySize = 50; 
+            if (keySize < 15) keySize = 15;
+
+            document.documentElement.style.setProperty('--key-size', `${keySize}px`);
+        }
+
+        window.addEventListener('resize', resizeKeyboard);
+
+        // --- Layout Engine ---
         function updateLayout() {
             const os = document.getElementById('os-select').value;
             const size = document.getElementById('size-select').value;
@@ -245,78 +269,68 @@
             container.innerHTML = '';
             totalKeys = 0;
 
-            // 1. Build Main Keyboard Block
+            // 1. Main Block
             const mainDiv = document.createElement('div');
             mainDiv.className = 'kb-section';
             
             kbBlocks.main.forEach((row, rowIndex) => {
                 const rowDiv = document.createElement('div');
                 rowDiv.className = 'kb-row';
-                
-                if(rowIndex === 0) rowDiv.style.marginBottom = '0.5rem'; // F-Key gap
+                if(rowIndex === 0) rowDiv.style.marginBottom = '0.5rem';
 
                 row.forEach(k => {
-                    // Handle empty spacer objects
-                    if (k.spacer) {
-                        const spacerW = `calc(var(--key-size) * ${k.spacer} + var(--gap) * ${k.spacer - 1})`;
+                    if (k.s) {
+                        const spacerW = `calc(var(--key-size) * ${k.s} + var(--gap) * ${k.s - 1})`;
                         rowDiv.innerHTML += `<div style="width: ${spacerW};"></div>`;
                         return;
                     }
 
                     let label = k.l;
                     if(os === 'mac') {
-                        if(k.c === 'MetaLeft' || k.c === 'MetaRight') label = '⌘ Cmd';
-                        if(k.c === 'AltLeft' || k.c === 'AltRight') label = '⌥ Opt';
-                        if(k.c === 'Backspace') label = 'Delete';
-                        if(k.c === 'Enter') label = 'Return';
+                        if(k.c === 'MetaLeft' || k.c === 'MetaRight') label = '⌘';
+                        if(k.c === 'AltLeft' || k.c === 'AltRight') label = '⌥';
+                        if(k.c === 'Backspace') label = 'Del';
+                        if(k.c === 'Enter') label = 'Ret';
                     }
                     
-                    // Exact mathematical width sizing
                     const u = k.u || 1;
                     const width = u === 1 ? 'var(--key-size)' : `calc(var(--key-size) * ${u} + var(--gap) * ${u - 1})`;
                     
-                    rowDiv.innerHTML += `<div class="key" id="key-${k.c}" style="width: ${width}; flex-shrink: 0;">${label}</div>`;
+                    rowDiv.innerHTML += `<div class="key" id="key-${k.c}" style="width: ${width};" oncontextmenu="markFailed(event, '${k.c}')">${label}</div>`;
                     totalKeys++;
                 });
                 mainDiv.appendChild(rowDiv);
             });
             container.appendChild(mainDiv);
 
-            // 2. Build Nav/Arrow Block
+            // 2. Nav/Arrow Block
             const middleCol = document.createElement('div');
             middleCol.className = 'kb-section';
             middleCol.style.justifyContent = 'space-between';
 
             let navHTML = '<div class="nav-grid">';
-            kbBlocks.nav.forEach(k => {
-                navHTML += `<div class="key" id="key-${k.c}">${k.l}</div>`;
-                totalKeys++;
-            });
+            kbBlocks.nav.forEach(k => { navHTML += `<div class="key text-[0.6rem]" id="key-${k.c}" oncontextmenu="markFailed(event, '${k.c}')">${k.l}</div>`; totalKeys++; });
             navHTML += '</div>';
 
             let arrowHTML = '<div class="arrow-grid">';
             kbBlocks.arrows.forEach(k => {
-                if (k.spacer) {
-                    arrowHTML += `<div></div>`;
-                } else {
-                    arrowHTML += `<div class="key" id="key-${k.c}">${k.l}</div>`;
-                    totalKeys++;
-                }
+                if (k.s) arrowHTML += `<div></div>`;
+                else { arrowHTML += `<div class="key" id="key-${k.c}" oncontextmenu="markFailed(event, '${k.c}')">${k.l}</div>`; totalKeys++; }
             });
             arrowHTML += '</div>';
 
             middleCol.innerHTML = navHTML + arrowHTML;
             container.appendChild(middleCol);
 
-            // 3. Build Numpad Block
+            // 3. Numpad
             if (size === 'full') {
                 const numDiv = document.createElement('div');
                 numDiv.className = 'kb-section';
-                numDiv.style.justifyContent = 'flex-end'; // Align to bottom
+                numDiv.style.justifyContent = 'flex-end';
                 
                 let numHTML = '<div class="numpad-grid">';
                 kbBlocks.numpad.forEach(k => {
-                    numHTML += `<div class="key ${k.gridClass || ''}" id="key-${k.c}">${k.l}</div>`;
+                    numHTML += `<div class="key ${k.gridClass || ''}" id="key-${k.c}" oncontextmenu="markFailed(event, '${k.c}')">${k.l}</div>`;
                     totalKeys++;
                 });
                 numHTML += '</div>';
@@ -326,15 +340,21 @@
             }
 
             document.getElementById('total-count').innerText = totalKeys;
+            resizeKeyboard();
+            updateHealth();
             
-            // Re-apply visual tested states on re-render
+            // Reapply states
             testedKeys.forEach(code => {
                 const k = document.getElementById(`key-${code}`);
                 if(k) k.classList.add('tested');
             });
+            failedKeys.forEach(code => {
+                const k = document.getElementById(`key-${code}`);
+                if(k) k.classList.add('failed');
+            });
         }
 
-        // Event Handling
+        // --- Core Interactions ---
         function handleKey(e, isDown) {
             e.preventDefault(); 
             initAudio();
@@ -347,13 +367,17 @@
                 
                 document.getElementById('out-key').innerText = e.key === ' ' ? 'Space' : e.key;
                 document.getElementById('out-code').innerText = e.code;
-                document.getElementById('out-keycode').innerText = e.keyCode;
 
                 if (keyEl) {
                     keyEl.classList.add('active');
+                    // Remove failed state if it successfully registers
+                    if(failedKeys.has(code)) {
+                        failedKeys.delete(code);
+                        keyEl.classList.remove('failed');
+                    }
                     if (!testedKeys.has(code)) {
                         testedKeys.add(code);
-                        document.getElementById('tested-count').innerText = testedKeys.size;
+                        updateHealth();
                     }
                 }
             } else {
@@ -364,33 +388,63 @@
             }
         }
 
-        function resetTester() {
-            testedKeys.clear();
-            document.getElementById('tested-count').innerText = '0';
-            document.querySelectorAll('.key').forEach(k => k.classList.remove('active', 'tested'));
-            document.getElementById('out-key').innerText = '-';
-            document.getElementById('out-code').innerText = '-';
-            document.getElementById('out-keycode').innerText = '-';
+        function markFailed(e, code) {
+            e.preventDefault(); // Stop standard right-click menu
+            const keyEl = document.getElementById(`key-${code}`);
+            if(!keyEl) return;
             
-            // Mouse Reset
-            document.querySelectorAll('.mouse-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('mouse-wheel').innerText = 'Idle';
-            document.getElementById('mouse-wheel').className = 'text-xs font-bold text-slate-300 mono mt-0.5';
+            if(failedKeys.has(code)) {
+                failedKeys.delete(code);
+                keyEl.classList.remove('failed');
+            } else {
+                failedKeys.add(code);
+                testedKeys.delete(code); // Remove from tested if marking failed
+                keyEl.classList.remove('tested', 'active');
+                keyEl.classList.add('failed');
+            }
+            updateHealth();
         }
 
+        function updateHealth() {
+            document.getElementById('tested-count').innerText = testedKeys.size;
+            let pct = totalKeys > 0 ? Math.round((testedKeys.size / totalKeys) * 100) : 0;
+            document.getElementById('health-pct').innerText = pct;
+            
+            const bar = document.getElementById('health-bar');
+            bar.style.width = pct + '%';
+            
+            if(failedKeys.size > 0) {
+                bar.classList.replace('bg-emerald-500', 'bg-rose-500');
+                document.getElementById('health-pct').classList.replace('text-emerald-400', 'text-rose-400');
+            } else {
+                bar.classList.replace('bg-rose-500', 'bg-emerald-500');
+                document.getElementById('health-pct').classList.replace('text-rose-400', 'text-emerald-400');
+            }
+        }
+
+        function resetTester() {
+            testedKeys.clear();
+            failedKeys.clear();
+            updateHealth();
+            document.querySelectorAll('.key').forEach(k => k.classList.remove('active', 'tested', 'failed'));
+            document.getElementById('out-key').innerText = '-';
+            document.getElementById('out-code').innerText = '-';
+        }
+
+        // --- Mouse Visualizer ---
         const mouseZone = document.getElementById('mouse-tester-zone');
         
         mouseZone.addEventListener('mousedown', (e) => {
             e.preventDefault();
-            const btn = document.getElementById(`mouse-${e.button}`);
-            if(btn) btn.classList.add('active');
+            const btn = document.getElementById(`m-btn-${e.button}`);
+            if(btn) btn.classList.add('m-active');
             playClick();
         });
 
         mouseZone.addEventListener('mouseup', (e) => {
             e.preventDefault();
-            const btn = document.getElementById(`mouse-${e.button}`);
-            if(btn) setTimeout(() => btn.classList.remove('active'), 150);
+            const btn = document.getElementById(`m-btn-${e.button}`);
+            if(btn) btn.classList.remove('m-active');
         });
 
         mouseZone.addEventListener('mousemove', (e) => {
@@ -401,24 +455,19 @@
 
         mouseZone.addEventListener('wheel', (e) => {
             e.preventDefault();
-            const w = document.getElementById('mouse-wheel');
-            if(e.deltaY < 0) {
-                w.innerText = 'Scrolling UP';
-                w.className = 'text-xs font-bold text-emerald-400 mono mt-0.5';
-            } else {
-                w.innerText = 'Scrolling DOWN';
-                w.className = 'text-xs font-bold text-blue-400 mono mt-0.5';
-            }
+            const w = document.getElementById('m-btn-1');
+            if(e.deltaY < 0) { w.classList.add('m-wheel-up'); w.classList.remove('m-wheel-down'); } 
+            else { w.classList.add('m-wheel-down'); w.classList.remove('m-wheel-up'); }
+            
             clearTimeout(w.timeout);
-            w.timeout = setTimeout(() => {
-                w.innerText = 'Idle';
-                w.className = 'text-xs font-bold text-slate-300 mono mt-0.5';
-            }, 300);
+            w.timeout = setTimeout(() => { w.classList.remove('m-wheel-up', 'm-wheel-down'); }, 200);
         });
 
+        // Event Hookups
         window.addEventListener('keydown', (e) => handleKey(e, true), { passive: false });
         window.addEventListener('keyup', (e) => handleKey(e, false), { passive: false });
 
+        // Ad-Sensing Logic
         function monitorAds() {
             const adSlot = document.querySelector('#sidebar-ad-wrapper ins.adsbygoogle');
             const container = document.getElementById('sidebar-ad-wrapper');
@@ -434,6 +483,7 @@
             observer.observe(adSlot, { attributes: true, childList: true });
         }
 
+        // Init
         window.onload = () => {
             updateLayout();
             monitorAds();
