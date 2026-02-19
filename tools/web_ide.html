@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Frontend Web IDE & Sandbox | SilenVault</title>
-    <meta name="description" content="Professional in-browser HTML, CSS, and JavaScript IDE. Sandboxed live preview with syntax highlighting and auto-save.">
+    <title>Architect Pro IDE | SilenVault</title>
+    <meta name="description" content="Professional in-browser HTML, CSS, and JavaScript IDE. Sandboxed live preview, resizable panels, and auto-save.">
     
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="../assets/js/layout.js" defer></script>
@@ -20,52 +22,78 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/closebrackets.min.js"></script>
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f8fafc; overflow-x: hidden; }
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f8fafc; overflow-x: hidden; display: flex; flex-direction: column; min-height: 100vh; }
         .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
         .mono { font-family: 'Fira Code', monospace; }
 
-        /* CodeMirror Customization to match SilenVault */
-        .CodeMirror { height: 100%; font-family: 'Fira Code', monospace; font-size: 13px; background: transparent !important; }
-        .cm-s-dracula.CodeMirror { box-shadow: none; border: none; }
-        .cm-s-dracula .CodeMirror-gutters { background-color: #0f172a; border-right: 1px solid #1e293b; }
+        /* Full Screen IDE Wrapper */
+        .ide-wrapper {
+            height: calc(100vh - 200px); /* Responsive tall height */
+            min-height: 500px;
+            display: flex;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: 1px solid #1e293b;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            background: #0f172a;
+        }
+
+        /* Left Side: Code Editor */
+        #editor-pane { width: 50%; display: flex; flex-direction: column; min-width: 200px; background: #0f172a; }
         
-        .ide-container {
-            display: flex; flex-direction: column; height: 75vh; min-height: 600px;
-            background: #0f172a; border-radius: 1rem; border: 1px solid #1e293b;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6); overflow: hidden;
+        .editor-container { flex: 1; position: relative; }
+
+        /* Force CodeMirror to fill parent perfectly */
+        .CodeMirror {
+            position: absolute !important;
+            top: 0; left: 0; right: 0; bottom: 0;
+            height: 100% !important;
+            font-family: 'Fira Code', monospace; 
+            font-size: 14px; 
+            background: #0f172a !important; 
         }
+        .cm-s-dracula.CodeMirror { box-shadow: none; border: none; }
+        .cm-s-dracula .CodeMirror-gutters { background-color: #020617; border-right: 1px solid #1e293b; }
 
-        .editor-row { display: flex; flex-direction: column; flex: 1; border-bottom: 2px solid #1e293b; }
-        @media (min-width: 1024px) { .editor-row { flex-direction: row; } }
-
-        .editor-pane { flex: 1; display: flex; flex-direction: column; border-bottom: 1px solid #1e293b; }
-        @media (min-width: 1024px) { 
-            .editor-pane { border-bottom: none; border-right: 1px solid #1e293b; }
-            .editor-pane:last-child { border-right: none; }
+        /* The Draggable Splitter */
+        #resizer {
+            width: 8px; background: #020617; border-left: 1px solid #1e293b; border-right: 1px solid #1e293b;
+            cursor: col-resize; display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s; z-index: 50;
         }
+        #resizer:hover, #resizer:active { background: #3b82f6; }
+        #resizer::after { content: ''; width: 2px; height: 30px; background: #334155; border-radius: 2px; }
 
-        .pane-header {
-            background: #020617; padding: 8px 16px; font-size: 11px; font-weight: bold;
-            color: #64748b; text-transform: uppercase; letter-spacing: 1px;
-            border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center;
+        /* Right Side: Preview */
+        #preview-pane { flex: 1; background: #ffffff; position: relative; min-width: 200px; }
+        #preview-frame { width: 100%; height: 100%; border: none; background: white; display: block; }
+        
+        /* Overlay stops iframe from stealing mouse events during drag */
+        #iframe-overlay { position: absolute; inset: 0; z-index: 40; display: none; }
+
+        /* Tabs UI */
+        .tab-btn {
+            padding: 10px 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;
+            letter-spacing: 1px; color: #64748b; background: transparent;
+            border-bottom: 2px solid transparent; transition: all 0.2s;
+            display: flex; items-center; gap: 8px;
         }
-
-        .preview-row { flex: 1; background: #ffffff; position: relative; }
-        #preview-frame { width: 100%; height: 100%; border: none; background: white; }
+        .tab-btn.active { color: #f8fafc; border-bottom-color: #3b82f6; background: #0f172a; }
+        .tab-btn:hover:not(.active) { color: #cbd5e1; background: rgba(255,255,255,0.02); }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
 
     <sv-header base-path=".."></sv-header>
 
-    <main class="flex-1 max-w-[1600px] mx-auto w-full px-4 py-8 flex flex-col gap-6">
+    <main class="flex-1 w-full px-4 md:px-8 py-6 flex flex-col gap-4 max-w-[2000px] mx-auto">
         
-        <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-2">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-2">
             <div>
-                <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight">
-                    Web <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">IDE</span>
+                <h1 class="text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-3">
+                    Architect <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">IDE</span>
                 </h1>
-                <p class="text-sm text-slate-400 mt-1">Sandboxed HTML, CSS, and JS engine with live compilation.</p>
+                <p class="text-xs text-slate-400 mt-1">Professional sandboxed editor. Drag the center bar to resize.</p>
             </div>
             
             <div class="flex items-center gap-3 w-full md:w-auto">
@@ -75,63 +103,42 @@
                     </span>
                 </div>
                 
-                <button onclick="downloadCode()" class="bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold px-6 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(168,85,247,0.4)] flex items-center gap-2 shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                <button onclick="downloadCode()" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition-all shadow-[0_0_15px_rgba(168,85,247,0.4)] flex items-center gap-2 shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     Export .html
                 </button>
             </div>
         </div>
 
-        <div class="ide-container">
+        <div class="ide-wrapper">
             
-            <div class="editor-row">
-                <div class="editor-pane">
-                    <div class="pane-header">
-                        <span class="text-rose-400 flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg> index.html</span>
-                    </div>
-                    <div class="flex-1 relative"><textarea id="html-code"></textarea></div>
-                </div>
+            <div id="editor-pane">
                 
-                <div class="editor-pane">
-                    <div class="pane-header">
-                        <span class="text-blue-400 flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg> style.css</span>
-                    </div>
-                    <div class="flex-1 relative"><textarea id="css-code"></textarea></div>
+                <div class="flex bg-[#020617] border-b border-slate-800 px-2 pt-2">
+                    <button id="tab-html" onclick="switchTab('html')" class="tab-btn active text-rose-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg> HTML
+                    </button>
+                    <button id="tab-css" onclick="switchTab('css')" class="tab-btn">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg> CSS
+                    </button>
+                    <button id="tab-js" onclick="switchTab('js')" class="tab-btn">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> JS
+                    </button>
                 </div>
 
-                <div class="editor-pane">
-                    <div class="pane-header">
-                        <span class="text-amber-400 flex items-center gap-2"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> script.js</span>
-                    </div>
-                    <div class="flex-1 relative"><textarea id="js-code"></textarea></div>
-                </div>
+                <div id="html-container" class="editor-container"><textarea id="html-code"></textarea></div>
+                <div id="css-container" class="editor-container hidden"><textarea id="css-code"></textarea></div>
+                <div id="js-container" class="editor-container hidden"><textarea id="js-code"></textarea></div>
             </div>
 
-            <div class="preview-row">
-                <div class="absolute top-0 right-0 bg-slate-900/80 text-white text-[10px] font-mono px-3 py-1 m-2 rounded backdrop-blur border border-slate-700 z-10 pointer-events-none">Live Output</div>
+            <div id="resizer"></div>
+
+            <div id="preview-pane">
+                <div class="absolute top-0 right-0 bg-slate-900/80 text-white text-[10px] font-mono px-3 py-1 m-2 rounded backdrop-blur border border-slate-700 z-50 pointer-events-none shadow-md">Output Console</div>
+                <div id="iframe-overlay"></div>
                 <iframe id="preview-frame" sandbox="allow-scripts allow-modals"></iframe>
             </div>
 
-        </div>
-
-        <div class="grid lg:grid-cols-3 gap-8 mt-4">
-            <div class="lg:col-span-2 glass-panel p-8 rounded-2xl border-slate-800 prose prose-invert max-w-none">
-                <h2 class="text-xl font-bold text-white mb-4">Frontend Development Sandbox</h2>
-                <ul class="text-sm text-slate-400 leading-relaxed space-y-3 m-0 p-0 list-none">
-                    <li><strong class="text-purple-400">Sandboxed Execution:</strong> The output preview runs inside an isolated HTML5 iframe. It supports JavaScript execution (<code>allow-scripts</code>), but protects your main browser tab from malicious loops or DOM hijacking.</li>
-                    <li><strong class="text-slate-200">Local-First Storage:</strong> You do not need to create an account to save your code. As you type, the engine continuously saves your HTML, CSS, and JS data securely into your browser's <code>localStorage</code>. Refreshing the page will never delete your work.</li>
-                    <li><strong class="text-slate-200">Export to Production:</strong> When your prototype is finished, hit "Export .html". The IDE mathematically merges your CSS into a <code>&lt;style&gt;</code> block and your JS into a <code>&lt;script&gt;</code> block, downloading a single, production-ready index.html file to your hard drive.</li>
-                </ul>
-            </div>
-
-            <div class="space-y-6">
-                <div id="sidebar-ad-wrapper" class="hidden opacity-0 transition-opacity duration-1000">
-                    <aside class="smart-ad-unit bg-slate-900/50 border border-slate-800 rounded-2xl flex flex-col items-center justify-center p-4 min-h-[250px]">
-                        <span class="text-[10px] uppercase tracking-widest text-slate-600 block mb-2 pointer-events-none">Sponsored</span>
-                        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="7594122081" data-ad-format="auto" data-full-width-responsive="true"></ins>
-                    </aside>
-                </div>
-            </div>
         </div>
 
     </main>
@@ -139,26 +146,18 @@
     <sv-footer base-path=".."></sv-footer>
 
     <script>
-        // Default Template
-        const defaultHTML = `<div class="container">\n  <h1>Hello, SilenVault!</h1>\n  <p>Start typing to see live updates.</p>\n</div>`;
-        const defaultCSS = `body {\n  margin: 0;\n  padding: 20px;\n  font-family: system-ui, sans-serif;\n  background-color: #f1f5f9;\n}\n\n.container {\n  background: white;\n  padding: 30px;\n  border-radius: 12px;\n  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);\n}\n\nh1 {\n  color: #a855f7;\n  margin-top: 0;\n}`;
-        const defaultJS = `console.log("IDE initialized successfully.");`;
+        // Default Boilerplate
+        const defaultHTML = `<div class="hero">\n  <h1>SilenVault IDE</h1>\n  <p>Your local-first coding environment.</p>\n  <button onclick="showAlert()">Test JavaScript</button>\n</div>`;
+        const defaultCSS = `body {\n  margin: 0;\n  padding: 0;\n  font-family: system-ui, sans-serif;\n  background: linear-gradient(135deg, #1e293b, #0f172a);\n  color: white;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  height: 100vh;\n}\n\n.hero {\n  background: rgba(255, 255, 255, 0.05);\n  padding: 40px;\n  border-radius: 16px;\n  border: 1px solid rgba(255, 255, 255, 0.1);\n  text-align: center;\n}\n\nh1 {\n  color: #a855f7;\n  margin-top: 0;\n  font-size: 2.5rem;\n}\n\nbutton {\n  margin-top: 20px;\n  background: #a855f7;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 8px;\n  font-weight: bold;\n  cursor: pointer;\n  transition: transform 0.1s;\n}\n\nbutton:active {\n  transform: scale(0.95);\n}`;
+        const defaultJS = `function showAlert() {\n  alert("The Javascript Engine is running securely!");\n}`;
 
-        // Load from LocalStorage or use Defaults
+        // Load Memory
         const initHTML = localStorage.getItem('sv_ide_html') || defaultHTML;
         const initCSS = localStorage.getItem('sv_ide_css') || defaultCSS;
         const initJS = localStorage.getItem('sv_ide_js') || defaultJS;
 
-        // Initialize CodeMirror Editors
-        const cmOptions = {
-            theme: "dracula",
-            lineNumbers: true,
-            lineWrapping: true,
-            autoCloseTags: true,
-            autoCloseBrackets: true,
-            tabSize: 2
-        };
-
+        // Init CodeMirror Instances
+        const cmOptions = { theme: "dracula", lineNumbers: true, lineWrapping: true, autoCloseTags: true, autoCloseBrackets: true, tabSize: 2 };
         const editorHTML = CodeMirror.fromTextArea(document.getElementById("html-code"), { ...cmOptions, mode: "xml", htmlMode: true });
         const editorCSS = CodeMirror.fromTextArea(document.getElementById("css-code"), { ...cmOptions, mode: "css" });
         const editorJS = CodeMirror.fromTextArea(document.getElementById("js-code"), { ...cmOptions, mode: "javascript" });
@@ -167,63 +166,97 @@
         editorCSS.setValue(initCSS);
         editorJS.setValue(initJS);
 
+        // --- TAB SWITCHING LOGIC ---
+        function switchTab(tabId) {
+            // Hide all
+            ['html', 'css', 'js'].forEach(t => {
+                document.getElementById(`${t}-container`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).classList.remove('active', 'text-rose-400', 'text-blue-400', 'text-amber-400');
+            });
+            
+            // Show Active
+            document.getElementById(`${tabId}-container`).classList.remove('hidden');
+            const btn = document.getElementById(`tab-${tabId}`);
+            btn.classList.add('active');
+            
+            if(tabId === 'html') { btn.classList.add('text-rose-400'); editorHTML.refresh(); }
+            if(tabId === 'css') { btn.classList.add('text-blue-400'); editorCSS.refresh(); }
+            if(tabId === 'js') { btn.classList.add('text-amber-400'); editorJS.refresh(); }
+        }
+
+        // --- RESIZER LOGIC ---
+        const resizer = document.getElementById('resizer');
+        const editorPane = document.getElementById('editor-pane');
+        const iframeOverlay = document.getElementById('iframe-overlay');
+        let isResizing = false;
+
+        resizer.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            iframeOverlay.style.display = 'block'; // Block iframe stealing mouse
+            document.body.style.cursor = 'col-resize';
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            // Calculate width relative to the left side of the window
+            let newWidth = e.clientX;
+            // Constrain width
+            if (newWidth < 300) newWidth = 300;
+            if (newWidth > window.innerWidth - 300) newWidth = window.innerWidth - 300;
+            
+            editorPane.style.width = `${newWidth}px`;
+            editorPane.style.flex = "none"; // Remove flex 1/2 so absolute width applies
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                iframeOverlay.style.display = 'none';
+                document.body.style.cursor = 'default';
+            }
+        });
+
+        // --- COMPILER ENGINE ---
         const iframe = document.getElementById('preview-frame');
         const saveStatus = document.getElementById('save-status');
         let timeout;
 
-        // Engine: Compile and Render
         function compilePreview() {
             const html = editorHTML.getValue();
             const css = editorCSS.getValue();
             const js = editorJS.getValue();
 
-            // Save to LocalStorage
             localStorage.setItem('sv_ide_html', html);
             localStorage.setItem('sv_ide_css', css);
             localStorage.setItem('sv_ide_js', js);
 
-            // Construct Document
-            const srcdoc = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <style>${css}</style>
-                </head>
-                <body>
-                    ${html}
-                    <script>${js}<\/script>
-                </body>
-                </html>
-            `;
+            const srcdoc = `<!DOCTYPE html>\n<html>\n<head>\n<style>\n${css}\n</style>\n</head>\n<body>\n${html}\n<script>\n${js}\n<\/script>\n</body>\n</html>`;
             iframe.srcdoc = srcdoc;
 
-            // Update Status UI
             saveStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Saved`;
             saveStatus.className = "text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-2";
         }
 
-        // Event Listeners with Debounce (Prevents crashing while typing fast)
         function handleInput() {
             saveStatus.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span> Typing...`;
             saveStatus.className = "text-[10px] font-mono font-bold text-amber-400 uppercase tracking-widest flex items-center gap-2";
             
             clearTimeout(timeout);
-            timeout = setTimeout(compilePreview, 500); // Wait 500ms after user stops typing to render
+            timeout = setTimeout(compilePreview, 500); // 500ms Debounce
         }
 
         editorHTML.on("change", handleInput);
         editorCSS.on("change", handleInput);
         editorJS.on("change", handleInput);
 
-        // Initial Render
-        compilePreview();
+        compilePreview(); // Init
 
-        // Export Function
+        // --- EXPORT ---
         function downloadCode() {
             const html = editorHTML.getValue();
             const css = editorCSS.getValue();
             const js = editorJS.getValue();
-
             const finalCode = `<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>SilenVault Export</title>\n<style>\n${css}\n</style>\n</head>\n<body>\n${html}\n<script>\n${js}\n<\/script>\n</body>\n</html>`;
 
             const blob = new Blob([finalCode], { type: "text/html" });
