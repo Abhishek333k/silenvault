@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Sensor Diagnostics | SilenVault</title>
+    <meta name="description" content="Test your smartphone gyroscope and accelerometer. Features a live digital bubble level, 3D compass, and raw hardware telemetry.">
+    
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="../assets/js/layout.js" defer></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f8fafc; overflow-x: hidden; }
+        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .mono { font-family: 'Fira Code', monospace; }
+        .data-box { background: #020617; border: 1px solid #1e293b; border-radius: 0.75rem; padding: 1rem; position: relative; overflow: hidden; }
+
+        /* Bubble Level UI */
+        .level-container {
+            width: 200px; height: 200px; border-radius: 50%;
+            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+            border: 4px solid #1e293b; position: relative; margin: 0 auto;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .level-crosshair {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 40px; height: 40px; border: 2px solid rgba(255,255,255,0.2); border-radius: 50%;
+            pointer-events: none; z-index: 10;
+        }
+        .level-crosshair::before { content: ''; position: absolute; top: 50%; left: -20px; right: -20px; height: 1px; background: rgba(255,255,255,0.2); }
+        .level-crosshair::after { content: ''; position: absolute; left: 50%; top: -20px; bottom: -20px; width: 1px; background: rgba(255,255,255,0.2); }
+        
+        .bubble {
+            position: absolute; top: 50%; left: 50%; width: 30px; height: 30px;
+            background: #3b82f6; border-radius: 50%; transform: translate(-50%, -50%);
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.3), 0 0 15px rgba(59, 130, 246, 0.8);
+            transition: transform 0.1s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.2s;
+            z-index: 5;
+        }
+        .bubble.perfect { background: #10b981; box-shadow: inset -5px -5px 10px rgba(0,0,0,0.3), 0 0 20px rgba(16, 185, 129, 0.8); }
+
+        /* Compass UI */
+        .compass-container {
+            width: 160px; height: 160px; border-radius: 50%;
+            background: #020617; border: 2px solid #334155;
+            position: relative; margin: 0 auto;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
+        .compass-dial {
+            width: 100%; height: 100%; position: relative;
+            transition: transform 0.1s linear;
+        }
+        .compass-mark { position: absolute; font-size: 14px; font-weight: bold; color: #64748b; transform: translate(-50%, -50%); }
+        .compass-n { top: 10px; left: 50%; color: #ef4444; }
+        .compass-e { top: 50%; right: -5px; }
+        .compass-s { bottom: -5px; left: 50%; }
+        .compass-w { top: 50%; left: 15px; }
+        
+        .compass-arrow {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 4px; height: 100px; background: linear-gradient(to bottom, #ef4444 50%, #f8fafc 50%);
+            border-radius: 2px; z-index: 10; pointer-events: none;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <sv-header base-path=".."></sv-header>
+
+    <main class="flex-1 max-w-[1200px] mx-auto w-full px-4 py-8 flex flex-col gap-6">
+        
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-2">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight">
+                    Sensor <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">Diagnostics</span>
+                </h1>
+                <p class="text-sm text-slate-400 mt-1">Test gyroscope, accelerometer, and digital compass hardware.</p>
+            </div>
+            
+            <button id="btn-start" onclick="requestSensorPermissions()" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-6 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] flex items-center gap-2 shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                <span id="btn-text">Start Diagnostics</span>
+            </button>
+        </div>
+
+        <div id="no-sensor-warning" class="hidden bg-rose-500/10 border border-rose-500/50 rounded-xl p-4 text-center">
+            <h3 class="text-rose-400 font-bold mb-1">Hardware Not Detected</h3>
+            <p class="text-sm text-slate-300">This tool requires a device with a gyroscope and accelerometer (like a smartphone or tablet). Desktop PCs may not return data.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <div class="glass-panel p-6 rounded-3xl border-slate-700 shadow-2xl flex flex-col items-center justify-center min-h-[350px]">
+                <h2 class="text-sm font-bold text-slate-300 uppercase tracking-widest mb-6 border-b border-slate-800 pb-2 w-full text-center">Digital Surface Level</h2>
+                
+                <div class="level-container">
+                    <div class="level-crosshair"></div>
+                    <div id="bubble" class="bubble"></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-8 mt-8 w-full px-4">
+                    <div class="text-center">
+                        <span class="block text-[10px] font-bold text-slate-500 uppercase">X (Roll)</span>
+                        <span id="level-x" class="text-xl font-bold text-white mono">0.0°</span>
+                    </div>
+                    <div class="text-center">
+                        <span class="block text-[10px] font-bold text-slate-500 uppercase">Y (Pitch)</span>
+                        <span id="level-y" class="text-xl font-bold text-white mono">0.0°</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 rounded-3xl border-slate-700 shadow-2xl flex flex-col items-center justify-center min-h-[350px]">
+                <h2 class="text-sm font-bold text-slate-300 uppercase tracking-widest mb-6 border-b border-slate-800 pb-2 w-full text-center">Magnetometer Compass</h2>
+                
+                <div class="compass-container">
+                    <div id="compass-dial" class="compass-dial">
+                        <div class="compass-mark compass-n">N</div>
+                        <div class="compass-mark compass-e">E</div>
+                        <div class="compass-mark compass-s">S</div>
+                        <div class="compass-mark compass-w">W</div>
+                    </div>
+                    <div class="compass-arrow"></div>
+                </div>
+
+                <div class="mt-8 text-center w-full">
+                    <span class="block text-[10px] font-bold text-slate-500 uppercase">Heading (Alpha)</span>
+                    <span id="compass-heading" class="text-3xl font-bold text-cyan-400 mono">0.0°</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-4">
+                <div class="glass-panel p-6 rounded-3xl border-slate-700 flex-1">
+                    <h2 class="text-sm font-bold text-slate-300 uppercase tracking-widest border-b border-slate-800 pb-2 mb-4">Accelerometer Data</h2>
+                    
+                    <div class="space-y-4">
+                        <div class="data-box shadow-inner">
+                            <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">X-Axis (Left/Right)</span>
+                            <div class="flex justify-between items-end">
+                                <span id="accel-x" class="text-lg font-bold text-white mono">0.00</span>
+                                <span class="text-[10px] text-slate-500">m/s²</span>
+                            </div>
+                        </div>
+                        <div class="data-box shadow-inner">
+                            <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">Y-Axis (Up/Down)</span>
+                            <div class="flex justify-between items-end">
+                                <span id="accel-y" class="text-lg font-bold text-white mono">0.00</span>
+                                <span class="text-[10px] text-slate-500">m/s²</span>
+                            </div>
+                        </div>
+                        <div class="data-box shadow-inner">
+                            <span class="block text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-1">Z-Axis (Forward/Back)</span>
+                            <div class="flex justify-between items-end">
+                                <span id="accel-z" class="text-lg font-bold text-white mono">0.00</span>
+                                <span class="text-[10px] text-slate-500">m/s²</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-8 mt-4">
+            <div class="lg:col-span-2 glass-panel p-8 rounded-2xl border-slate-800 prose prose-invert max-w-none">
+                <h2 class="text-xl font-bold text-white mb-4">Hardware Diagnostic Guide</h2>
+                <ul class="text-sm text-slate-400 leading-relaxed space-y-3 m-0 p-0 list-none">
+                    <li><strong class="text-slate-200">Bubble Level Test:</strong> Lay your device completely flat on a table. The bubble should center itself and turn <span class="text-emerald-400 font-bold">Green</span>. If it is permanently off-center on a flat surface, your internal gyroscope needs recalibration.</li>
+                    <li><strong class="text-slate-200">Accelerometer Test:</strong> The Z-Axis measures gravity. When laying flat on a desk, the Z-Axis should read approximately <strong>9.81 m/s²</strong> (Earth's gravitational pull). Vigorously shaking the device will spike the X and Y axes.</li>
+                    <li><strong class="text-slate-200">Privacy & Permissions:</strong> To prevent web trackers from fingerprinting your device movements, modern browsers (like Safari on iOS) require you to manually click "Start Diagnostics" to grant temporary sensor access.</li>
+                </ul>
+            </div>
+
+            <div class="space-y-6">
+                <div id="sidebar-ad-wrapper" class="hidden opacity-0 transition-opacity duration-1000">
+                    <aside class="smart-ad-unit bg-slate-900/50 border border-slate-800 rounded-2xl flex flex-col items-center justify-center p-4 min-h-[250px]">
+                        <span class="text-[10px] uppercase tracking-widest text-slate-600 block mb-2 pointer-events-none">Sponsored</span>
+                        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="7594122081" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+                    </aside>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <sv-footer base-path=".."></sv-footer>
+
+    <script>
+        // DOM Elements
+        const btnStart = document.getElementById('btn-start');
+        const btnText = document.getElementById('btn-text');
+        const warning = document.getElementById('no-sensor-warning');
+        
+        const bubble = document.getElementById('bubble');
+        const levelX = document.getElementById('level-x');
+        const levelY = document.getElementById('level-y');
+        
+        const compassDial = document.getElementById('compass-dial');
+        const compassHeading = document.getElementById('compass-heading');
+        
+        const accX = document.getElementById('accel-x');
+        const accY = document.getElementById('accel-y');
+        const accZ = document.getElementById('accel-z');
+
+        let isActive = false;
+        let sensorDetected = false;
+
+        async function requestSensorPermissions() {
+            if (isActive) {
+                stopDiagnostics();
+                return;
+            }
+
+            // Modern iOS requires explicit permission request
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                try {
+                    const permission = await DeviceOrientationEvent.requestPermission();
+                    if (permission === 'granted') {
+                        startDiagnostics();
+                    } else {
+                        alert("Permission denied. The sensors cannot be accessed.");
+                    }
+                } catch (e) {
+                    console.error("Permission request failed:", e);
+                }
+            } else {
+                // Non-iOS or older browsers
+                startDiagnostics();
+            }
+        }
+
+        function startDiagnostics() {
+            isActive = true;
+            btnText.innerText = "Stop Diagnostics";
+            btnStart.classList.replace('bg-blue-600', 'bg-rose-600');
+            btnStart.classList.replace('hover:bg-blue-500', 'hover:bg-rose-500');
+            btnStart.classList.replace('shadow-[0_0_20px_rgba(37,99,235,0.4)]', 'shadow-[0_0_20px_rgba(225,29,72,0.4)]');
+
+            window.addEventListener('deviceorientation', handleOrientation);
+            window.addEventListener('devicemotion', handleMotion);
+
+            // Timeout to check if hardware actually exists (desktops will trigger events but with null data)
+            setTimeout(() => {
+                if (!sensorDetected) {
+                    warning.classList.remove('hidden');
+                }
+            }, 1000);
+        }
+
+        function stopDiagnostics() {
+            isActive = false;
+            btnText.innerText = "Start Diagnostics";
+            btnStart.classList.replace('bg-rose-600', 'bg-blue-600');
+            btnStart.classList.replace('hover:bg-rose-500', 'hover:bg-blue-500');
+            btnStart.classList.replace('shadow-[0_0_20px_rgba(225,29,72,0.4)]', 'shadow-[0_0_20px_rgba(37,99,235,0.4)]');
+
+            window.removeEventListener('deviceorientation', handleOrientation);
+            window.removeEventListener('devicemotion', handleMotion);
+        }
+
+        // Engine: Gyroscope & Compass
+        function handleOrientation(event) {
+            // Null check for desktops without sensors
+            if (event.beta === null && event.gamma === null) return;
+            sensorDetected = true;
+            warning.classList.add('hidden');
+
+            // --- BUBBLE LEVEL LOGIC ---
+            // Beta = front-to-back tilt [-180, 180]. Gamma = left-to-right tilt [-90, 90]
+            let x = event.gamma; 
+            let y = event.beta;
+
+            // Cap values to keep bubble inside the circle visually
+            const maxTilt = 45; 
+            let calcX = x;
+            let calcY = y;
+            
+            if (calcX > maxTilt) calcX = maxTilt;
+            if (calcX < -maxTilt) calcX = -maxTilt;
+            if (calcY > maxTilt) calcY = maxTilt;
+            if (calcY < -maxTilt) calcY = -maxTilt;
+
+            // Map [-45, 45] to pixel translation [-70px, 70px]
+            const pxX = (calcX / maxTilt) * 70;
+            const pxY = (calcY / maxTilt) * 70;
+
+            bubble.style.transform = `translate(calc(-50% + ${pxX}px), calc(-50% + ${pxY}px))`;
+
+            // UI Readouts
+            levelX.innerText = x.toFixed(1) + '°';
+            levelY.innerText = y.toFixed(1) + '°';
+
+            // Perfect Level Detection (within 2 degrees)
+            if (Math.abs(x) < 2 && Math.abs(y) < 2) {
+                bubble.classList.add('perfect');
+            } else {
+                bubble.classList.remove('perfect');
+            }
+
+            // --- COMPASS LOGIC ---
+            // Alpha = Z-axis rotation [0, 360)
+            let alpha = event.alpha;
+            
+            // iOS WebKit utilizes webkitCompassHeading for true north
+            if (event.webkitCompassHeading) {
+                alpha = event.webkitCompassHeading;
+            }
+
+            if (alpha !== null) {
+                compassHeading.innerText = alpha.toFixed(1) + '°';
+                // Rotate the dial opposite to the phone rotation to keep North pointing to actual North
+                compassDial.style.transform = `rotate(${-alpha}deg)`;
+            }
+        }
+
+        // Engine: Accelerometer
+        function handleMotion(event) {
+            if (!event.accelerationIncludingGravity) return;
+            
+            const acc = event.accelerationIncludingGravity;
+            if (acc.x !== null) {
+                sensorDetected = true;
+                warning.classList.add('hidden');
+                
+                accX.innerText = acc.x.toFixed(2);
+                accY.innerText = acc.y.toFixed(2);
+                accZ.innerText = acc.z.toFixed(2);
+            }
+        }
+
+        // Ad-Sensing Logic
+        function monitorAds() {
+            const adSlot = document.querySelector('#sidebar-ad-wrapper ins.adsbygoogle');
+            const container = document.getElementById('#sidebar-ad-wrapper');
+            if (!adSlot) return;
+
+            const observer = new MutationObserver(() => {
+                if (adSlot.getAttribute('data-ad-status') === 'filled' || adSlot.innerHTML.includes('iframe')) {
+                    container.classList.remove('hidden');
+                    setTimeout(() => container.classList.add('opacity-100'), 50);
+                    observer.disconnect();
+                }
+            });
+            observer.observe(adSlot, { attributes: true, childList: true });
+        }
+
+        window.onload = monitorAds;
+    </script>
+</body>
+</html>
