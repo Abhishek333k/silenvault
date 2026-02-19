@@ -17,7 +17,7 @@
         .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
         .mono { font-family: 'Fira Code', monospace; }
 
-        /* Cinematic Waveform Canvas */
+        /* Liquid Waveform Canvas */
         #visualizer {
             width: 100%; height: 180px; background: #0b1120; border-radius: 1rem;
             border: 1px solid #1e293b; box-shadow: inset 0 0 40px rgba(0,0,0,0.8);
@@ -70,7 +70,7 @@
                 
                 <div class="flex justify-between items-center">
                     <h2 class="text-sm font-bold text-slate-300 uppercase tracking-widest flex items-center gap-2">
-                        Input Signal
+                        Liquid Voice Signal
                         <span id="mic-status" class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">Inactive</span>
                     </h2>
                     <button id="btn-toggle-mic" onclick="toggleMic()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors shadow-[0_0_15px_rgba(37,99,235,0.4)]">
@@ -109,18 +109,25 @@
                         <span id="record-text">Start Recording</span>
                     </button>
 
-                    <audio id="audio-playback" class="hidden"></audio>
-                    <div id="custom-player" class="hidden flex items-center gap-3 bg-slate-900/80 border border-slate-700 p-3 rounded-xl mt-2 shadow-inner">
-                        <button id="play-btn" onclick="togglePlay()" class="w-8 h-8 shrink-0 flex items-center justify-center bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-colors shadow-lg shadow-cyan-500/30">
-                            <svg id="icon-play" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                            <svg id="icon-pause" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                        </button>
-                        
-                        <div class="flex-1 bg-slate-800 h-2.5 rounded-full relative cursor-pointer border border-slate-700 overflow-hidden" onclick="seekAudio(event)" id="progress-container">
-                            <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full w-0 transition-all duration-75"></div>
+                    <div id="player-wrapper" class="hidden flex flex-col gap-2 mt-2">
+                        <audio id="audio-playback" class="hidden"></audio>
+                        <div class="flex items-center gap-3 bg-slate-900/80 border border-slate-700 p-3 rounded-xl shadow-inner w-full">
+                            <button id="play-btn" onclick="togglePlay()" class="w-8 h-8 shrink-0 flex items-center justify-center bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-colors shadow-lg shadow-cyan-500/30">
+                                <svg id="icon-play" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                                <svg id="icon-pause" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                            </button>
+                            
+                            <div class="flex-1 bg-slate-800 h-2.5 rounded-full relative cursor-pointer border border-slate-700 overflow-hidden" onclick="seekAudio(event)" id="progress-container">
+                                <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full w-0 transition-all duration-75"></div>
+                            </div>
+                            
+                            <span id="time-display" class="text-[10px] text-slate-300 mono font-bold w-8 text-right">0.0s</span>
                         </div>
                         
-                        <span id="time-display" class="text-[10px] text-slate-300 mono font-bold w-8 text-right">0.0s</span>
+                        <button onclick="downloadRecording()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-[10px] uppercase font-bold tracking-widest py-2 rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            Download Audio
+                        </button>
                     </div>
                 </div>
 
@@ -168,7 +175,7 @@
     <sv-footer base-path=".."></sv-footer>
 
     <script>
-        let audioCtx, analyser, microphone, timeData, freqData;
+        let audioCtx, analyser, microphone, freqData;
         let isMicActive = false;
         let animationId;
         let stream;
@@ -178,6 +185,7 @@
         let audioChunks = [];
         let isRecording = false;
         let recordTimeout;
+        let blobUrlForDownload = null;
 
         // DOM Elements
         const canvas = document.getElementById('visualizer');
@@ -191,19 +199,21 @@
         const btnRecord = document.getElementById('btn-record');
         const recordText = document.getElementById('record-text');
         
-        // Custom Player Elements
+        // Player Elements
         const audioPlayback = document.getElementById('audio-playback');
-        const customPlayer = document.getElementById('custom-player');
-        const playBtn = document.getElementById('play-btn');
+        const playerWrapper = document.getElementById('player-wrapper');
         const iconPlay = document.getElementById('icon-play');
         const iconPause = document.getElementById('icon-pause');
         const progressBar = document.getElementById('progress-bar');
         const timeDisplay = document.getElementById('time-display');
         const progressContainer = document.getElementById('progress-container');
 
+        // Smooth Retina Canvas Resizing
         function resizeCanvas() {
-            canvas.width = canvas.clientWidth;
-            canvas.height = canvas.clientHeight;
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = canvas.clientWidth * dpr;
+            canvas.height = canvas.clientHeight * dpr;
+            canvasCtx.scale(dpr, dpr);
         }
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
@@ -222,7 +232,7 @@
                     selectDevice.appendChild(opt);
                 });
             } catch (err) {
-                console.warn("Device enumeration blocked until permission granted.");
+                console.warn("Device enumeration blocked.");
             }
         }
 
@@ -234,7 +244,16 @@
         async function startMic() {
             try {
                 const deviceId = selectDevice.value;
-                const constraints = deviceId ? { audio: { deviceId: { exact: deviceId } } } : { audio: true };
+                
+                // ARCHITECT FIX: Hardware Noise Suppression & Gain Control
+                const constraints = { 
+                    audio: { 
+                        deviceId: deviceId ? { exact: deviceId } : undefined,
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    } 
+                };
                 
                 stream = await navigator.mediaDevices.getUserMedia(constraints);
                 if(selectDevice.options.length <= 1) getDevices();
@@ -243,11 +262,13 @@
                 if (audioCtx.state === 'suspended') audioCtx.resume();
 
                 analyser = audioCtx.createAnalyser();
-                analyser.fftSize = 2048; // High resolution for smooth waveform
+                // 128 gives us 64 frequency bins, perfect for a smooth shape
+                analyser.fftSize = 128; 
+                analyser.smoothingTimeConstant = 0.85; // High smoothing for liquid feel
+                
                 microphone = audioCtx.createMediaStreamSource(stream);
                 microphone.connect(analyser);
                 
-                timeData = new Uint8Array(analyser.fftSize);
                 freqData = new Uint8Array(analyser.frequencyBinCount);
 
                 isMicActive = true;
@@ -265,7 +286,7 @@
                 btnRecord.classList.replace('border-slate-700', 'border-blue-500');
                 btnRecord.classList.add('hover:bg-blue-500');
 
-                drawVisualizer();
+                drawLiquidWaveform();
             } catch (err) {
                 alert("Microphone access denied. Please check your browser permissions.");
             }
@@ -290,7 +311,7 @@
             btnRecord.classList.replace('border-blue-500', 'border-slate-700');
             btnRecord.classList.remove('hover:bg-blue-500');
             
-            canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+            canvasCtx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
             volBar.style.width = '0%';
             peakOut.innerText = '0%';
             detectOut.innerText = 'No Audio';
@@ -304,16 +325,14 @@
             }
         }
 
-        // 3. Cinematic Waveform Visualizer
-        function drawVisualizer() {
+        // 3. ARCHITECT: The Liquid "Voice" Engine
+        function drawLiquidWaveform() {
             if (!isMicActive) return;
-            animationId = requestAnimationFrame(drawVisualizer);
+            animationId = requestAnimationFrame(drawLiquidWaveform);
 
-            // Fetch both Time (Wave) and Frequency (Volume) Data
-            analyser.getByteTimeDomainData(timeData);
             analyser.getByteFrequencyData(freqData);
 
-            // Volume Calculation
+            // Calculate Volume HUD
             let sum = 0, maxPeak = 0;
             for (let i = 0; i < freqData.length; i++) {
                 sum += freqData[i];
@@ -326,43 +345,82 @@
             volBar.style.width = volPercent + '%';
             peakOut.innerText = peakPercent + '%';
 
-            if (volPercent > 2) {
+            // Clipping Warning
+            if (peakPercent > 95) {
+                detectOut.innerText = 'CLIPPING (Too Loud)';
+                detectOut.className = 'text-sm font-bold text-rose-500';
+                volBar.style.background = '#ef4444';
+            } else if (volPercent > 2) {
                 detectOut.innerText = 'Signal Detected';
                 detectOut.className = 'text-sm font-bold text-cyan-400';
+                volBar.style.background = 'linear-gradient(90deg, #10b981, #f59e0b, #ef4444)';
             } else {
                 detectOut.innerText = 'Listening...';
                 detectOut.className = 'text-sm font-bold text-slate-500';
             }
 
-            // Draw Cinematic Oscilloscope Wave
+            const w = canvas.clientWidth;
+            const h = canvas.clientHeight;
+            const centerY = h / 2;
+
             canvasCtx.fillStyle = '#0b1120';
-            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+            canvasCtx.fillRect(0, 0, w, h);
 
-            canvasCtx.lineWidth = 2;
-            canvasCtx.strokeStyle = '#06b6d4'; // Cyan
+            // Generate points mapped to Voice Frequencies
+            let points = [];
+            const numPoints = 50; 
             
-            // Neon Glow Effect
-            canvasCtx.shadowBlur = 10;
-            canvasCtx.shadowColor = '#06b6d4';
-
-            canvasCtx.beginPath();
-            const sliceWidth = canvas.width * 1.0 / analyser.fftSize;
-            let x = 0;
-
-            for(let i = 0; i < analyser.fftSize; i++) {
-                const v = timeData[i] / 128.0;
-                const y = v * canvas.height / 2;
-
-                if(i === 0) canvasCtx.moveTo(x, y);
-                else canvasCtx.lineTo(x, y);
-
-                x += sliceWidth;
+            for(let i=0; i < numPoints; i++) {
+                let center = numPoints / 2;
+                let dist = Math.abs(i - center);
+                // Map distance to lower frequency bins (0 to ~25) where vocal bass/mid lives
+                let bin = Math.floor((dist / center) * (freqData.length * 0.4)); 
+                let val = freqData[bin] / 255;
+                
+                // Mathematical Sine Window to pinch the edges down to zero
+                let windowMultiplier = Math.sin(Math.PI * (i / (numPoints - 1)));
+                
+                let height = val * (h / 2) * windowMultiplier * 0.9;
+                if(height < 2) height = 2; // minimum resting thickness
+                points.push(height);
             }
-            canvasCtx.lineTo(canvas.width, canvas.height / 2);
-            canvasCtx.stroke();
+
+            // Draw Symmetrical Bezier Blob
+            canvasCtx.beginPath();
+            canvasCtx.moveTo(0, centerY);
+
+            const slice = w / (numPoints - 1);
+
+            // Draw Top Half
+            for (let i = 0; i < numPoints - 1; i++) {
+                let xc = (i + 0.5) * slice;
+                let yc = centerY - (points[i] + points[i+1]) / 2;
+                canvasCtx.quadraticCurveTo(i * slice, centerY - points[i], xc, yc);
+            }
+            canvasCtx.lineTo(w, centerY - points[numPoints - 1]);
+
+            // Draw Bottom Half (Mirrored)
+            for (let i = numPoints - 1; i > 0; i--) {
+                let xc = (i - 0.5) * slice;
+                let yc = centerY + (points[i] + points[i-1]) / 2;
+                canvasCtx.quadraticCurveTo(i * slice, centerY + points[i], xc, yc);
+            }
+            canvasCtx.lineTo(0, centerY + points[0]);
+            canvasCtx.closePath();
+
+            // Premium Gradient Fill
+            const gradient = canvasCtx.createLinearGradient(0, 0, w, 0);
+            gradient.addColorStop(0, '#06b6d4'); // Cyan
+            gradient.addColorStop(0.5, '#3b82f6'); // Blue
+            gradient.addColorStop(1, '#a855f7'); // Purple
             
-            // Reset shadow to prevent box bleed
-            canvasCtx.shadowBlur = 0;
+            canvasCtx.fillStyle = gradient;
+            
+            // Soft glowing drop shadow
+            canvasCtx.shadowColor = '#06b6d4';
+            canvasCtx.shadowBlur = 15;
+            canvasCtx.fill();
+            canvasCtx.shadowBlur = 0; // Reset
         }
 
         // 4. Record & Custom Playback Engine
@@ -380,8 +438,11 @@
 
             mediaRecorder.onstop = () => {
                 const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                audioPlayback.src = URL.createObjectURL(audioBlob);
-                customPlayer.classList.remove('hidden');
+                if (blobUrlForDownload) URL.revokeObjectURL(blobUrlForDownload);
+                blobUrlForDownload = URL.createObjectURL(audioBlob);
+                
+                audioPlayback.src = blobUrlForDownload;
+                playerWrapper.classList.remove('hidden');
             };
 
             mediaRecorder.start();
@@ -392,8 +453,7 @@
             btnRecord.classList.replace('border-blue-500', 'border-rose-500');
             btnRecord.innerHTML = `<span class="recording-dot"></span> <span id="record-text" class="text-rose-400 font-bold">Recording...</span>`;
             
-            // Hide player while recording
-            customPlayer.classList.add('hidden');
+            playerWrapper.classList.add('hidden');
             audioPlayback.pause();
 
             recordTimeout = setTimeout(() => { if (isRecording) stopRecording(); }, 5000);
@@ -409,7 +469,15 @@
             btnRecord.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> <span id="record-text">Record New Audio</span>`;
         }
 
-        // Custom Audio Player Logic
+        function downloadRecording() {
+            if (!blobUrlForDownload) return;
+            const a = document.createElement('a');
+            a.href = blobUrlForDownload;
+            a.download = `silenvault_mic_test_${Date.now()}.webm`;
+            a.click();
+        }
+
+        // Player Controls
         function togglePlay() {
             if(audioPlayback.paused) {
                 audioPlayback.play();
@@ -423,7 +491,6 @@
         }
 
         audioPlayback.addEventListener('timeupdate', () => {
-            // Blob duration is sometimes weird in Chrome, limit to 5s max logic
             let dur = audioPlayback.duration === Infinity ? 5 : audioPlayback.duration;
             let current = audioPlayback.currentTime;
             if (isNaN(dur)) dur = 5;
@@ -466,7 +533,7 @@
             osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.3);
 
             panner.pan.value = panValue;
-            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.5, audio: audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
 
             osc.start();
@@ -476,7 +543,7 @@
         // 6. Ad-Sensing Logic
         function monitorAds() {
             const adSlot = document.querySelector('#sidebar-ad-wrapper ins.adsbygoogle');
-            const container = document.getElementById('#sidebar-ad-wrapper');
+            const container = document.getElementById('sidebar-ad-wrapper');
             if (!adSlot) return;
 
             const observer = new MutationObserver(() => {
