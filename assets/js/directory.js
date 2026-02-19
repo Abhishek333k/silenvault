@@ -153,6 +153,17 @@ const silenVaultTools = [
         // Sine wave icon
         iconPath: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12c3 0 3-6 6-6s3 6 6 6 3 6 6 6 3-6 6-6" />`
     },
+    {
+        category: "hardware",
+        id: "vibration_tester",
+        title: "Haptic & Vibration Tester",
+        desc: "Test smartphone haptic motors with custom pulse patterns and SOS sequences.",
+        link: "tools/vibration_tester",
+        tag: "Mobile",
+        iconColors: "bg-purple-500/10 text-purple-400 group-hover:bg-purple-500",
+        // Vibration/Phone Icon
+        iconPath: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />`
+    }
 
     // --- CREATOR TOOLS ---
     {
