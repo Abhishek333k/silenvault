@@ -1,7 +1,7 @@
 // assets/templates/invoices/theme_bundle.js
 
 window.InvoiceThemes = {
-    // 1. STANDARD CORPORATE (Clean, B&W, Traditional)
+    // 1. STANDARD CORPORATE
     standard: (data) => `
         <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; padding: 40px; background: white; min-height: 100%; box-sizing: border-box;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px;">
@@ -10,7 +10,8 @@ window.InvoiceThemes = {
                     <p style="margin: 5px 0 0 0; color: #666;"># ${data.invoiceNo}</p>
                 </div>
                 <div style="text-align: right;">
-                    <h2 style="margin: 0; font-size: 20px; color: #111;">${data.fromName || 'Your Company'}</h2>
+                    ${data.logo ? `<img src="${data.logo}" style="max-height: 60px; max-width: 200px; margin-bottom: 10px; display: block; margin-left: auto;">` : `<h2 style="margin: 0; font-size: 20px; color: #111;">${data.fromName || 'Your Company'}</h2>`}
+                    ${data.logo && data.fromName ? `<h3 style="margin: 0 0 5px 0; font-size: 14px; color: #333;">${data.fromName}</h3>` : ''}
                     <p style="margin: 5px 0 0 0; color: #666; font-size: 14px; white-space: pre-line;">${data.fromAddress || 'Address details...'}</p>
                 </div>
             </div>
@@ -78,12 +79,13 @@ window.InvoiceThemes = {
         </div>
     `,
 
-    // 2. MODERN ACCENT (ZOHO / Stripe style, colorful, sleek)
+    // 2. MODERN ACCENT
     modern: (data) => `
         <div style="font-family: 'Inter', sans-serif; color: #1e293b; padding: 40px; background: white; min-height: 100%; box-sizing: border-box;">
             
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
                 <div>
+                    ${data.logo ? `<img src="${data.logo}" style="max-height: 60px; max-width: 200px; margin-bottom: 15px; display: block;">` : ''}
                     <h2 style="margin: 0; font-size: 24px; color: #0f172a; font-weight: 800;">${data.fromName || 'Your Company'}</h2>
                     <p style="margin: 5px 0 0 0; color: #64748b; font-size: 13px; white-space: pre-line;">${data.fromAddress || 'Address details...'}</p>
                 </div>
