@@ -3,8 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Architect Pro IDE | SilenVault</title>
-    <meta name="description" content="Professional in-browser HTML, CSS, and JavaScript IDE. Sandboxed live preview, resizable panels, and auto-save.">
+    
+    <title>Online HTML, CSS & JS Sandbox | SilenVault</title>
+    <meta name="description" content="Free, local-first frontend web IDE. Write HTML, CSS, and JavaScript with live preview, auto-save, and CodeMirror syntax highlighting. No signup required.">
+    <meta name="keywords" content="html sandbox, online web ide, css editor, javascript compiler online, frontend code editor, codepen alternative free">
+    
+    <meta property="og:title" content="Online HTML/JS Sandbox | SilenVault">
+    <meta property="og:description" content="Professional sandboxed code editor. Test your frontend code locally in your browser.">
+    <meta property="og:type" content="website">
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
 
@@ -28,7 +34,7 @@
 
         /* Full Screen IDE Wrapper */
         .ide-wrapper {
-            height: calc(100vh - 200px); /* Responsive tall height */
+            height: calc(100vh - 200px); 
             min-height: 500px;
             display: flex;
             border-radius: 0.75rem;
@@ -38,24 +44,17 @@
             background: #0f172a;
         }
 
-        /* Left Side: Code Editor */
         #editor-pane { width: 50%; display: flex; flex-direction: column; min-width: 200px; background: #0f172a; }
-        
         .editor-container { flex: 1; position: relative; }
 
-        /* Force CodeMirror to fill parent perfectly */
         .CodeMirror {
-            position: absolute !important;
-            top: 0; left: 0; right: 0; bottom: 0;
-            height: 100% !important;
-            font-family: 'Fira Code', monospace; 
-            font-size: 14px; 
-            background: #0f172a !important; 
+            position: absolute !important; top: 0; left: 0; right: 0; bottom: 0;
+            height: 100% !important; font-family: 'Fira Code', monospace; 
+            font-size: 14px; background: #0f172a !important; 
         }
         .cm-s-dracula.CodeMirror { box-shadow: none; border: none; }
         .cm-s-dracula .CodeMirror-gutters { background-color: #020617; border-right: 1px solid #1e293b; }
 
-        /* The Draggable Splitter */
         #resizer {
             width: 8px; background: #020617; border-left: 1px solid #1e293b; border-right: 1px solid #1e293b;
             cursor: col-resize; display: flex; align-items: center; justify-content: center;
@@ -64,14 +63,10 @@
         #resizer:hover, #resizer:active { background: #3b82f6; }
         #resizer::after { content: ''; width: 2px; height: 30px; background: #334155; border-radius: 2px; }
 
-        /* Right Side: Preview */
         #preview-pane { flex: 1; background: #ffffff; position: relative; min-width: 200px; }
         #preview-frame { width: 100%; height: 100%; border: none; background: white; display: block; }
-        
-        /* Overlay stops iframe from stealing mouse events during drag */
         #iframe-overlay { position: absolute; inset: 0; z-index: 40; display: none; }
 
-        /* Tabs UI */
         .tab-btn {
             padding: 10px 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;
             letter-spacing: 1px; color: #64748b; background: transparent;
@@ -91,9 +86,9 @@
         <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-2">
             <div>
                 <h1 class="text-2xl md:text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-                    Architect <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">IDE</span>
+                    Frontend <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">Sandbox</span>
                 </h1>
-                <p class="text-xs text-slate-400 mt-1">Professional sandboxed editor. Drag the center bar to resize.</p>
+                <p class="text-xs text-slate-400 mt-1">Professional web IDE. Drag the center bar to test responsive layouts.</p>
             </div>
             
             <div class="flex items-center gap-3 w-full md:w-auto">
@@ -113,17 +108,18 @@
         <div class="ide-wrapper">
             
             <div id="editor-pane">
-                
-                <div class="flex bg-[#020617] border-b border-slate-800 px-2 pt-2">
-                    <button id="tab-html" onclick="switchTab('html')" class="tab-btn active text-rose-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg> HTML
-                    </button>
-                    <button id="tab-css" onclick="switchTab('css')" class="tab-btn">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg> CSS
-                    </button>
-                    <button id="tab-js" onclick="switchTab('js')" class="tab-btn">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> JS
-                    </button>
+                <div class="flex justify-between items-center bg-[#020617] border-b border-slate-800 pr-2">
+                    <div class="flex pt-2 px-2">
+                        <button id="tab-html" onclick="switchTab('html')" class="tab-btn active text-rose-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg> HTML
+                        </button>
+                        <button id="tab-css" onclick="switchTab('css')" class="tab-btn">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg> CSS
+                        </button>
+                        <button id="tab-js" onclick="switchTab('js')" class="tab-btn">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> JS
+                        </button>
+                    </div>
                 </div>
 
                 <div id="html-container" class="editor-container"><textarea id="html-code"></textarea></div>
@@ -134,11 +130,33 @@
             <div id="resizer"></div>
 
             <div id="preview-pane">
-                <div class="absolute top-0 right-0 bg-slate-900/80 text-white text-[10px] font-mono px-3 py-1 m-2 rounded backdrop-blur border border-slate-700 z-50 pointer-events-none shadow-md">Output Console</div>
+                <div class="absolute top-0 right-0 bg-slate-900/80 text-white text-[10px] font-mono px-3 py-1 m-2 rounded backdrop-blur border border-slate-700 z-50 pointer-events-none shadow-md">Live Output</div>
                 <div id="iframe-overlay"></div>
                 <iframe id="preview-frame" sandbox="allow-scripts allow-modals"></iframe>
             </div>
+        </div>
 
+        <div class="grid lg:grid-cols-3 gap-8 mt-6">
+            <div class="lg:col-span-2 glass-panel p-8 rounded-2xl border-slate-800 prose prose-invert max-w-none">
+                <h2 class="text-xl font-bold text-white mb-4">The Ultimate Online Code Editor</h2>
+                <p class="text-sm text-slate-400 leading-relaxed mb-4">
+                    SilenVault's Web IDE is a high-performance alternative to platforms like CodePen and JSFiddle. Built for developers who need to prototype frontend interfaces instantly without dealing with account logins or cloud synchronization delays.
+                </p>
+                <ul class="text-sm text-slate-400 leading-relaxed space-y-3 m-0 p-0 list-none">
+                    <li><strong class="text-purple-400">Secure Sandboxing:</strong> Your code is compiled and executed locally inside an isolated HTML5 <code>iframe</code> using the <code>srcdoc</code> attribute. This guarantees that test scripts cannot access your main browser data.</li>
+                    <li><strong class="text-slate-200">Zero-Latency Auto-Save:</strong> Our Debounce engine automatically compiles your code 500ms after you stop typing and pushes the state to your browser's <code>localStorage</code>. You can safely close the tab and return later.</li>
+                    <li><strong class="text-slate-200">Production Export:</strong> Once your UI prototype is complete, click "Export .html". The IDE mathematically merges your CSS and Javascript into a single, production-ready document for download.</li>
+                </ul>
+            </div>
+
+            <div class="space-y-6">
+                <div id="sidebar-ad-wrapper" class="hidden opacity-0 transition-opacity duration-1000">
+                    <aside class="smart-ad-unit bg-slate-900/50 border border-slate-800 rounded-2xl flex flex-col items-center justify-center p-4 min-h-[250px]">
+                        <span class="text-[10px] uppercase tracking-widest text-slate-600 block mb-2 pointer-events-none">Sponsored</span>
+                        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="7594122081" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                    </aside>
+                </div>
+            </div>
         </div>
 
     </main>
@@ -168,13 +186,11 @@
 
         // --- TAB SWITCHING LOGIC ---
         function switchTab(tabId) {
-            // Hide all
             ['html', 'css', 'js'].forEach(t => {
                 document.getElementById(`${t}-container`).classList.add('hidden');
                 document.getElementById(`tab-${t}`).classList.remove('active', 'text-rose-400', 'text-blue-400', 'text-amber-400');
             });
             
-            // Show Active
             document.getElementById(`${tabId}-container`).classList.remove('hidden');
             const btn = document.getElementById(`tab-${tabId}`);
             btn.classList.add('active');
@@ -192,21 +208,20 @@
 
         resizer.addEventListener('mousedown', (e) => {
             isResizing = true;
-            iframeOverlay.style.display = 'block'; // Block iframe stealing mouse
+            iframeOverlay.style.display = 'block'; 
             document.body.style.cursor = 'col-resize';
             e.preventDefault();
         });
 
         document.addEventListener('mousemove', (e) => {
             if (!isResizing) return;
-            // Calculate width relative to the left side of the window
             let newWidth = e.clientX;
-            // Constrain width
+            // Prevent squeezing too small
             if (newWidth < 300) newWidth = 300;
             if (newWidth > window.innerWidth - 300) newWidth = window.innerWidth - 300;
             
             editorPane.style.width = `${newWidth}px`;
-            editorPane.style.flex = "none"; // Remove flex 1/2 so absolute width applies
+            editorPane.style.flex = "none";
         });
 
         document.addEventListener('mouseup', () => {
@@ -243,14 +258,14 @@
             saveStatus.className = "text-[10px] font-mono font-bold text-amber-400 uppercase tracking-widest flex items-center gap-2";
             
             clearTimeout(timeout);
-            timeout = setTimeout(compilePreview, 500); // 500ms Debounce
+            timeout = setTimeout(compilePreview, 500); 
         }
 
         editorHTML.on("change", handleInput);
         editorCSS.on("change", handleInput);
         editorJS.on("change", handleInput);
 
-        compilePreview(); // Init
+        compilePreview();
 
         // --- EXPORT ---
         function downloadCode() {
