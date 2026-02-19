@@ -1,3 +1,29 @@
+// ARCHITECT: Universal Google Analytics Injection
+function injectAnalytics() {
+    // Prevent injecting twice if the script runs again
+    if (document.getElementById('ga-script')) return;
+
+    // 1. Load the external Google Tag script
+    const gtagScript = document.createElement('script');
+    gtagScript.id = 'ga-script';
+    gtagScript.async = true;
+    gtagScript.src = 'https://www.googletagmanager.com/gtag/js?id=G-VQL2F8H2R9';
+    document.head.appendChild(gtagScript);
+
+    // 2. Initialize the dataLayer and config
+    const configScript = document.createElement('script');
+    configScript.innerHTML = `
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-VQL2F8H2R9');
+    `;
+    document.head.appendChild(configScript);
+}
+
+// Execute immediately
+injectAnalytics();
+
 class SVHeader extends HTMLElement {
     connectedCallback() {
         const basePath = this.getAttribute('base-path') || '.';
