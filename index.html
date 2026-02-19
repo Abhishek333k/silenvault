@@ -213,10 +213,13 @@
             const queryRaw = document.getElementById('toolSearch').value;
             const query = queryRaw.toLowerCase();
             let totalFound = 0;
-            const filteredTools = { business: [], creator: [], dev: [] };
+            
+            // FIX: Added 'hardware' array here to prevent JS Crash
+            const filteredTools = { business: [], hardware: [], creator: [], dev: [] };
 
             silenVaultTools.forEach(tool => {
                 if (tool.title.toLowerCase().includes(query) || tool.desc.toLowerCase().includes(query) || (tool.tag && tool.tag.toLowerCase().includes(query))) {
+                    // This is where it was crashing previously
                     filteredTools[tool.category].push(tool);
                     totalFound++;
                 }
@@ -229,6 +232,10 @@
             Object.keys(filteredTools).forEach(category => {
                 const grid = document.getElementById(`grid-${category}`);
                 const sec = document.getElementById(`sec-${category}`);
+                
+                // Safety check in case a section div doesn't exist in HTML
+                if (!grid || !sec) return; 
+
                 grid.innerHTML = ''; 
                 sec.style.display = filteredTools[category].length === 0 ? 'none' : 'block';
 
@@ -251,6 +258,8 @@
             if (typeof silenVaultTools !== 'undefined') {
                 renderEngine();
                 monitorAds();
+            } else {
+                console.error("Architect Error: directory.js failed to load.");
             }
         });
     </script>
