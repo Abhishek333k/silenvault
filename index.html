@@ -18,7 +18,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <script src="assets/js/layout.js" defer></script>
-    <script src="assets/js/directory.js" defer></script> <style>
+    <script src="assets/js/directory.js" defer></script>
+
+    <style>
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
         
         .fixed-bg {
@@ -46,7 +48,19 @@
             box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.2); 
         }
 
+        /* Search Bar Glow */
         .search-wrapper:focus-within { box-shadow: 0 0 20px -5px rgba(59, 130, 246, 0.5); border-color: #3b82f6; }
+        
+        /* Smooth injection animation */
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in-card { animation: fadeSlideUp 0.4s ease forwards; }
+
+        /* The Sticky Sidebar Constraint */
+        .sticky-sidebar { position: sticky; top: 6rem; height: calc(100vh - 8rem); display: flex; flex-direction: column; }
+
         html { scroll-behavior: smooth; }
     </style>
 </head>
@@ -66,18 +80,30 @@
             A suite of local-first utilities. We process your data in your browser, not on our servers.
         </p>
 
-        <div class="max-w-xl mx-auto relative search-wrapper border border-slate-700/50 rounded-2xl bg-slate-900/50 backdrop-blur-md transition-all">
+        <div class="max-w-xl mx-auto relative search-wrapper border border-slate-700/50 rounded-2xl bg-slate-900/50 backdrop-blur-md transition-all flex items-center pr-4">
             <svg class="absolute left-4 top-3.5 w-5 h-5 text-slate-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-            <input type="text" id="toolSearch" aria-label="Search tools" placeholder="Search tools (e.g., 'Invoice', 'JSON', 'JWT')..." 
+            <input type="text" id="toolSearch" aria-label="Search tools" placeholder="Search tools..." 
                    class="w-full bg-transparent border-none text-white px-12 py-3 focus:outline-none rounded-2xl placeholder-slate-500 font-medium"
                    onkeyup="renderEngine()">
+            <div class="hidden sm:flex items-center gap-1 text-[10px] font-mono font-bold text-slate-500 border border-slate-700 bg-slate-800/50 px-2 py-1 rounded pointer-events-none">
+                <kbd>Ctrl</kbd>+<kbd>K</kbd>
+            </div>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-32 flex flex-col lg:flex-row gap-12 flex-1">
         
-        <div class="flex-1">
+        <div class="flex-1 w-full relative min-h-[500px]">
             
+            <div id="empty-state" class="hidden absolute inset-0 flex flex-col items-center justify-center text-center mt-20">
+                <div class="w-16 h-16 bg-slate-800/50 rounded-2xl flex items-center justify-center mb-4 text-slate-500 border border-slate-700">
+                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2">No tools found</h3>
+                <p class="text-slate-400 text-sm">We couldn't find anything matching "<span id="query-term" class="text-white font-mono"></span>".</p>
+                <button onclick="document.getElementById('toolSearch').value=''; renderEngine();" class="mt-6 text-blue-400 text-sm hover:text-blue-300 transition-colors">Clear search</button>
+            </div>
+
             <div class="mb-24 tool-section" id="sec-business">
                 <div class="flex items-center justify-between mb-8">
                     <h2 class="text-xl font-bold text-white flex items-center gap-3 uppercase tracking-wider">
@@ -85,14 +111,7 @@
                         Business Operations
                     </h2>
                 </div>
-                
-                <div class="bento-grid mb-8" id="grid-business">
-                    </div>
-
-                <div class="ad-unit-wrapper smart-ad-unit w-full text-center overflow-hidden transition-all duration-500">
-                    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="7594122081" data-ad-format="auto" data-full-width-responsive="true"></ins>
-                    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-                </div>
+                <div class="bento-grid" id="grid-business"></div>
             </div>
             
             <div class="mb-24 tool-section" id="sec-creator">
@@ -102,9 +121,7 @@
                         Creator Tools
                     </h2>
                 </div>
-                
-                <div class="bento-grid mb-8" id="grid-creator">
-                     </div>
+                <div class="bento-grid" id="grid-creator"></div>
             </div>
             
             <div class="mb-24 tool-section" id="sec-dev">
@@ -114,34 +131,46 @@
                         Developer Utilities
                     </h2>
                 </div>
-                
-                <div class="bento-grid mb-8" id="grid-dev">
-                     </div>
+                <div class="bento-grid" id="grid-dev"></div>
             </div>
         </div>
 
-        <aside class="w-full lg:w-80 flex flex-col gap-6 shrink-0">
-            <div class="bg-slate-900/50 backdrop-blur-md border border-slate-800 rounded-2xl p-6 sticky top-24">
-                <h3 class="font-bold text-white mb-4 uppercase tracking-wider text-xs">Why SilenVault?</h3>
-                <ul class="text-sm text-slate-400 space-y-4">
-                    <li class="flex items-start gap-3">
-                        <span class="text-emerald-400">✅</span>
-                        <span><strong>Local-First:</strong> Data never leaves your browser.</span>
-                    </li>
-                    <li class="flex items-start gap-3">
-                        <span class="text-blue-400">🛡️</span>
-                        <span><strong>Secure:</strong> Enterprise-grade sandboxing.</span>
-                    </li>
-                    <li class="flex items-start gap-3">
-                        <span class="text-purple-400">⚡</span>
-                        <span><strong>Fast:</strong> No server lag. Instant results.</span>
-                    </li>
-                </ul>
+        <aside class="w-full lg:w-80 shrink-0">
+            <div class="sticky-sidebar gap-6">
                 
-                <div class="smart-ad-unit mt-8 w-full text-center overflow-hidden transition-all duration-500">
-                    <ins class="adsbygoogle" style="display:block; width: 100%; height: 100%;" data-ad-client="ca-pub-5449371042798610" data-ad-slot="9264203071" data-ad-format="auto" data-full-width-responsive="true"></ins>
-                    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+                <div class="bg-slate-900/50 backdrop-blur-md border border-slate-800 rounded-2xl p-6 shrink-0">
+                    <h3 class="font-bold text-white mb-4 uppercase tracking-wider text-xs">Why SilenVault?</h3>
+                    <ul class="text-sm text-slate-400 space-y-4">
+                        <li class="flex items-start gap-3">
+                            <span class="text-emerald-400">✅</span>
+                            <span><strong>Local-First:</strong> Data never leaves your browser.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-blue-400">🛡️</span>
+                            <span><strong>Secure:</strong> Enterprise-grade sandboxing.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-purple-400">⚡</span>
+                            <span><strong>Fast:</strong> No server lag. Instant results.</span>
+                        </li>
+                    </ul>
                 </div>
+                
+                <div class="smart-ad-unit w-full flex-1 min-h-[300px] border border-slate-800/50 bg-slate-900/20 rounded-2xl overflow-hidden flex flex-col relative group">
+                    <div class="absolute top-2 left-0 right-0 text-center pointer-events-none opacity-30 text-[10px] uppercase tracking-widest font-bold text-slate-500 z-0">
+                        Advertisement
+                    </div>
+                    <div class="relative z-10 w-full h-full flex items-center justify-center">
+                        <ins class="adsbygoogle" 
+                             style="display:block; width: 100%; height: 100%;" 
+                             data-ad-client="ca-pub-5449371042798610" 
+                             data-ad-slot="9264203071" 
+                             data-ad-format="vertical" 
+                             data-full-width-responsive="true"></ins>
+                        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+                    </div>
+                </div>
+
             </div>
         </aside>
 
@@ -149,72 +178,86 @@
     <sv-footer base-path="."></sv-footer>
 
     <script>
-    // ARCHITECT: DOM Generator & Search Engine
-    function renderEngine() {
-        const query = document.getElementById('toolSearch').value.toLowerCase();
-        
-        // 1. Group tools by category based on the search query
-        const filteredTools = {
-            business: [],
-            creator: [],
-            dev: []
-        };
-
-        silenVaultTools.forEach(tool => {
-            if (tool.title.toLowerCase().includes(query) || tool.desc.toLowerCase().includes(query)) {
-                filteredTools[tool.category].push(tool);
+        // ARCHITECT: Pro Developer Shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Focus search on Ctrl+K, Cmd+K, or pressing "/" outside of inputs
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                document.getElementById('toolSearch').focus();
+            }
+            if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                document.getElementById('toolSearch').focus();
             }
         });
 
-        // 2. Render HTML for each section
-        Object.keys(filteredTools).forEach(category => {
-            const gridElement = document.getElementById(`grid-${category}`);
-            const sectionElement = document.getElementById(`sec-${category}`);
-            const adElement = sectionElement.querySelector('.ad-unit-wrapper'); // Target the ad inside this section
+        // ARCHITECT: DOM Generator & Search Engine
+        function renderEngine() {
+            const queryRaw = document.getElementById('toolSearch').value;
+            const query = queryRaw.toLowerCase();
+            let totalFound = 0;
             
-            gridElement.innerHTML = ''; // Clear previous cards
+            // 1. Group tools
+            const filteredTools = { business: [], creator: [], dev: [] };
 
-            if (filteredTools[category].length === 0) {
-                // Hide entire category if nothing matches
-                sectionElement.style.display = 'none'; 
-            } else {
-                // Show category
-                sectionElement.style.display = 'block'; 
-                
-                // ARCHITECT FIX: Hide Ad Unit while searching to declutter UI
-                if (adElement) {
-                    adElement.style.display = (query.length > 0) ? 'none' : 'block';
+            silenVaultTools.forEach(tool => {
+                if (tool.title.toLowerCase().includes(query) || tool.desc.toLowerCase().includes(query) || (tool.tag && tool.tag.toLowerCase().includes(query))) {
+                    filteredTools[tool.category].push(tool);
+                    totalFound++;
                 }
+            });
+
+            // 2. Handle Zero-State UI
+            const emptyState = document.getElementById('empty-state');
+            if (totalFound === 0) {
+                emptyState.classList.remove('hidden');
+                document.getElementById('query-term').innerText = queryRaw;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            // 3. Render HTML with smooth fade-in
+            Object.keys(filteredTools).forEach(category => {
+                const gridElement = document.getElementById(`grid-${category}`);
+                const sectionElement = document.getElementById(`sec-${category}`);
                 
-                // Rebuild the grid with perfectly spaced cards
-                filteredTools[category].forEach(tool => {
-                    const tagHTML = tool.tag ? `<div class="absolute top-4 right-4"><span class="bg-rose-500/20 text-rose-400 text-[10px] font-black px-2 py-0.5 rounded-full tracking-widest uppercase">${tool.tag}</span></div>` : '';
+                gridElement.innerHTML = ''; 
+
+                if (filteredTools[category].length === 0) {
+                    sectionElement.style.display = 'none'; 
+                } else {
+                    sectionElement.style.display = 'block'; 
                     
-                    gridElement.innerHTML += `
-                        <a href="${tool.link}" class="tool-card p-8 rounded-2xl group block relative overflow-hidden">
-                            <div class="w-14 h-14 ${tool.iconColors} rounded-xl flex items-center justify-center mb-6 transition-all shadow-inner">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="${tool.iconPath.includes('stroke') ? 'none' : 'currentColor'}" viewBox="0 0 24 24" stroke="currentColor">
-                                    ${tool.iconPath}
-                                </svg>
-                            </div>
-                            ${tagHTML}
-                            <h3 class="text-lg font-bold text-white mb-3">${tool.title}</h3>
-                            <p class="text-sm text-slate-400 leading-relaxed">${tool.desc}</p>
-                        </a>
-                    `;
-                });
+                    filteredTools[category].forEach((tool, index) => {
+                        // Stagger the animation slightly for a "waterfall" effect
+                        const delay = index * 0.05;
+                        const tagHTML = tool.tag ? `<div class="absolute top-4 right-4"><span class="bg-slate-800 text-slate-300 border border-slate-700 text-[9px] font-black px-2 py-1 rounded-md tracking-widest uppercase shadow-sm">${tool.tag}</span></div>` : '';
+                        
+                        gridElement.innerHTML += `
+                            <a href="${tool.link}" class="tool-card p-8 rounded-2xl group block relative overflow-hidden animate-in-card" style="animation-delay: ${delay}s">
+                                <div class="w-14 h-14 ${tool.iconColors} rounded-xl flex items-center justify-center mb-6 transition-all shadow-inner">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="${tool.iconPath.includes('stroke') ? 'none' : 'currentColor'}" viewBox="0 0 24 24" stroke="currentColor">
+                                        ${tool.iconPath}
+                                    </svg>
+                                </div>
+                                ${tagHTML}
+                                <h3 class="text-lg font-bold text-white mb-3">${tool.title}</h3>
+                                <p class="text-sm text-slate-400 leading-relaxed">${tool.desc}</p>
+                            </a>
+                        `;
+                    });
+                }
+            });
+        }
+
+        // Initialize grid on load
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof silenVaultTools !== 'undefined') {
+                renderEngine();
+            } else {
+                console.error("Architect Error: directory.js failed to load.");
             }
         });
-    }
-
-    // Initialize grid on load
-    window.addEventListener('DOMContentLoaded', () => {
-        if (typeof silenVaultTools !== 'undefined') {
-            renderEngine();
-        } else {
-            console.error("Architect Error: directory.js failed to load.");
-        }
-    });
-</script>
+    </script>
 </body>
 </html>
