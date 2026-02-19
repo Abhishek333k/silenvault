@@ -87,6 +87,17 @@ const silenVaultTools = [
         // Microphone Icon
         iconPath: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />`
     },
+    {
+        category: "hardware",
+        id: "touch_tester",
+        title: "Touch Screen Tester",
+        desc: "Map screen dead zones and verify multi-touch tracking limits.",
+        link: "tools/touch_tester",
+        tag: "Mobile",
+        iconColors: "bg-pink-500/10 text-pink-500 group-hover:bg-pink-500",
+        // Hand/Touch Icon
+        iconPath: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />`
+    },
 
     // --- CREATOR TOOLS ---
     {
