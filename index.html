@@ -10,13 +10,13 @@
     <meta property="og:url" content="https://silenvault.com/">
     <meta property="og:title" content="SilenVault | Encrypted in Style">
     <meta property="og:description" content="Local-first tools: Invoice Generator, Loan Calculator, File Converter. Zero data leaks.">
-    <meta property="og:image" content="https://silenvault.com/assets/img/Banner_with_CREST.png">
+    <meta property="og:image" content="https://silenvault.com/assets/img/SILENVAULT_LOGO.png">
 
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://silenvault.com/">
     <meta property="twitter:title" content="SilenVault | Encrypted in Style">
     <meta property="twitter:description" content="Local-first tools: Invoice Generator, Loan Calculator, File Converter. Zero data leaks.">
-    <meta property="twitter:image" content="https://silenvault.com/assets/img/Banner_with_CREST.png">
+    <meta property="twitter:image" content="https://silenvault.com/assets/img/SILENVAULT_LOGO.png">
 
     <link rel="icon" type="image/png" href="assets/img/SILENVAULT_LOGO.png">
     
@@ -27,7 +27,7 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
         
-        /* ARCHITECT FIX: Fixed Background Mesh */
+        /* Fixed Background Mesh */
         .fixed-bg {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -35,19 +35,20 @@
             background: radial-gradient(circle at 50% 0%, #1e293b 0%, #020617 100%);
         }
 
-        /* ARCHITECT FIX: Massive Center Watermark Crest */
+        /* ARCHITECT FIX: Mobile-Responsive Center Watermark Crest */
         .bg-crest {
             position: fixed;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            width: 85vh; height: 85vh;
-            background-image: url('assets/img/SILENVAULT_LOGO.png'); /* Swap if you have a specific crest file */
+            width: 100%; height: 100%;
+            background-image: url('assets/img/SILENVAULT_LOGO.png');
             background-repeat: no-repeat;
             background-position: center;
-            background-size: contain;
-            opacity: 0.03; /* The secret to the "Gov Portal" look */
+            /* vmin perfectly scales it to fit within whichever screen edge is smallest */
+            background-size: 85vmin; 
+            opacity: 0.03; 
             z-index: -1;
-            pointer-events: none; /* Prevents it from blocking clicks on the grid */
+            pointer-events: none; 
         }
 
         .bento-grid { 
@@ -85,7 +86,9 @@
 <body class="min-h-screen flex flex-col">
 
     <div class="fixed-bg"></div>
-    <div class="bg-crest"></div> <sv-header base-path="."></sv-header>
+    <div class="bg-crest"></div>
+
+    <sv-header base-path="."></sv-header>
 
     <header class="relative pt-24 pb-16 px-4 text-center">
         <h1 class="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">
@@ -301,7 +304,7 @@
     <sv-footer base-path="."></sv-footer>
 
     <script>
-        // ARCHITECT: Advanced Smart Filter (Hides Sections + Ads)
+        // ARCHITECT: Advanced Smart Filter
         let sections = [];
         
         window.addEventListener('DOMContentLoaded', () => {
