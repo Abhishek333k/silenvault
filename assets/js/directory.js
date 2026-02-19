@@ -42,7 +42,7 @@ const silenVaultTools = [
     {
         category: "dev", id: "ide",
         title: "HTML/JS Sandbox", desc: "Professional sandboxed HTML/CSS/JS editor with real-time compilation.",
-        link: "tools/html_viewer.html", tag: "Code",
+        link: "tools/web_ide.html", tag: "Code",
         iconColors: "bg-purple-500/10 text-purple-400 group-hover:bg-purple-500",
         iconPath: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />`
     },
