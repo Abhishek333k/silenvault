@@ -156,4 +156,17 @@ const silenVaultTools = [
         iconColors: "bg-orange-500/10 text-orange-400 group-hover:bg-orange-500",
         iconPath: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />`
     }
+    
+    // --- HARDWARE DIAGNOSTICS ---
+    {
+        category: "hardware",
+        id: "keyboard_tester",
+        title: "Keyboard Architect",
+        desc: "Test hardware keys, analyze ghosting, and extract raw JS event codes.",
+        link: "tools/keyboard_tester",
+        tag: "Hardware",
+        iconColors: "bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500",
+        // Icon of a Keyboard
+        iconPath: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 20h9M3 14h1m4 0h1m4 0h1m4 0h1m-15-4h1m4 0h1m4 0h1m4 0h1M5 6h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z" />`
+    },
 ];
