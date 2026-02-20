@@ -12,11 +12,13 @@ export class RawProcessor {
         return await window.exifr.parse(buffer, {tiff: true, ifd0: true, exif: true, gps: true, xmp: true, iptc: true});
     }
 
+    setCache(cache) { this.exifCache = cache; }
+
     async getPreviewUrl() {
         try {
             const thumbBuffer = await window.exifr.thumbnail(this.file);
             if (thumbBuffer) return URL.createObjectURL(new Blob([thumbBuffer], {type: 'image/jpeg'}));
-            throw new Error("No Exifr Thumb");
+            throw new Error();
         } catch(e) {
             try {
                 const buffer = await this.file.arrayBuffer();
@@ -31,22 +33,15 @@ export class RawProcessor {
         }
     }
 
-    setCache(cache) {
-        this.exifCache = cache;
-    }
-
     async scrub() {
         const arrayBuffer = await this.file.arrayBuffer();
         let view = new DataView(arrayBuffer);
         let uint8View = new Uint8Array(arrayBuffer);
 
-        let isLittleEndian = true;
-        if (view.getUint16(0) === 0x4949) isLittleEndian = true;
-        else if (view.getUint16(0) === 0x4D4D) isLittleEndian = false;
-
+        let isLittleEndian = view.getUint16(0) === 0x4949;
         const searchLimit = Math.min(uint8View.length, 2000000); 
 
-        // Pass 1: Orphan IFD Pointers (Destroys actual GPS/EXIF numerical data)
+        // Pass 1: IFD Pointer Orphaning
         const targetTags = [0x8825, 0x8769, 0x010F, 0x0110, 0x0131, 0x0132, 0x02BC, 0x83BB, 0x927C];
         for (let i = 0; i < searchLimit - 12; i += 2) {
             let tagId = view.getUint16(i, isLittleEndian);
@@ -58,19 +53,15 @@ export class RawProcessor {
             }
         }
 
-        // Pass 2: Overwrite ASCII text so strict parsers don't see ghosts
+        // Pass 2: ASCII Overwrite for XMP XML and Cached Strings
         const encoder = new TextEncoder();
-        for (const [key, val] of Object.entries(this.exifCache)) {
+        for (const val of Object.values(this.exifCache)) {
             if (typeof val === 'string' && val.length > 3) {
                 const bytes = encoder.encode(val);
                 for (let i = 0; i < searchLimit - bytes.length; i++) {
                     let match = true;
-                    for (let j = 0; j < bytes.length; j++) {
-                        if (uint8View[i + j] !== bytes[j]) { match = false; break; }
-                    }
-                    if (match) {
-                        for (let j = 0; j < bytes.length; j++) uint8View[i + j] = 0x20;
-                    }
+                    for (let j = 0; j < bytes.length; j++) if (uint8View[i + j] !== bytes[j]) { match = false; break; }
+                    if (match) for (let j = 0; j < bytes.length; j++) uint8View[i + j] = 0x20;
                 }
             }
         }
@@ -80,12 +71,8 @@ export class RawProcessor {
             const bytes = encoder.encode(tag);
             for (let i = 0; i < searchLimit - bytes.length; i++) {
                 let match = true;
-                for (let j = 0; j < bytes.length; j++) {
-                    if (uint8View[i + j] !== bytes[j]) { match = false; break; }
-                }
-                if (match) {
-                    for (let j = 0; j < bytes.length; j++) uint8View[i + j] = 0x20;
-                }
+                for (let j = 0; j < bytes.length; j++) if (uint8View[i + j] !== bytes[j]) { match = false; break; }
+                if (match) for (let j = 0; j < bytes.length; j++) uint8View[i + j] = 0x20;
             }
         });
 
