@@ -3,173 +3,633 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SilenVault | Forensic Metadata Scrubber</title>
+    <title>Image Metadata Scrubber | SilenVault</title>
+    <meta name="description" content="Local-first tool to remove EXIF data and GPS coordinates. Exact format retention for JPEG, PNG, WebP, and RAW (CR2, DNG) formats.">
+    
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="../assets/js/layout.js" defer></script>
+
     <script src="https://cdn.jsdelivr.net/npm/exifr/dist/full.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.js"></script>
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        :root { --bg: #020617; --accent: #3b82f6; --fuchsia: #d946ef; }
-        body { background: var(--bg); color: #f8fafc; font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid #1e293b; }
-        
-        /* Modal Centering Fix */
-        #crossroads-modal { 
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
-            z-index: 9999; display: flex; align-items: center; justify-content: center; 
-            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); 
+        :root {
+            --bg-color: #020617;
+            --panel-bg: rgba(15, 23, 42, 0.6);
+            --border-color: #1e293b;
+            --accent-glow: rgba(59, 130, 246, 0.2);
+            --primary-text: #f8fafc;
         }
 
-        /* Dimension Shift */
-        body.advanced-mode { --bg: #0a000a; }
-        .portal-transition { animation: focusShift 0.8s ease-in-out forwards; }
-        @keyframes focusShift { 0%, 100% { filter: blur(0px); } 50% { filter: blur(5px) hue-rotate(-15deg); } }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--primary-text); overflow-x: hidden; transition: background-color 0.8s ease; }
+        .glass-panel { background: var(--panel-bg); backdrop-filter: blur(12px); border: 1px solid var(--border-color); transition: all 0.5s ease; }
+        .mono { font-family: 'Fira Code', monospace; }
 
-        .preview-box { border: 2px solid #1e293b; border-radius: 12px; height: 250px; background: #000; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; }
-        .terminal { background: #000; border: 1px solid #1e293b; border-radius: 8px; font-family: 'Fira Code', monospace; height: 300px; overflow: hidden; display: flex; flex-direction: column; }
-        .terminal-body { padding: 16px; overflow-y: auto; flex: 1; font-size: 13px; color: #e2e8f0; }
-        #meta-count { background: #1e293b; padding: 2px 8px; border-radius: 4px; font-weight: bold; color: #fff; }
+        /* ADVANCED RAW THEME (Smooth Purple/Fuchsia) */
+        body.advanced-mode {
+            --bg-color: #0a000a;
+            --panel-bg: rgba(25, 5, 25, 0.7);
+            --border-color: #701a75;
+            --accent-glow: rgba(217, 70, 239, 0.15);
+            background-image: 
+                linear-gradient(rgba(217, 70, 239, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(217, 70, 239, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+        .advanced-mode .status-scan { background: rgba(217, 70, 239, 0.1) !important; color: #e879f9 !important; border-color: rgba(217, 70, 239, 0.3) !important; }
+        .advanced-mode .scanner-line { background: #d946ef !important; box-shadow: 0 0 15px #d946ef, 0 0 30px #d946ef !important; }
+
+        .portal-transition { animation: portalPulse 0.8s ease-in-out forwards; }
+        @keyframes portalPulse {
+            0% { filter: blur(0px); opacity: 1; }
+            50% { filter: blur(4px) hue-rotate(-10deg); opacity: 0.8; }
+            100% { filter: blur(0px); opacity: 1; }
+        }
+
+        .drop-zone { border: 2px dashed var(--border-color); border-radius: 1rem; background: rgba(0,0,0,0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 350px; transition: all 0.3s ease; cursor: pointer; position: relative; }
+        .drop-zone:hover, .drop-zone.dragover { border-color: #3b82f6; background: var(--accent-glow); }
+        .advanced-mode .drop-zone:hover { border-color: #d946ef; }
+        .drop-zone input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
+
+        .preview-box { border: 2px solid var(--border-color); border-radius: 8px; background: #000; overflow: hidden; position: relative; height: 250px; display: flex; align-items: center; justify-content: center; }
+        .preview-img { max-width: 100%; max-height: 100%; object-fit: contain; opacity: 0.5; transition: opacity 0.5s; }
+        .preview-img.scanned { opacity: 1; }
+        .preview-label { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.8); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #f8fafc; z-index: 10; }
+        .filename-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: block; font-size: 11px; color: #cbd5e1; margin-top: 8px; text-align: center; }
+
+        .scanner-line { position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: #3b82f6; box-shadow: 0 0 15px #3b82f6, 0 0 30px #3b82f6; animation: scan 2s cubic-bezier(0.4, 0, 0.2, 1) infinite; z-index: 20; display: none; }
+        .scanning .scanner-line { display: block; }
+        @keyframes scan { 0% { top: 0%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+
+        .terminal { background: rgba(0,0,0,0.8); border: 1px solid var(--border-color); border-radius: 8px; font-family: 'Fira Code', monospace; font-size: 13px; height: 300px; display: flex; flex-direction: column; }
+        .terminal-header { background: rgba(255,255,255,0.05); border-bottom: 1px solid var(--border-color); padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0; }
+        .terminal-body { padding: 16px; overflow-y: auto; flex: 1; color: #e2e8f0; }
+        .terminal-body::-webkit-scrollbar { width: 6px; }
+        .terminal-body::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        
+        .log-line { margin-bottom: 6px; display: flex; align-items: flex-start; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; }
+        .log-key { color: #f8fafc; font-weight: bold; width: 40%; flex-shrink: 0; word-break: break-all; }
+        .log-val { word-break: break-all; }
+        
+        .val-high { color: #fca5a5; font-weight: bold; }
+        .val-med { color: #fde047; }
+        .val-low { color: #cbd5e1; }
+        .val-sys { color: #93c5fd; width: 100%; }
+        .advanced-mode .val-sys { color: #d946ef; }
+        .val-safe { color: #86efac; font-weight: bold; }
+
+        #location-map-container { transition: max-height 0.8s ease, opacity 0.5s ease; overflow: hidden; max-height: 0; opacity: 0; border-radius: 8px; }
+        #location-map-container.active { max-height: 250px; opacity: 1; border: 1px solid rgba(244,63,94,0.3); margin-top: 1rem; }
+        #leaflet-map { height: 200px; width: 100%; z-index: 1; }
+
+        .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+        .status-warn { background: rgba(251, 191, 36, 0.2); color: #fde047; border: 1px solid rgba(251, 191, 36, 0.4); }
+        .status-danger { background: rgba(244, 63, 94, 0.2); color: #fca5a5; border: 1px solid rgba(244, 63, 94, 0.4); box-shadow: 0 0 15px rgba(244, 63, 94, 0.2); animation: pulse-danger 2s infinite; }
+        @keyframes pulse-danger { 0%, 100% { box-shadow: 0 0 15px rgba(244, 63, 94, 0.2); } 50% { box-shadow: 0 0 25px rgba(244, 63, 94, 0.6); } }
+        .status-safe { background: rgba(16, 185, 129, 0.2); color: #86efac; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .status-scan { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); }
+        
+        #crossroads-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); }
+        #meta-count { background: #1e293b; color: #f8fafc; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; border: 1px solid #334155;}
     </style>
 </head>
-<body class="flex flex-col min-h-screen transition-all duration-700">
+<body class="flex flex-col min-h-screen transition-colors duration-1000" id="main-body">
 
     <sv-header base-path=".."></sv-header>
 
-    <main class="flex-1 max-w-[1200px] mx-auto w-full px-6 py-12">
-        <div id="upload-stage" class="glass-panel p-10 rounded-3xl text-center">
-            <h2 class="text-3xl font-extrabold mb-4">Secure Image Audit</h2>
-            <p class="text-slate-400 mb-8">Local-first forensic metadata removal for Privacy Professionals.</p>
-            <div id="drop-zone" class="border-2 border-dashed border-slate-700 p-20 rounded-2xl cursor-pointer hover:border-blue-500 transition-all relative">
-                <p class="text-slate-500">Drop files here or click to browse</p>
-                <input type="file" id="file-input" class="absolute inset-0 opacity-0 cursor-pointer">
+    <main class="flex-1 max-w-[1400px] mx-auto w-full px-4 py-8 flex flex-col gap-6 relative">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-2">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight" id="main-title">
+                    Metadata <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 transition-all duration-1000" id="title-accent">Scrubber</span>
+                </h1>
+                <p class="text-sm text-slate-300 mt-1">Scan, verify, and securely purge tracking data from your images locally.</p>
+            </div>
+        </div>
+
+        <div id="upload-stage" class="glass-panel p-2 rounded-2xl">
+            <div id="drop-zone" class="drop-zone">
+                <div class="bg-blue-500/10 p-6 rounded-full mb-6 border border-blue-500/20" id="dz-icon-wrap">
+                    <svg class="w-12 h-12 text-blue-500" id="dz-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-2 pointer-events-none tracking-tight">Select Image to Audit</h3>
+                <div class="px-6 py-2 rounded-lg bg-slate-700 text-white text-xs font-bold pointer-events-none border border-slate-500">Click to Browse Files</div>
+                <input type="file" id="file-input" accept="image/*, .dng, .cr2, .nef, .arw, .heic, .heif, .webp, .png, .jpg, .jpeg">
             </div>
         </div>
 
         <div id="crossroads-modal" class="hidden">
-            <div class="glass-panel p-8 rounded-2xl max-w-lg w-full border-fuchsia-500/50 shadow-2xl">
-                <h2 class="text-xl font-bold text-fuchsia-400 mb-4">RAW DSLR Data Detected</h2>
-                <p class="text-sm text-slate-300 mb-8">Choose your processing path to proceed.</p>
-                <div class="flex flex-col gap-4">
-                    <button onclick="executeCrossroads('standard')" class="w-full p-4 bg-slate-800 rounded-xl hover:bg-slate-700 text-left border border-slate-700">
-                        <span class="block font-bold text-blue-400">Standard Fallback</span>
-                        <span class="text-xs text-slate-400">Exports a clean JPEG. (Faster)</span>
+            <div class="glass-panel p-8 rounded-2xl max-w-xl w-full border-violet-500/50 relative overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)]">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-violet-500 to-fuchsia-500"></div>
+                <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-3">
+                    <svg class="w-6 h-6 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    Advanced RAW Format Detected
+                </h2>
+                <p class="text-sm text-slate-200 mb-6 leading-relaxed">
+                    You uploaded a DSLR format (<span id="raw-ext-badge" class="font-bold text-violet-300">.CR2</span>). To retain this exact file extension, we must perform advanced binary processing.
+                </p>
+                <div class="space-y-4 mt-6">
+                    <button onclick="executeCrossroads('standard')" class="w-full text-left p-4 rounded-xl border border-slate-700 bg-slate-900/50 hover:bg-slate-800 transition-all group">
+                        <span class="font-bold text-blue-400 block mb-1">Standard Conversion (Fast)</span>
+                        <span class="text-xs text-slate-400">Extracts the secret preview and safely exports a clean, highly-compatible JPEG.</span>
                     </button>
-                    <button onclick="executeCrossroads('forge')" class="w-full p-4 bg-fuchsia-900/20 rounded-xl hover:bg-fuchsia-900/40 text-left border border-fuchsia-500/50">
-                        <span class="block font-bold text-fuchsia-400">Advanced RAW Forge</span>
-                        <span class="text-xs text-slate-400">Binary IFD orphaning. Retains original format.</span>
+                    <button onclick="executeCrossroads('forge')" class="w-full text-left p-4 rounded-xl border border-violet-700 bg-violet-900/30 hover:bg-violet-800/50 transition-all group">
+                        <span class="font-bold text-violet-300 block mb-1">Proceed with RAW Processing</span>
+                        <span class="text-xs text-violet-200/80">Surgically disconnects EXIF directories to preserve exact extension and sensor data.</span>
                     </button>
-                    <button onclick="cancelCrossroads()" class="mt-4 text-xs text-slate-500 hover:text-white underline">Cancel & Select New File</button>
+                    <button onclick="cancelCrossroads()" class="w-full text-center p-3 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-sm font-bold text-slate-300 transition-all">Cancel & Select New File</button>
                 </div>
             </div>
         </div>
 
-        <div id="workspace-stage" class="hidden grid lg:grid-cols-12 gap-8">
-            <div class="lg:col-span-5 space-y-4">
-                <div class="glass-panel p-6 rounded-2xl space-y-4">
+        <div id="workspace-stage" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div class="lg:col-span-5 flex flex-col gap-4">
+                <div class="glass-panel p-4 rounded-xl flex flex-col gap-4">
                     <div class="grid grid-cols-2 gap-4">
-                        <div class="preview-box"><img id="img-input" class="max-h-full opacity-60"></div>
-                        <div class="preview-box"><img id="img-output" class="max-h-full hidden"></div>
+                        <div>
+                            <div id="input-box" class="preview-box scanning"><img id="img-input" class="preview-img" alt="Input Preview"></div>
+                            <span id="label-filename-input" class="filename-text text-slate-200">...</span>
+                        </div>
+                        <div>
+                            <div class="preview-box border-emerald-700">
+                                <div id="output-placeholder" class="text-xs text-slate-400 font-mono text-center flex flex-col items-center gap-2">
+                                    <svg class="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                    Awaiting Processing
+                                </div>
+                                <img id="img-output" class="preview-img hidden" alt="Output Preview">
+                            </div>
+                            <span id="label-filename-output" class="filename-text text-emerald-300 opacity-0">...</span>
+                        </div>
                     </div>
-                    <div class="flex justify-between text-[11px] mono text-slate-400">
-                        <span id="file-size">0 KB</span>
-                        <span id="badge-engine">Scanning...</span>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="bg-black/80 p-3 rounded border border-slate-700"><span class="block text-[10px] text-slate-400 uppercase tracking-widest mb-1">Input Size</span><span id="file-size" class="text-slate-100 font-mono">0 KB</span></div>
+                        <div class="bg-black/80 p-3 rounded border border-slate-700 text-right"><span class="block text-[10px] text-slate-400 uppercase tracking-widest mb-1">Engine</span><span id="badge-engine" class="text-slate-100 font-mono">Determining...</span></div>
                     </div>
-                    <button onclick="resetApp()" class="w-full py-3 bg-slate-800 rounded-xl font-bold hover:bg-slate-700">Load New Target</button>
+                    <button onclick="resetApp(false)" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold px-4 py-3 rounded-xl transition-all border border-slate-600">Load New Target</button>
                 </div>
             </div>
-            <div class="lg:col-span-7 space-y-4">
-                <div class="terminal">
-                    <div class="terminal-header flex justify-between p-3">
-                        <span class="text-xs font-bold uppercase tracking-widest">Audit Log</span>
-                        <span id="meta-count">0 Tags</span>
+
+            <div class="lg:col-span-7 flex flex-col gap-4">
+                <div class="terminal" id="main-terminal">
+                    <div class="terminal-header">
+                        <span class="text-white font-bold text-xs">Forensic Audit Log</span>
+                        <div class="flex items-center gap-4">
+                            <button id="btn-export-report" onclick="exportReport()" class="hidden text-[10px] bg-slate-700 text-white px-3 py-1 rounded">Export Log</button>
+                            <span id="meta-count">0 Tags</span>
+                        </div>
                     </div>
-                    <div id="terminal-out" class="terminal-body"></div>
+                    <div class="terminal-body" id="terminal-out"></div>
                 </div>
-                <div id="location-map-container" class="hidden rounded-xl overflow-hidden h-[200px] border border-red-500/30">
-                    <div id="leaflet-map" class="h-full"></div>
-                </div>
-                <div class="flex gap-4">
-                    <button id="btn-scrub" onclick="executeScrub()" class="flex-1 py-4 bg-blue-600 rounded-xl font-bold hover:bg-blue-500 shadow-lg shadow-blue-600/20">Purge Metadata</button>
-                    <button id="btn-download" onclick="downloadFile()" class="hidden flex-1 py-4 bg-emerald-600 rounded-xl font-bold hover:bg-emerald-500">Download File</button>
+
+                <div id="location-map-container"><div id="leaflet-map"></div></div>
+
+                <div id="action-area" class="glass-panel p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div id="action-msg-container" class="flex flex-col gap-1">
+                        <span id="status-indicator" class="status-badge status-scan w-max">Scanning</span>
+                        <span id="action-msg" class="text-xs mt-1 block text-slate-300">Analyzing structure...</span>
+                    </div>
+                    <button id="btn-scrub" onclick="executeImageProcessing()" disabled class="hidden w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-8 py-3 rounded-xl"><span id="btn-scrub-text">Remove Metadata</span></button>
+                    <button id="btn-download" onclick="downloadImage()" class="hidden w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold px-8 py-3 rounded-xl">Download Verified File</button>
                 </div>
             </div>
         </div>
+        
+        <canvas id="scrub-canvas" class="hidden"></canvas>
     </main>
 
+    <sv-footer base-path=".."></sv-footer>
+
     <script type="module">
+        'use strict'; 
         import { ProcessorFactory } from '../assets/js/exif_processors/Dispatcher.js';
+        import { CanvasProcessor } from '../assets/js/exif_processors/CanvasProcessor.js';
+
+        // 1. STATE & MEMORY
+        let originalFile = null;
+        let scrubbedBlob = null;
+        let sourceImageObj = new Image(); 
         
-        let originalFile, scrubbedBlob, processor;
-        let isAdvanced = false;
+        let processorInstance = null;
+        let fileExt = '';
+        let outputExt = ''; 
+        let isAdvancedMode = false;
+        
+        let rawExifCache = {}; 
+        let currentScanId = 0;
+        let threatMap = null;
+        let mapMarker = null;
+        let activeUrls = []; 
 
-        window.handleFile = (file) => {
-            if(!file) return;
-            originalFile = file;
-            const ext = file.name.split('.').pop().toUpperCase();
-            processor = ProcessorFactory.create(file, ext);
+        // 2. DOM CACHE
+        const mainBody = document.getElementById('main-body');
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const stageUpload = document.getElementById('upload-stage');
+        const stageWorkspace = document.getElementById('workspace-stage');
+        const crossroadsModal = document.getElementById('crossroads-modal');
+        const inputBox = document.getElementById('input-box');
+        const imgInput = document.getElementById('img-input');
+        const imgOutput = document.getElementById('img-output');
+        const outputPlaceholder = document.getElementById('output-placeholder');
+        const labelFilenameInput = document.getElementById('label-filename-input');
+        const labelFilenameOutput = document.getElementById('label-filename-output');
+        const fileSizeEl = document.getElementById('file-size');
+        const badgeEngine = document.getElementById('badge-engine');
+        const terminalOut = document.getElementById('terminal-out');
+        const metaCount = document.getElementById('meta-count');
+        const statusIndicator = document.getElementById('status-indicator');
+        const actionMsg = document.getElementById('action-msg');
+        const threatMapContainer = document.getElementById('location-map-container');
+        const btnScrub = document.getElementById('btn-scrub');
+        const btnScrubText = document.getElementById('btn-scrub-text');
+        const btnDownload = document.getElementById('btn-download');
+        const btnExport = document.getElementById('btn-export-report');
+        const titleAccent = document.getElementById('title-accent');
+        const dzIconWrap = document.getElementById('dz-icon-wrap');
+        const dzIcon = document.getElementById('dz-icon');
 
-            if(['DNG', 'CR2', 'NEF', 'ARW'].includes(ext) && !isAdvanced) {
-                document.getElementById('crossroads-modal').classList.remove('hidden');
-                return;
-            }
-            startWorkspace();
-        };
+        // PREVENTS STRUCTURAL TAGS FROM TRIGGERING FALSE ALARMS
+        const STRUCTURAL_WHITELIST = ['ImageWidth', 'ImageHeight', 'ExifImageWidth', 'ExifImageHeight', 'Orientation', 'ColorSpace'];
 
-        window.executeCrossroads = (mode) => {
-            document.getElementById('crossroads-modal').classList.add('hidden');
-            if(mode === 'forge') {
-                isAdvanced = true;
-                document.body.classList.add('advanced-mode', 'portal-transition');
-                document.getElementById('title-accent').innerText = "Advanced";
-            }
-            startWorkspace();
-        };
+        // 3. LISTENERS
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, preventDefaults));
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+        ['dragenter', 'dragover'].forEach(e => dropZone.classList.add('dragover'));
+        ['dragleave', 'drop'].forEach(e => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', e => handleFile(e.dataTransfer.files[0]));
+        fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+        window.addEventListener("beforeunload", () => { activeUrls.forEach(url => URL.revokeObjectURL(url)); localStorage.clear(); });
 
-        async function startWorkspace() {
-            document.getElementById('upload-stage').classList.add('hidden');
-            document.getElementById('workspace-stage').classList.remove('hidden');
-            document.getElementById('terminal-out').innerHTML = "> INITIALIZING LOCAL AUDIT...\n";
-            
-            const preview = await processor.getPreviewUrl();
-            document.getElementById('img-input').src = preview;
-            
-            const metadata = await processor.parse();
-            const keys = Object.keys(metadata || {}).filter(k => !['ImageWidth', 'ImageHeight'].includes(k));
-            document.getElementById('meta-count').innerText = `${keys.length} Tags`;
-
-            keys.forEach(k => {
-                const line = document.createElement('div');
-                line.innerHTML = `<span class="font-bold text-white">${k}:</span> ${metadata[k]}`;
-                document.getElementById('terminal-out').appendChild(line);
-            });
-
-            document.getElementById('btn-scrub').classList.remove('hidden');
-            document.getElementById('btn-scrub').disabled = false;
+        // 4. LOGIC
+        function formatBytes(bytes) {
+            if (!bytes || bytes === 0) return '0 Bytes';
+            const k = 1024, i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + ['Bytes', 'KB', 'MB'][i];
         }
 
-        window.executeScrub = async () => {
-            document.getElementById('btn-scrub').innerText = "Processing...";
-            scrubbedBlob = await processor.scrub();
-            document.getElementById('btn-scrub').classList.add('hidden');
-            document.getElementById('btn-download').classList.remove('hidden');
-            document.getElementById('img-output').src = document.getElementById('img-input').src;
-            document.getElementById('img-output').classList.remove('hidden');
-        };
+        function isPrivacyThreat(key, val) {
+            if (STRUCTURAL_WHITELIST.includes(key)) return false; 
+            if (typeof val === 'object' && val !== null && !(val instanceof Date)) return false; 
+            return true;
+        }
 
-        window.downloadFile = () => {
+        function getSeverity(key) {
+            const k = key.toLowerCase();
+            if (['latitude', 'longitude', 'gps', 'serial'].some(h => k.includes(h))) return 'high';
+            return 'low';
+        }
+
+        function logToTerminal(key, val, severity = 'low') {
+            const line = document.createElement('div');
+            line.className = 'log-line';
+            const safeVal = (typeof val === 'string') ? val.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : val;
+            if (severity === 'sys') line.innerHTML = `<span class="val-sys">${safeVal}</span>`;
+            else line.innerHTML = `<span class="log-key">${key}</span><span class="log-val val-${severity}">${safeVal}</span>`;
+            terminalOut.appendChild(line);
+            terminalOut.scrollTop = terminalOut.scrollHeight;
+        }
+
+        function handleFile(file) {
+            if (!file) return;
+            activeUrls.forEach(url => URL.revokeObjectURL(url));
+            activeUrls = [];
+            sourceImageObj = new Image(); 
+
+            originalFile = file;
+            fileExt = file.name.split('.').pop().toUpperCase();
+            labelFilenameInput.innerText = file.name;
+            
+            processorInstance = ProcessorFactory.create(originalFile, fileExt);
+
+            // Keeps workflow uninterrupted if already in Advanced Mode
+            if (['CR2', 'DNG', 'NEF', 'ARW'].includes(fileExt) && !isAdvancedMode) {
+                document.getElementById('raw-ext-badge').innerText = `.${fileExt}`;
+                crossroadsModal.classList.remove('hidden');
+                return;
+            }
+            startWorkspace(); 
+        }
+
+        function executeCrossroads(mode) {
+            if (mode === 'forge') {
+                isAdvancedMode = true;
+                document.body.classList.add('portal-transition'); 
+                mainBody.classList.add('advanced-mode');
+                titleAccent.className = "text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-500 transition-all duration-1000";
+                titleAccent.innerText = "Advanced";
+                dzIconWrap.className = "bg-violet-500/10 p-6 rounded-full mb-6 border border-violet-500/20";
+                dzIcon.className = "w-12 h-12 text-violet-500";
+                
+                setTimeout(() => {
+                    crossroadsModal.classList.add('hidden');
+                    startWorkspace();
+                    setTimeout(() => document.body.classList.remove('portal-transition'), 800);
+                }, 300);
+            } else {
+                isAdvancedMode = false;
+                // Force Canvas Processor for standard RAW fallback
+                processorInstance = new CanvasProcessor(originalFile, fileExt, 'image/jpeg');
+                crossroadsModal.classList.add('hidden');
+                startWorkspace();
+            }
+        }
+
+        function cancelCrossroads() {
+            crossroadsModal.classList.add('hidden');
+            fileInput.value = '';
+        }
+
+        function startWorkspace() {
+            currentScanId++;
+            let thisScanId = currentScanId;
+
+            rawExifCache = {};
+            threatMapContainer.classList.remove('active'); 
+            
+            fileSizeEl.innerText = formatBytes(originalFile.size);
+            stageUpload.classList.add('hidden');
+            stageWorkspace.classList.remove('hidden');
+            
+            terminalOut.innerHTML = '';
+            inputBox.classList.add('scanning');
+            imgInput.classList.remove('scanned');
+            
+            btnScrub.disabled = true;
+            btnScrub.classList.add('opacity-50', 'cursor-not-allowed', 'hidden');
+            btnDownload.classList.add('hidden');
+
+            badgeEngine.innerText = processorInstance.engineName || 'Binary Splicer';
+            
+            if(isAdvancedMode) {
+                badgeEngine.className = 'text-violet-400 font-mono';
+                btnScrub.className = "hidden w-full md:w-auto bg-violet-700 hover:bg-violet-600 text-white text-sm font-bold px-8 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(217,70,239,0.6)] flex items-center justify-center gap-2 opacity-50 cursor-not-allowed";
+            } else {
+                badgeEngine.className = processorInstance.engineClass || 'text-blue-300 font-mono';
+                btnScrub.className = "hidden w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-8 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(59,130,246,0.4)] flex items-center justify-center gap-2 opacity-50 cursor-not-allowed";
+            }
+            btnScrubText.innerText = processorInstance.buttonText || 'Remove Metadata';
+
+            logToTerminal('', '> INITIALIZING SECURE METADATA AUDIT...', 'sys');
+
+            requestAnimationFrame(() => setTimeout(() => runHeavyProcessing(thisScanId), 50));
+        }
+
+        async function runHeavyProcessing(thisScanId) {
+            try {
+                let urlToLoad = await processorInstance.getPreviewUrl();
+                if (urlToLoad) {
+                    if(urlToLoad.startsWith('blob:')) activeUrls.push(urlToLoad);
+                    await new Promise((resolve, reject) => {
+                        sourceImageObj.onload = () => resolve();
+                        sourceImageObj.onerror = () => reject();
+                        sourceImageObj.src = urlToLoad;
+                    });
+                    imgInput.src = urlToLoad;
+                }
+            } catch(e) { 
+                logToTerminal('WARNING', 'Visual preview generation failed. Audit proceeding natively.', 'med');
+            }
+            scanMetadata(thisScanId);
+        }
+
+        async function scanMetadata(thisScanId) {
+            try {
+                const exifData = await processorInstance.parse();
+                if (thisScanId !== currentScanId) return; 
+
+                if (exifData && Object.keys(exifData).length > 0) {
+                    const usefulKeys = Object.keys(exifData).filter(key => isPrivacyThreat(key, exifData[key]));
+                    
+                    if (usefulKeys.length === 0) return handleCleanFile();
+                    
+                    metaCount.innerText = `${usefulKeys.length} Tags Found`;
+                    
+                    let idx = 0;
+                    function printNextLog() {
+                        if (thisScanId !== currentScanId) return;
+                        if (idx >= usefulKeys.length) {
+                            inputBox.classList.remove('scanning');
+                            imgInput.classList.add('scanned');
+                            logToTerminal('', `> SCAN COMPLETE. [${usefulKeys.length}] THREAT TAGS FOUND.`, 'sys');
+
+                            if (exifData.latitude && exifData.longitude) {
+                                triggerMap(exifData.latitude, exifData.longitude);
+                                statusIndicator.className = "status-badge status-danger";
+                                statusIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span> CRITICAL THREAT`;
+                                actionMsg.innerHTML = `<span class="text-rose-400 font-bold">Location Exposed:</span> Immediate purge required.`;
+                            } else {
+                                statusIndicator.className = "status-badge status-warn";
+                                statusIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span> Metadata Present`;
+                                actionMsg.innerHTML = `<span class="text-amber-400 font-bold">Action Required:</span> Hidden trackers found.`;
+                            }
+
+                            btnScrub.disabled = false;
+                            btnScrub.classList.remove('opacity-50', 'cursor-not-allowed', 'hidden');
+                            btnExport.classList.remove('hidden');
+                            return;
+                        }
+
+                        let key = usefulKeys[idx];
+                        let val = exifData[key];
+                        rawExifCache[key] = val; 
+                        logToTerminal(key, val, getSeverity(key));
+                        idx++;
+                        setTimeout(printNextLog, isAdvancedMode ? 5 : 15);
+                    }
+                    setTimeout(printNextLog, 100);
+                } else {
+                    handleCleanFile();
+                }
+            } catch (error) {
+                handleCleanFile();
+            }
+        }
+
+        function triggerMap(lat, lng) {
+            threatMapContainer.classList.add('active'); 
+            const redIcon = new L.Icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+            });
+            if (!threatMap) {
+                threatMap = L.map('leaflet-map').setView([lat, lng], 14);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(threatMap);
+                mapMarker = L.marker([lat, lng], {icon: redIcon}).addTo(threatMap);
+            } else {
+                threatMap.setView([lat, lng], 14);
+                mapMarker.setLatLng([lat, lng]);
+            }
+            setTimeout(() => { threatMap.invalidateSize(); }, 300);
+        }
+
+        function handleCleanFile() {
+            setTimeout(() => {
+                inputBox.classList.remove('scanning');
+                imgInput.classList.add('scanned');
+                logToTerminal('', '> SCAN COMPLETE. NO PRIVACY DATA DETECTED.', 'sys');
+                statusIndicator.className = "status-badge status-safe";
+                statusIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Safe File`;
+                actionMsg.innerHTML = `<span class="text-emerald-400 font-bold">Verified:</span> Image is natively safe. You may still Force Purge.`;
+                
+                scrubbedBlob = originalFile; 
+                outputExt = `.${fileExt.toLowerCase()}`;
+                imgOutput.src = imgInput.src;
+                outputPlaceholder.classList.add('hidden');
+                imgOutput.classList.remove('hidden');
+                
+                labelFilenameOutput.innerText = originalFile.name;
+                labelFilenameOutput.classList.remove('opacity-0');
+                
+                btnScrubText.innerText = "Force Purge";
+                btnScrub.disabled = false;
+                btnScrub.classList.remove('opacity-50', 'cursor-not-allowed', 'hidden');
+                btnDownload.classList.remove('hidden');
+            }, 1000);
+        }
+
+        function executeImageProcessing() {
+            btnScrub.disabled = true;
+            btnScrub.classList.add('opacity-50', 'cursor-not-allowed');
+            logToTerminal('', `> EXECUTING ${processorInstance.engineName.toUpperCase()}...`, 'sys');
+
+            setTimeout(async () => {
+                try {
+                    if(processorInstance.setCache) processorInstance.setCache(rawExifCache);
+                    const blob = await processorInstance.scrub(sourceImageObj);
+                    
+                    outputExt = processorInstance.outputMime ? `.${processorInstance.outputMime.split('/')[1]}` : `.${fileExt.toLowerCase()}`;
+                    if (outputExt === '.jpeg') outputExt = '.jpg';
+                    
+                    verifyAndFinalize(blob);
+                } catch(e) {
+                    logToTerminal('CRITICAL_ERROR', 'Processing engine failed.', 'high');
+                    btnScrubText.innerText = "Failed";
+                }
+            }, 50);
+        }
+
+        async function verifyAndFinalize(blob) {
+            logToTerminal('', '> RUNNING POST-SCRUB VERIFICATION AUDIT...', 'sys');
+            try {
+                const fileBuffer = await blob.arrayBuffer();
+                const checkData = await window.exifr.parse(fileBuffer, {tiff: true, ifd0: true, exif: true, gps: true});
+                if (checkData) {
+                    const surviving = Object.keys(checkData).filter(k => isPrivacyThreat(k, checkData[k]));
+                    if (surviving.length > 0) {
+                        logToTerminal('VERIFICATION_FAILED', `${surviving.length} tags survived. Scrubbing compromised.`, 'high');
+                        btnScrubText.innerText = "Verification Failed";
+                        return;
+                    }
+                }
+            } catch(e) {}
+
+            logToTerminal('VERIFICATION', 'PASSED. 0 PII THREATS DETECTED.', 'safe');
+            logToTerminal('FORMAT', `${outputExt.toUpperCase()} EXACT RETENTION`, 'safe');
+            
+            scrubbedBlob = blob;
+            threatMapContainer.classList.remove('active'); 
+            statusIndicator.className = "status-badge status-safe";
+            statusIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Threat Neutralized`;
+            actionMsg.innerHTML = `<span class="text-emerald-400 font-bold">Success:</span> Metadata completely stripped.`;
+            
+            fileSizeEl.innerText = formatBytes(blob.size);
+            const outputUrl = URL.createObjectURL(blob);
+            activeUrls.push(outputUrl);
+            
+            // Only update output image visual if we natively generated a new Canvas.
+            if(processorInstance.outputMime) imgOutput.src = outputUrl;
+            else imgOutput.src = imgInput.src;
+            
+            outputPlaceholder.classList.add('hidden');
+            imgOutput.classList.remove('hidden');
+            btnScrub.classList.add('hidden');
+            btnDownload.classList.remove('hidden');
+
+            const nameBase = originalFile.name.substring(0, originalFile.name.lastIndexOf('.'));
+            labelFilenameOutput.innerText = `${nameBase}_clean${outputExt}`;
+            labelFilenameOutput.classList.remove('opacity-0');
+        }
+
+        function downloadImage() {
+            if (!scrubbedBlob) return;
+            const nameBase = originalFile.name.substring(0, originalFile.name.lastIndexOf('.'));
+            const url = URL.createObjectURL(scrubbedBlob);
+            activeUrls.push(url);
             const a = document.createElement('a');
-            a.href = URL.createObjectURL(scrubbedBlob);
-            a.download = `clean_${originalFile.name}`;
+            a.href = url;
+            a.download = `${nameBase}_clean${outputExt}`;
+            document.body.appendChild(a);
             a.click();
-        };
+            document.body.removeChild(a);
+        }
 
-        window.resetApp = () => location.reload();
-        window.cancelCrossroads = () => location.reload();
-        document.getElementById('file-input').addEventListener('change', (e) => window.handleFile(e.target.files[0]));
+        function exportReport() {
+            let report = `EXIF Audit Report\n\n`;
+            for (const [key, value] of Object.entries(rawExifCache)) report += `${key}: ${value}\n`;
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            activeUrls.push(url);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `EXIF_Report.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // Pass 'true' if the user clicked "Load New Target" while in Forge Mode. 
+        // This keeps the Forge Theme active for batching.
+        function resetApp(hardReset = false) {
+            activeUrls.forEach(url => URL.revokeObjectURL(url));
+            activeUrls = [];
+            
+            if (threatMap) {
+                threatMap.remove();
+                threatMap = null;
+            }
+
+            if (hardReset) {
+                isAdvancedMode = false;
+                mainBody.classList.remove('advanced-mode');
+                titleAccent.className = "text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 transition-all duration-1000";
+                titleAccent.innerText = "Scrubber";
+                dzIconWrap.className = "bg-blue-500/10 p-6 rounded-full mb-6 border border-blue-500/20";
+                dzIcon.className = "w-12 h-12 text-blue-500";
+            }
+            
+            threatMapContainer.classList.remove('active');
+            stageWorkspace.classList.add('hidden');
+            stageUpload.classList.remove('hidden');
+            
+            fileInput.value = ''; originalFile = null; scrubbedBlob = null;
+            sourceImageObj = new Image(); rawExifCache = {}; currentScanId++; 
+            terminalOut.innerHTML = '';
+            
+            imgInput.src = ''; imgOutput.src = '';
+            inputBox.classList.add('scanning'); imgInput.classList.remove('scanned');
+            outputPlaceholder.classList.remove('hidden'); imgOutput.classList.add('hidden');
+            labelFilenameInput.innerText = '...'; labelFilenameOutput.classList.add('opacity-0');
+
+            btnScrub.disabled = true;
+            btnScrub.classList.add('opacity-50', 'cursor-not-allowed', 'hidden');
+            btnDownload.classList.add('hidden');
+        }
+
+        window.handleFile = handleFile;
+        window.executeCrossroads = executeCrossroads;
+        window.cancelCrossroads = cancelCrossroads;
+        window.executeImageProcessing = executeImageProcessing;
+        window.downloadImage = downloadImage;
+        window.exportReport = exportReport;
+        window.resetApp = resetApp;
     </script>
 </body>
 </html>
