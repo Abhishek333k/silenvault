@@ -32,7 +32,6 @@
         .glass-panel { background: var(--panel-bg); backdrop-filter: blur(12px); border: 1px solid var(--border-color); transition: all 0.5s ease; }
         .mono { font-family: 'Fira Code', monospace; }
 
-        /* ADVANCED RAW THEME (Smooth, no glitches) */
         body.advanced-mode {
             --bg-color: #0a000a;
             --panel-bg: rgba(25, 5, 25, 0.7);
@@ -41,8 +40,8 @@
         }
         .advanced-mode .status-scan { background: rgba(217, 70, 239, 0.1) !important; color: #e879f9 !important; border-color: rgba(217, 70, 239, 0.3) !important; }
         .advanced-mode .scanner-line { background: #d946ef !important; box-shadow: 0 0 15px #d946ef, 0 0 30px #d946ef !important; }
+        .advanced-mode .val-sys { color: #e879f9 !important; }
 
-        /* Smooth Dimension Transition */
         .portal-transition { animation: focusShift 0.8s ease-in-out forwards; }
         @keyframes focusShift {
             0% { filter: blur(0px); opacity: 1; }
@@ -59,7 +58,6 @@
         .advanced-mode .drop-zone:hover { border-color: #d946ef; }
         .drop-zone input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
 
-        /* Previews */
         .preview-box { border: 2px solid var(--border-color); border-radius: 8px; background: #000; overflow: hidden; position: relative; height: 250px; display: flex; align-items: center; justify-content: center; }
         .preview-img { max-width: 100%; max-height: 100%; object-fit: contain; opacity: 0.5; transition: opacity 0.5s; }
         .preview-img.scanned { opacity: 1; }
@@ -71,13 +69,12 @@
         .scanning .scanner-line { display: block; }
         @keyframes scan { 0% { top: 0%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
 
-        /* Terminal Logs - High Contrast */
         .terminal { background: rgba(0,0,0,0.8); border: 1px solid var(--border-color); border-radius: 8px; font-family: 'Fira Code', monospace; font-size: 13px; height: 300px; display: flex; flex-direction: column; }
         .terminal-header { background: rgba(255,255,255,0.05); border-bottom: 1px solid var(--border-color); padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0; }
         .terminal-body { padding: 16px; overflow-y: auto; flex: 1; color: #e2e8f0; }
         .terminal-body::-webkit-scrollbar { width: 6px; }
         .terminal-body::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
-        
+
         .log-line { margin-bottom: 6px; display: flex; align-items: flex-start; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; }
         .log-key { color: #f8fafc; font-weight: bold; width: 40%; flex-shrink: 0; word-break: break-all; }
         .log-val { word-break: break-all; }
@@ -88,19 +85,24 @@
         .val-sys { color: #93c5fd; width: 100%; }
         .val-safe { color: #86efac; font-weight: bold; }
 
-        /* Badges & Map UI */
         #location-map-container { transition: max-height 0.8s ease, opacity 0.5s ease; overflow: hidden; max-height: 0; opacity: 0; border-radius: 8px; }
         #location-map-container.active { max-height: 250px; opacity: 1; border: 1px solid rgba(244,63,94,0.3); margin-top: 1rem; }
         #leaflet-map { height: 200px; width: 100%; z-index: 1; }
-        
-        .status-badge { display: inline-flex; items-center; gap: 8px; padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+        .leaflet-container { background: #0f172a; } 
+
+        /* Fixed items-center to align-items: center */
+        .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
         .status-warn { background: rgba(251, 191, 36, 0.2); color: #fde047; border: 1px solid rgba(251, 191, 36, 0.4); }
-        .status-danger { background: rgba(244, 63, 94, 0.2); color: #fca5a5; border: 1px solid rgba(244, 63, 94, 0.4); }
+        .status-danger { background: rgba(244, 63, 94, 0.2); color: #fca5a5; border: 1px solid rgba(244, 63, 94, 0.4); box-shadow: 0 0 15px rgba(244, 63, 94, 0.2); animation: pulse-danger 2s infinite; }
+        @keyframes pulse-danger { 0%, 100% { box-shadow: 0 0 15px rgba(244, 63, 94, 0.2); } 50% { box-shadow: 0 0 25px rgba(244, 63, 94, 0.6); } }
         .status-safe { background: rgba(16, 185, 129, 0.2); color: #86efac; border: 1px solid rgba(16, 185, 129, 0.4); }
         .status-scan { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); }
         
-        /* High Contrast Meta Count */
+        #crossroads-modal { background: rgba(2, 6, 23, 0.9); backdrop-filter: blur(10px); z-index: 100; }
+        
         #meta-count { background: #1e293b; color: #f8fafc; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; border: 1px solid #334155;}
+
+        .legal-notice { font-size: 10px; color: #64748b; border-top: 1px solid #1e293b; padding-top: 10px; margin-top: 20px; text-align: justify; }
     </style>
 </head>
 <body class="flex flex-col min-h-screen transition-colors duration-1000" id="main-body">
@@ -148,6 +150,14 @@
                 </p>
                 
                 <div class="space-y-4">
+                    <button onclick="executeCrossroads('standard')" class="w-full text-left p-4 rounded-xl border border-slate-700 bg-slate-900/50 hover:bg-slate-800 hover:border-slate-500 transition-all group">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="font-bold text-blue-400 group-hover:text-blue-300">Standard Conversion (Fast)</span>
+                            <span class="text-[10px] uppercase tracking-widest text-slate-400">Web Standard</span>
+                        </div>
+                        <p class="text-xs text-slate-400">Extracts the secret preview and safely exports a clean, highly-compatible JPEG.</p>
+                    </button>
+
                     <button onclick="executeCrossroads('forge')" class="w-full text-left p-4 rounded-xl border border-violet-700 bg-violet-900/30 hover:bg-violet-800/50 hover:border-violet-400 transition-all group relative overflow-hidden">
                         <div class="flex items-center justify-between mb-1 relative z-10">
                             <span class="font-bold text-violet-300 group-hover:text-white flex items-center gap-2">
@@ -274,6 +284,12 @@
                     <li><strong class="text-emerald-400">Verification Gate:</strong> We ensure absolute safety. After processing, the tool re-scans the <em>newly generated</em> file. If any privacy tag survives, the download is blocked to protect your identity.</li>
                     <li><strong class="text-violet-400">Advanced RAW Processor:</strong> Browsers cannot safely redraw DSLR formats natively. Our engine uses a <em>Forensic IFD Orphaner</em> to scan the RAW binary and safely disconnect GPS/Exif directories without touching your actual sensor data, preserving 100% of the RAW fidelity and exact extension.</li>
                 </ul>
+                <div class="legal-notice">
+                    <strong>LEGAL DISCLAIMER:</strong> By using this tool, you acknowledge that the removal of EXIF metadata and embedded GPS coordinates is a destructive and irreversible process. SilenVault and its operators assume no liability for the loss of provenance data, timestamps, or copyright assertions required for legal or evidentiary purposes. This tool is provided "as is" strictly for privacy protection.
+                </div>
+            </div>
+            
+            <div class="space-y-6">
             </div>
         </div>
 
@@ -282,6 +298,8 @@
     <sv-footer base-path=".."></sv-footer>
 
     <script>
+        'use strict'; // Architect Addition: Enforce strict mode for cleaner memory handling
+
         // ==========================================
         // 1. STATE & MEMORY MANAGEMENT
         // ==========================================
@@ -291,6 +309,7 @@
         
         let processorInstance = null;
         let fileExt = '';
+        let outputExt = ''; // Architect Addition: Declare outputExt to prevent global scope leak
         let isAdvancedMode = false;
         
         let rawExifCache = {}; 
@@ -404,19 +423,18 @@
         }
 
         // ==========================================
-        // 5. THE TREE-BRANCHING ARCHITECTURE (OBJECT ORIENTED)
+        // 5. THE TREE-BRANCHING ARCHITECTURE
         // ==========================================
         
         class BaseProcessor {
             constructor(file, ext) { this.file = file; this.ext = ext; }
             async parse() {
-                const buffer = await this.file.arrayBuffer(); 
+                const buffer = await this.file.arrayBuffer();
                 return await exifr.parse(buffer, {tiff: true, ifd0: true, exif: true, gps: true, xmp: true, iptc: true});
             }
             async getPreviewUrl() { return URL.createObjectURL(this.file); }
         }
 
-        // Handles Standard JPEGs and PNGs
         class CanvasProcessor extends BaseProcessor {
             constructor(file, ext, outputMime) { super(file, ext); this.outputMime = outputMime; }
             getEngineName() { return 'HTML5 Canvas API'; }
@@ -424,30 +442,27 @@
             getButtonText() { return 'Remove Metadata'; }
             
             async scrub() {
-                const canvas = document.createElement('canvas');
+                const canvas = document.getElementById('scrub-canvas');
                 const ctx = canvas.getContext('2d');
                 canvas.width = sourceImageObj.naturalWidth; 
                 canvas.height = sourceImageObj.naturalHeight;
+                
+                // Architect Patch: Ensure clean state
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(sourceImageObj, 0, 0);
                 
                 const quality = this.outputMime === 'image/jpeg' ? 0.92 : undefined;
                 return new Promise((resolve) => {
-                    canvas.toBlob((blob) => resolve(blob), this.outputMime, quality); 
+                    canvas.toBlob((blob) => {
+                        // Architect Patch: Prevent Canvas Memory Leak on Large Images
+                        canvas.width = 0; 
+                        canvas.height = 0; 
+                        resolve(blob);
+                    }, this.outputMime, quality); 
                 });
             }
         }
 
-        // Specifically forces ArrayBuffer for WebP parsing to guarantee RIFF GPS extraction
-        class WebpProcessor extends CanvasProcessor {
-            constructor(file, ext) { super(file, ext, 'image/webp'); }
-            getEngineName() { return 'WebP Canvas Engine'; }
-            async parse() {
-                const buffer = await this.file.arrayBuffer(); 
-                return await exifr.parse(buffer, {tiff: true, ifd0: true, exif: true, gps: true, xmp: true, iptc: true});
-            }
-        }
-
-        // Handles heavy RAW DSLR sensor data using the IFD Pointer Orphaner
         class RawProcessor extends BaseProcessor {
             getEngineName() { return 'Forensic IFD Orphaner'; }
             getEngineClass() { return 'text-violet-400 font-mono'; }
@@ -478,13 +493,11 @@
                 let uint8View = new Uint8Array(arrayBuffer);
 
                 let isLittleEndian = true;
-                if (view.getUint16(0) === 0x4949) isLittleEndian = true;
-                else if (view.getUint16(0) === 0x4D4D) isLittleEndian = false;
+                if (view.getUint16(0) === 0x4D4D) isLittleEndian = false;
 
                 let orphanedCount = 0;
-                // Targets: GPS, ExifOffset, Make, Model, Software, DateTime, XMP, IPTC
-                const targetTags = [0x8825, 0x8769, 0x010F, 0x0110, 0x0131, 0x0132, 0x013B, 0x8298, 0x02BC, 0x83BB];
-                const searchLimit = Math.min(uint8View.length, 2000000); 
+                const targetTags = [0x8825, 0x8769, 0x010F, 0x0110, 0x0131, 0x0132, 0x02BC, 0x83BB];
+                const searchLimit = Math.min(uint8View.length, 1500000); 
 
                 for (let i = 0; i < searchLimit - 12; i += 2) {
                     let tagId = view.getUint16(i, isLittleEndian);
@@ -504,9 +517,9 @@
         class ProcessorFactory {
             static create(file, ext) {
                 if (['PNG'].includes(ext)) return new CanvasProcessor(file, ext, 'image/png');
-                if (['WEBP'].includes(ext)) return new WebpProcessor(file, ext);
+                if (['WEBP'].includes(ext)) return new CanvasProcessor(file, ext, 'image/webp');
                 if (['CR2', 'DNG', 'NEF', 'ARW'].includes(ext)) return new RawProcessor(file, ext);
-                return new CanvasProcessor(file, ext, 'image/jpeg'); // Default fallback
+                return new CanvasProcessor(file, ext, 'image/jpeg'); // Default
             }
         }
 
@@ -555,7 +568,6 @@
                 }, 300);
             } else {
                 isAdvancedMode = false;
-                // Force Canvas Fallback for RAW if they choose standard web
                 processorInstance = new CanvasProcessor(originalFile, fileExt, 'image/jpeg'); 
                 crossroadsModal.classList.add('hidden');
                 startWorkspace();
@@ -705,7 +717,6 @@
         }
 
         function handleCleanFile() {
-            // Dramatic pause for completely clean images
             setTimeout(() => {
                 inputBox.classList.remove('scanning');
                 imgInput.classList.add('scanned');
@@ -726,7 +737,6 @@
                 labelFilenameOutput.innerText = originalFile.name;
                 labelFilenameOutput.classList.remove('opacity-0');
                 
-                // Allow user to Force Purge if they want to
                 btnScrubText.innerText = "Force Purge";
                 btnScrub.disabled = false;
                 btnScrub.classList.remove('opacity-50', 'cursor-not-allowed', 'hidden');
@@ -745,12 +755,10 @@
             if (processorInstance instanceof RawProcessor) logToTerminal('', '> EXECUTING BINARY POINTER ORPHANER...', 'sys');
             else logToTerminal('', '> EXECUTING HTML5 CANVAS PURGE...', 'sys');
 
-            // Yield Thread
             setTimeout(async () => {
                 try {
                     const blob = await processorInstance.scrub();
                     
-                    // Route output extension
                     if (processorInstance instanceof CanvasProcessor) {
                         outputExt = `.${processorInstance.outputMime.split('/')[1]}`;
                         if (outputExt === '.jpeg') outputExt = '.jpg';
@@ -783,12 +791,10 @@
                         logToTerminal('VERIFICATION_FAILED', `${surviving.length} privacy tags survived. Scrubbing compromised.`, 'high');
                         btnScrubText.innerText = "Verification Failed";
                         actionMsg.innerHTML = `<span class="text-rose-400 font-bold">Error:</span> Output failed verification.`;
-                        return; // BLOCKS DOWNLOAD
+                        return; 
                     }
                 }
-            } catch(e) {
-                // Pass on totally destroyed exif structures.
-            }
+            } catch(e) {}
 
             logToTerminal('VERIFICATION', 'PASSED. 0 PII THREATS DETECTED.', 'safe');
 
@@ -864,12 +870,10 @@
             activeUrls.forEach(url => URL.revokeObjectURL(url));
             activeUrls = [];
             
-            // Revert all UI states cleanly
             mainBody.classList.remove('advanced-mode');
+            document.body.classList.remove('portal-transition');
             titleAccent.className = "text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 transition-all duration-1000";
             titleAccent.innerText = "Scrubber";
-            dzIconWrap.className = "bg-blue-500/10 p-6 rounded-full mb-6 border border-blue-500/20";
-            dzIcon.className = "w-12 h-12 text-blue-500";
             
             isAdvancedMode = false;
             threatMapContainer.classList.remove('active');
