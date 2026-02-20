@@ -1,11 +1,10 @@
 export class RawProcessor {
     constructor(file) {
         this.file = file;
-        this.engineName = 'WASM Exiv2 Engine';
-        this.engineClass = 'text-violet-400 font-mono';
-        this.buttonText = 'Execute WASM Purge';
-        this.exifCache = {};
-        this.wasmLoaded = false;
+        this.engineName = 'Dual-Pass Forensic Wiper';
+        this.engineClass = 'text-rose-400 font-mono';
+        this.buttonText = 'Execute Binary Wipe';
+        this.exifCache = {}; 
     }
 
     async parse() {
@@ -17,44 +16,11 @@ export class RawProcessor {
         this.exifCache = cache; 
     }
 
-    // THE LAZY-LOADER: Fetches the payload ONLY when requested
-    async initializeWasmEngine() {
-        return new Promise((resolve) => {
-            // Check if already loaded in memory
-            if (window.Exiv2Wasm) {
-                this.wasmLoaded = true;
-                return resolve(true);
-            }
-
-            console.log("[RawProcessor] Requesting heavy WebAssembly payload...");
-            
-            // Simulating the network request to your future /assets/wasm/exiv2.js
-            // If you drop the actual WASM script here, it will execute it.
-            const script = document.createElement('script');
-            script.src = '../assets/wasm/exiv2-browser.js'; 
-            
-            script.onload = () => {
-                console.log("[RawProcessor] WASM Payload successfully injected.");
-                this.wasmLoaded = true;
-                resolve(true);
-            };
-
-            script.onerror = () => {
-                console.warn("[RawProcessor] WASM payload not found. Falling back to native Binary IFD Orphaner.");
-                this.engineName = 'Binary IFD Orphaner (Fallback)';
-                this.wasmLoaded = false;
-                resolve(false); // Graceful degradation
-            };
-
-            document.head.appendChild(script);
-        });
-    }
-
     async getPreviewUrl() {
         try {
             const thumbBuffer = await window.exifr.thumbnail(this.file);
             if (thumbBuffer) return URL.createObjectURL(new Blob([thumbBuffer], {type: 'image/jpeg'}));
-            throw new Error();
+            throw new Error("No Exifr Thumb");
         } catch(e) {
             try {
                 const buffer = await this.file.arrayBuffer();
@@ -71,20 +37,16 @@ export class RawProcessor {
 
     async scrub() {
         const arrayBuffer = await this.file.arrayBuffer();
-        
-        // If WASM loaded successfully, execute WASM C++ logic here
-        if (this.wasmLoaded && window.Exiv2Wasm) {
-            // window.Exiv2Wasm.scrub(arrayBuffer);
-            // return new Blob([wasmOutput], { type: this.file.type });
-        }
-
-        // FAILSAFE: Execute the highly capable Binary Splicer if WASM is missing
         let view = new DataView(arrayBuffer);
         let uint8View = new Uint8Array(arrayBuffer);
 
-        let isLittleEndian = view.getUint16(0) === 0x4949;
+        let isLittleEndian = true;
+        if (view.getUint16(0) === 0x4949) isLittleEndian = true;
+        else if (view.getUint16(0) === 0x4D4D) isLittleEndian = false;
+
         const searchLimit = Math.min(uint8View.length, 2000000); 
 
+        // PASS 1: Disconnect Binary Pointers
         const targetTags = [0x8825, 0x8769, 0x010F, 0x0110, 0x0131, 0x0132, 0x02BC, 0x83BB, 0x927C, 0x013B, 0x8298];
         for (let i = 0; i < searchLimit - 12; i += 2) {
             let tagId = view.getUint16(i, isLittleEndian);
@@ -96,6 +58,7 @@ export class RawProcessor {
             }
         }
 
+        // PASS 2: Overwrite ASCII XMP tags and dynamically found strings
         const encoder = new TextEncoder();
         for (const val of Object.values(this.exifCache)) {
             if (typeof val === 'string' && val.length > 3) {
