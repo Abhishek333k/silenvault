@@ -9,22 +9,11 @@ export class ProcessorFactory {
         const extension = ext.toUpperCase();
         
         switch(extension) {
-            case 'WEBP':
-                return new WebpProcessor(file);
-            case 'PNG':
-                return new PngProcessor(file);
-            case 'DNG':
-            case 'CR2':
-            case 'NEF':
-            case 'ARW':
-                return new RawProcessor(file);
-            case 'JPG':
-            case 'JPEG':
-            case 'JFIF':
-                return new JpegProcessor(file);
-            default:
-                console.warn(`No dedicated binary processor for ${extension}. Using safe Canvas fallback.`);
-                return new CanvasProcessor(file, ext, 'image/jpeg'); 
+            case 'WEBP': return new WebpProcessor(file);
+            case 'PNG': return new PngProcessor(file);
+            case 'DNG': case 'CR2': case 'NEF': case 'ARW': return new RawProcessor(file);
+            case 'JPG': case 'JPEG': case 'JFIF': return new JpegProcessor(file);
+            default: return new CanvasProcessor(file, ext, 'image/jpeg'); 
         }
     }
 }
