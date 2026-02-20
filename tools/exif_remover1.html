@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EXIF Remover & Image Metadata Scrubber | SilenVault</title>
-    <meta name="description" content="Local-first forensic tool to permanently remove hidden EXIF data and GPS coordinates. Exact format retention for JPEG, PNG, WebP, and RAW (CR2, DNG) formats.">
+    <meta name="description" content="Local-first forensic tool to permanently remove hidden EXIF data and GPS coordinates. Exact format retention for JPEG, PNG, WebP, and RAW formats.">
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
 
@@ -29,79 +29,82 @@
         }
 
         body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--primary-text); overflow-x: hidden; transition: background-color 0.8s ease; }
-        .glass-panel { background: var(--panel-bg); backdrop-filter: blur(12px); border: 1px solid var(--border-color); transition: all 0.8s ease; }
+        .glass-panel { background: var(--panel-bg); backdrop-filter: blur(12px); border: 1px solid var(--border-color); transition: all 0.5s ease; }
         .mono { font-family: 'Fira Code', monospace; }
 
-        /* THE DEEP FORGE DIMENSION SHIFT (Smooth Rose/Amber) */
+        /* ADVANCED FORGE THEME */
         body.forge-mode {
             --bg-color: #0a0002;
             --panel-bg: rgba(20, 0, 5, 0.7);
             --border-color: #4c0519;
             --accent-glow: rgba(225, 29, 72, 0.2);
-            background-image: 
-                linear-gradient(rgba(225, 29, 72, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(225, 29, 72, 0.05) 1px, transparent 1px);
+            background-image: linear-gradient(rgba(225, 29, 72, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(225, 29, 72, 0.05) 1px, transparent 1px);
             background-size: 30px 30px;
         }
         .forge-mode .status-scan { background: rgba(225, 29, 72, 0.1) !important; color: #e11d48 !important; border-color: rgba(225, 29, 72, 0.3) !important; }
         .forge-mode .scanner-line { background: #e11d48 !important; box-shadow: 0 0 15px #e11d48, 0 0 30px #e11d48 !important; }
-        .forge-mode .val-sys { color: #fbbf24 !important; }
 
-        /* Smooth Portal Transition */
+        /* SMOOTH PORTAL TRANSITION */
         .portal-transition { animation: portalFade 0.8s ease-in-out forwards; }
-        @keyframes portalFade {
-            0% { filter: contrast(1); opacity: 1; }
-            50% { filter: contrast(1.1); opacity: 0.8; }
-            100% { filter: contrast(1); opacity: 1; }
-        }
+        @keyframes portalFade { 0% { filter: contrast(1); opacity: 1; } 50% { filter: contrast(1.1); opacity: 0.8; } 100% { filter: contrast(1); opacity: 1; } }
 
-        .drop-zone { border: 2px dashed var(--border-color); border-radius: 1rem; background: rgba(0,0,0,0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 350px; transition: all 0.3s ease; cursor: pointer; position: relative; }
+        /* DROP ZONE */
+        .drop-zone { border: 2px dashed var(--border-color); border-radius: 1rem; background: rgba(0,0,0,0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 350px; transition: all 0.4s ease; cursor: pointer; position: relative; }
         .drop-zone:hover, .drop-zone.dragover { border-color: #3b82f6; background: var(--accent-glow); }
         .forge-mode .drop-zone:hover { border-color: #e11d48; }
         .drop-zone input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
 
+        /* PREVIEWS */
         .preview-box { border: 2px solid var(--border-color); border-radius: 8px; background: #000; overflow: hidden; position: relative; height: 250px; display: flex; align-items: center; justify-content: center; }
-        .preview-img { max-width: 100%; max-height: 100%; object-fit: contain; opacity: 0.5; transition: opacity 0.5s; }
+        .preview-img { max-width: 100%; max-height: 100%; object-fit: contain; opacity: 0.5; transition: opacity 0.5s ease; }
         .preview-img.scanned { opacity: 1; }
         .preview-label { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.8); border: 1px solid var(--border-color); padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #cbd5e1; z-index: 10; }
-        .filename-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: block; font-size: 11px; color: #94a3b8; margin-top: 8px; text-align: center; }
-
         .scanner-line { position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: #3b82f6; box-shadow: 0 0 15px #3b82f6, 0 0 30px #3b82f6; animation: scan 2s cubic-bezier(0.4, 0, 0.2, 1) infinite; z-index: 20; display: none; }
         .scanning .scanner-line { display: block; }
         @keyframes scan { 0% { top: 0%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
 
-        /* Terminal Logs - High Contrast */
-        .terminal { background: rgba(0,0,0,0.8); border: 1px solid var(--border-color); border-radius: 8px; font-family: 'Fira Code', monospace; font-size: 12px; height: 300px; display: flex; flex-direction: column; }
+        /* TERMINAL LOGS (High Contrast) */
+        .terminal { background: rgba(0,0,0,0.8); border: 1px solid var(--border-color); border-radius: 8px; font-family: 'Fira Code', monospace; font-size: 12px; height: 300px; display: flex; flex-direction: column; transition: all 0.5s ease; }
         .terminal-header { background: rgba(255,255,255,0.05); border-bottom: 1px solid var(--border-color); padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0; }
-        .terminal-body { padding: 16px; overflow-y: auto; flex: 1; color: #e2e8f0; }
+        .terminal-body { padding: 16px; overflow-y: auto; flex: 1; color: #e2e8f0; scroll-behavior: smooth; }
         .terminal-body::-webkit-scrollbar { width: 6px; }
         .terminal-body::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
-        
         .log-line { margin-bottom: 6px; display: flex; align-items: flex-start; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px; animation: fadeIn 0.2s ease-in;}
         @keyframes fadeIn { from { opacity: 0; transform: translateX(-5px); } to { opacity: 1; transform: translateX(0); } }
-        
         .log-key { color: #f8fafc; font-weight: bold; width: 40%; flex-shrink: 0; word-break: break-all; }
         .log-val { word-break: break-all; }
-        
-        .val-high { color: #f43f5e; font-weight: bold; text-shadow: 0 0 10px rgba(244,63,94,0.3); }
-        .val-med { color: #fbbf24; }
-        .val-low { color: #94a3b8; }
-        .val-sys { color: #3b82f6; width: 100%; }
-        .val-safe { color: #10b981; font-weight: bold; }
+        .val-high { color: #fca5a5; font-weight: bold; text-shadow: 0 0 10px rgba(244,63,94,0.3); }
+        .val-med { color: #fde047; }
+        .val-low { color: #cbd5e1; }
+        .val-sys { color: #93c5fd; width: 100%; }
+        .forge-mode .val-sys { color: #fb7185; }
+        .val-safe { color: #86efac; font-weight: bold; }
 
-        #location-map-container { transition: max-height 0.8s ease, opacity 0.5s ease; overflow: hidden; max-height: 0; opacity: 0; border-radius: 8px; }
+        /* MAP & BADGES */
+        #location-map-container { transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; max-height: 0; opacity: 0; border-radius: 8px; }
         #location-map-container.active { max-height: 250px; opacity: 1; border: 1px solid rgba(244,63,94,0.3); margin-top: 1rem; }
         #leaflet-map { height: 200px; width: 100%; z-index: 1; }
-        .leaflet-container { background: #0f172a; } 
-
-        .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-        .status-warn { background: rgba(251, 191, 36, 0.1); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); }
-        .status-danger { background: rgba(244, 63, 94, 0.1); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.3); box-shadow: 0 0 15px rgba(244, 63, 94, 0.2); animation: pulse-danger 2s infinite; }
-        @keyframes pulse-danger { 0%, 100% { box-shadow: 0 0 15px rgba(244, 63, 94, 0.2); } 50% { box-shadow: 0 0 25px rgba(244, 63, 94, 0.6); } }
-        .status-safe { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
-        .status-scan { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
         
-        #meta-count { background: #1e293b; color: #f8fafc; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; border: 1px solid #334155;}
+        .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; transition: all 0.4s ease; }
+        .status-warn { background: rgba(251, 191, 36, 0.1); color: #fde047; border: 1px solid rgba(251, 191, 36, 0.3); }
+        .status-danger { background: rgba(244, 63, 94, 0.1); color: #fca5a5; border: 1px solid rgba(244, 63, 94, 0.3); box-shadow: 0 0 15px rgba(244, 63, 94, 0.2); animation: pulse-danger 2s infinite; }
+        @keyframes pulse-danger { 0%, 100% { box-shadow: 0 0 15px rgba(244, 63, 94, 0.2); } 50% { box-shadow: 0 0 25px rgba(244, 63, 94, 0.6); } }
+        .status-safe { background: rgba(16, 185, 129, 0.1); color: #86efac; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-scan { background: rgba(59, 130, 246, 0.1); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
+
+        /* CENTERED MODAL - Liquid Transitions */
+        #crossroads-modal-wrapper { 
+            position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; 
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); 
+            opacity: 0; pointer-events: none; transition: opacity 0.4s ease; 
+        }
+        #crossroads-modal-wrapper.active { opacity: 1; pointer-events: auto; }
+        
+        #crossroads-modal-inner {
+            transform: scale(0.95); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #crossroads-modal-wrapper.active #crossroads-modal-inner { transform: scale(1); }
+
     </style>
 </head>
 <body class="flex flex-col min-h-screen transition-colors duration-1000" id="main-body">
@@ -111,17 +114,17 @@
     <main class="flex-1 max-w-[1400px] mx-auto w-full px-4 py-8 flex flex-col gap-6 relative">
         <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-2">
             <div>
-                <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight" id="main-title">
-                    EXIF Metadata <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 transition-all duration-1000" id="title-accent">Remover</span>
+                <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight transition-all duration-1000" id="main-title">
+                    EXIF Metadata <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 transition-all duration-1000" id="title-accent">Scrubber</span>
                 </h1>
                 <p class="text-sm text-slate-400 mt-1">Scan, verify, and securely purge tracking data from your images locally.</p>
             </div>
         </div>
 
-        <div id="upload-stage" class="glass-panel p-2 rounded-2xl">
+        <div id="upload-stage" class="glass-panel p-2 rounded-2xl transition-all duration-500">
             <div id="drop-zone" class="drop-zone">
-                <div class="bg-blue-500/10 p-6 rounded-full mb-6 border border-blue-500/20" id="dz-icon-wrap">
-                    <svg class="w-12 h-12 text-blue-500" id="dz-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <div class="bg-blue-500/10 p-6 rounded-full mb-6 border border-blue-500/20 transition-all duration-500" id="dz-icon-wrap">
+                    <svg class="w-12 h-12 text-blue-500 transition-colors duration-500" id="dz-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 </div>
                 <h3 class="text-2xl font-bold text-white mb-2 pointer-events-none tracking-tight">Select Image to Audit</h3>
                 <p class="text-sm text-slate-500 pointer-events-none mb-6">Supports standard web formats and heavy DSLR RAW files.</p>
@@ -132,69 +135,89 @@
                     <span class="px-2 py-1 rounded bg-slate-800 text-[10px] text-rose-400 font-bold border border-rose-900/50">CR2 / DNG / NEF</span>
                 </div>
 
-                <div class="px-6 py-2 rounded-lg bg-slate-800 text-slate-300 text-xs font-bold pointer-events-none border border-slate-700">Click to Browse Files</div>
+                <div class="px-6 py-2 rounded-lg bg-slate-800 text-slate-300 text-xs font-bold pointer-events-none border border-slate-700 shadow-sm">Click to Browse Files</div>
                 <input type="file" id="file-input" accept="image/*, .dng, .cr2, .nef, .arw, .heic, .heif, .webp, .png, .jpg, .jpeg">
             </div>
         </div>
 
-        <div id="crossroads-modal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm">
-            <div class="glass-panel p-8 rounded-2xl max-w-xl w-full border-rose-500/30 relative overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)] mx-4">
+        <div id="crossroads-modal-wrapper">
+            <div id="crossroads-modal-inner" class="glass-panel p-8 rounded-2xl max-w-xl w-full border-rose-500/30 relative overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.6)] mx-4">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-500 to-amber-500"></div>
                 <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-3">
                     <svg class="w-6 h-6 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                     RAW Sensor Data Detected
                 </h2>
                 <p class="text-sm text-slate-300 mb-6 leading-relaxed">
-                    You uploaded a DSLR format (<span id="raw-ext-badge" class="font-bold text-rose-400">.CR2</span>). Choose your processing path:
+                    You uploaded a heavy DSLR format (<span id="raw-ext-badge" class="font-bold text-rose-400">.CR2</span>). Standard browsers cannot physically rewrite RAW files natively. Choose your processing path:
                 </p>
+                
                 <div class="space-y-4">
-                    <button onclick="executeCrossroads('standard')" class="w-full text-left p-4 rounded-xl border border-slate-700 bg-slate-900/50 hover:bg-slate-800 transition-all group">
+                    <button onclick="window.executeCrossroads('standard')" class="w-full text-left p-4 rounded-xl border border-slate-700 bg-slate-900/50 hover:bg-slate-800 hover:border-slate-500 transition-all duration-300 group">
                         <div class="flex items-center justify-between mb-1">
                             <span class="font-bold text-blue-400 group-hover:text-blue-300">Standard Conversion (Fast)</span>
                             <span class="text-[10px] uppercase tracking-widest text-slate-500">Web Standard</span>
                         </div>
                         <p class="text-xs text-slate-400">Extracts the secret preview and safely exports a clean, highly-compatible JPEG.</p>
                     </button>
-                    <button onclick="executeCrossroads('forge')" class="w-full text-left p-4 rounded-xl border border-rose-900/50 bg-rose-950/20 hover:bg-rose-900/40 hover:border-rose-500/50 transition-all group">
-                        <div class="flex items-center justify-between mb-1 relative z-10">
+
+                    <button onclick="window.executeCrossroads('forge')" class="w-full text-left p-4 rounded-xl border border-rose-900/50 bg-rose-950/20 hover:bg-rose-900/40 hover:border-rose-500/50 transition-all duration-300 group">
+                        <div class="flex items-center justify-between mb-1">
                             <span class="font-bold text-rose-400 group-hover:text-rose-300 flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                                 Advanced Binary Wipe
                             </span>
-                            <span class="text-[10px] uppercase tracking-widest text-amber-500 font-bold">Retain Original Format</span>
+                            <span class="text-[10px] uppercase tracking-widest text-amber-500 font-bold animate-pulse">Retain Original Format</span>
                         </div>
-                        <p class="text-xs text-rose-200/70 relative z-10 mt-1">Surgically disconnects EXIF directories within the binary file, destroying privacy risks while preserving sensor data perfectly.</p>
+                        <p class="text-xs text-rose-200/70 mt-1">Surgically orphans metadata pointers within the binary file, destroying privacy risks while preserving raw sensor data perfectly.</p>
                     </button>
-                    <button onclick="cancelCrossroads()" class="w-full text-center p-3 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-sm font-bold text-slate-300 transition-all">Cancel & Select New File</button>
+
+                    <button onclick="window.cancelCrossroads()" class="w-full text-center p-3 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-sm font-bold text-slate-300 transition-all duration-300 mt-2">
+                        Cancel & Select New File
+                    </button>
                 </div>
             </div>
         </div>
 
-        <div id="workspace-stage" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div id="workspace-stage" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start transition-all duration-500">
             <div class="lg:col-span-5 flex flex-col gap-4">
                 <div class="glass-panel p-4 rounded-xl flex flex-col gap-4">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <div id="input-box" class="preview-box scanning"><div class="scanner-line"></div><span class="preview-label">Original Input</span><img id="img-input" class="preview-img" alt="Input Preview"></div>
-                            <span id="label-filename-input" class="filename-text">...</span>
+                            <div id="input-box" class="preview-box scanning">
+                                <div class="scanner-line"></div>
+                                <span class="preview-label">Original Input</span>
+                                <img id="img-input" class="preview-img" alt="Input Preview">
+                            </div>
+                            <span id="label-filename-input" class="filename-text text-slate-300">...</span>
                         </div>
+                        
                         <div>
                             <div class="preview-box border-emerald-900/50">
                                 <span class="preview-label text-emerald-400 border-emerald-900/50 bg-emerald-950/50">Scrubbed Output</span>
-                                <div id="output-placeholder" class="text-xs text-slate-600 font-mono text-center flex flex-col items-center gap-2">
-                                    <svg class="w-6 h-6 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                <div id="output-placeholder" class="text-xs text-slate-500 font-mono text-center flex flex-col items-center gap-2">
+                                    <svg class="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                                     Awaiting Sanitization
                                 </div>
                                 <img id="img-output" class="preview-img hidden" alt="Output Preview">
                             </div>
-                            <span id="label-filename-output" class="filename-text opacity-0 transition-opacity">...</span>
+                            <span id="label-filename-output" class="filename-text opacity-0 transition-opacity duration-500">...</span>
                         </div>
                     </div>
+
                     <div class="grid grid-cols-2 gap-2 text-xs">
-                        <div class="bg-black/50 p-3 rounded border border-slate-800"><span class="block text-[10px] text-slate-500 uppercase tracking-widest mb-1">Input Size</span><span id="file-size" class="text-slate-300 font-mono">0 KB</span></div>
-                        <div class="bg-black/50 p-3 rounded border border-slate-800 text-right"><span class="block text-[10px] text-slate-500 uppercase tracking-widest mb-1">Engine</span><span id="badge-engine" class="text-slate-300 font-mono">Determining...</span></div>
+                        <div class="bg-black/50 p-3 rounded border border-slate-800">
+                            <span class="block text-[10px] text-slate-500 uppercase tracking-widest mb-1">Input Size</span>
+                            <span id="file-size" class="text-slate-300 font-mono">0 KB</span>
+                        </div>
+                        <div class="bg-black/50 p-3 rounded border border-slate-800 text-right">
+                            <span class="block text-[10px] text-slate-500 uppercase tracking-widest mb-1">Engine</span>
+                            <span id="badge-engine" class="text-slate-300 font-mono transition-colors duration-500">Determining...</span>
+                        </div>
                     </div>
-                    <button onclick="resetApp(true)" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-4 py-3 rounded-xl transition-all border border-slate-700">Abort & Load New Target</button>
+
+                    <button onclick="window.resetApp()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-bold px-4 py-3 rounded-xl transition-all duration-300 border border-slate-700 shadow-lg">
+                        Abort & Load New Target
+                    </button>
                 </div>
             </div>
 
@@ -206,97 +229,131 @@
                             Forensic Audit Log
                         </span>
                         <div class="flex items-center gap-4">
-                            <button id="btn-export-report" onclick="exportReport()" class="hidden text-[10px] bg-black/50 hover:bg-white/10 text-slate-300 px-3 py-1 rounded border border-white/20 transition-colors flex items-center gap-1">Export Log</button>
-                            <span id="meta-count">0 Tags</span>
+                            <button id="btn-export-report" onclick="window.exportReport()" class="hidden text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded border border-slate-600 transition-colors flex items-center gap-1">
+                                Export Log
+                            </button>
+                            <span id="meta-count" class="bg-slate-900 text-slate-200 px-3 py-1 rounded-md text-[10px] font-mono border border-slate-700">0 Tags</span>
                         </div>
                     </div>
                     <div class="terminal-body" id="terminal-out"></div>
                 </div>
 
-                <div id="location-map-container"><div id="leaflet-map"></div></div>
-
-                <div id="action-area" class="glass-panel p-4 rounded-xl border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div id="action-msg-container" class="flex flex-col gap-1">
-                        <span id="status-indicator" class="status-badge status-scan w-max">
-                            <svg class="w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Scanning
-                        </span>
-                        <span id="action-msg" class="text-xs mt-1 block text-slate-400">Analyzing structure...</span>
+                <div id="location-map-container">
+                    <div class="relative w-full h-full">
+                        <div class="absolute top-2 left-2 z-[400] bg-rose-950/90 text-rose-400 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded border border-rose-500/50 shadow-lg backdrop-blur flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span> Location Data Found
+                        </div>
+                        <div id="leaflet-map"></div>
                     </div>
-                    <button id="btn-scrub" onclick="executeImageProcessing()" disabled class="hidden w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-8 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(59,130,246,0.4)] flex items-center justify-center gap-2 opacity-50 cursor-not-allowed">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg> <span id="btn-scrub-text">Remove Metadata</span>
+                </div>
+
+                <div id="action-area" class="glass-panel p-4 rounded-xl border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4 transition-all duration-500">
+                    <div id="action-msg-container" class="flex flex-col gap-1">
+                        <span id="status-indicator" class="status-badge status-scan w-max transition-colors duration-500">
+                            <svg class="w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            Scanning
+                        </span>
+                        <span id="action-msg" class="text-xs mt-1 block text-slate-400">Analyzing binary structure...</span>
+                    </div>
+                    
+                    <button id="btn-scrub" onclick="window.executeImageProcessing()" disabled class="hidden w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-8 py-3 rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(59,130,246,0.4)] flex items-center justify-center gap-2 opacity-50 cursor-not-allowed">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        <span id="btn-scrub-text">Remove Metadata</span>
                     </button>
-                    <button id="btn-download" onclick="downloadImage()" class="hidden w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold px-8 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.4)] flex items-center justify-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Download Verified File
+
+                    <button id="btn-download" onclick="window.downloadImage()" class="hidden w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold px-8 py-3 rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(16,185,129,0.4)] flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        Download Secure File
                     </button>
                 </div>
             </div>
         </div>
         
+        <canvas id="scrub-canvas" class="hidden"></canvas>
     </main>
 
     <sv-footer base-path=".."></sv-footer>
 
     <script type="module">
         'use strict'; 
-        // Import Processor Factory & Canvas processor for manual fallbacks
+        
+        // Import Processor Factory from your Modular Tree Structure
         import { ProcessorFactory } from '../assets/js/exif_processors/Dispatcher.js';
-        import { CanvasProcessor } from '../assets/js/exif_processors/CanvasProcessor.js';
 
-        // 1. STATE & MEMORY
+        // ==========================================
+        // 1. STATE & STRICT MEMORY MANAGEMENT
+        // ==========================================
         let originalFile = null;
         let scrubbedBlob = null;
         let sourceImageObj = new Image(); 
         let processorInstance = null;
+        
         let fileExt = '';
         let outputExt = ''; 
         let isAdvancedMode = false;
+        
         let rawExifCache = {}; 
         let currentScanId = 0;
         let threatMap = null;
         let mapMarker = null;
         let activeUrls = []; 
 
+        // ==========================================
         // 2. DOM CACHE
+        // ==========================================
         const mainBody = document.getElementById('main-body');
+        const titleAccent = document.getElementById('title-accent');
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('file-input');
         const stageUpload = document.getElementById('upload-stage');
         const stageWorkspace = document.getElementById('workspace-stage');
-        const crossroadsModal = document.getElementById('crossroads-modal');
+        
+        const crossroadsModalWrapper = document.getElementById('crossroads-modal-wrapper');
+        const rawExtBadge = document.getElementById('raw-ext-badge');
+        
         const inputBox = document.getElementById('input-box');
         const imgInput = document.getElementById('img-input');
         const imgOutput = document.getElementById('img-output');
         const outputPlaceholder = document.getElementById('output-placeholder');
         const labelFilenameInput = document.getElementById('label-filename-input');
         const labelFilenameOutput = document.getElementById('label-filename-output');
+        
         const fileSizeEl = document.getElementById('file-size');
         const badgeEngine = document.getElementById('badge-engine');
         const terminalOut = document.getElementById('terminal-out');
         const metaCount = document.getElementById('meta-count');
         const statusIndicator = document.getElementById('status-indicator');
         const actionMsg = document.getElementById('action-msg');
+        
         const threatMapContainer = document.getElementById('location-map-container');
         const btnScrub = document.getElementById('btn-scrub');
         const btnScrubText = document.getElementById('btn-scrub-text');
         const btnDownload = document.getElementById('btn-download');
         const btnExport = document.getElementById('btn-export-report');
-        const titleAccent = document.getElementById('title-accent');
         const dzIconWrap = document.getElementById('dz-icon-wrap');
         const dzIcon = document.getElementById('dz-icon');
 
-        // STRUCTURAL WHITELIST
+        // STRUCTURAL WHITELIST: Ignores visual/architectural chunks so pure files don't throw false alarms.
         const STRUCTURAL_WHITELIST = ['ImageWidth', 'ImageHeight', 'ExifImageWidth', 'ExifImageHeight', 'Orientation', 'ColorSpace', 'Compression', 'XResolution', 'YResolution', 'ResolutionUnit', 'BitDepth', 'ColorType', 'Filter', 'Interlace', 'SamplesPerPixel', 'RowsPerStrip', 'StripByteCounts', 'StripOffsets', 'PlanarConfiguration', 'PhotometricInterpretation', 'SubfileType'];
 
-        // 3. LISTENERS
+        // ==========================================
+        // 3. EVENT LISTENERS
+        // ==========================================
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, preventDefaults));
         function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
         ['dragenter', 'dragover'].forEach(e => dropZone.classList.add('dragover'));
         ['dragleave', 'drop'].forEach(e => dropZone.classList.remove('dragover'));
         dropZone.addEventListener('drop', e => handleFile(e.dataTransfer.files[0]));
         fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
-        window.addEventListener("beforeunload", () => { activeUrls.forEach(url => URL.revokeObjectURL(url)); localStorage.clear(); });
 
-        // 4. LOGIC
+        window.addEventListener("beforeunload", () => {
+            activeUrls.forEach(url => URL.revokeObjectURL(url));
+            localStorage.clear(); 
+        });
+
+        // ==========================================
+        // 4. CORE UTILITIES
+        // ==========================================
         function formatBytes(bytes) {
             if (!bytes || bytes === 0) return '0 Bytes';
             const k = 1024, i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -320,66 +377,83 @@
             line.className = 'log-line';
             const safeVal = (typeof val === 'string') ? val.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : val;
             if (severity === 'sys') line.innerHTML = `<span class="val-sys">${safeVal}</span>`;
+            else if (severity === 'safe') line.innerHTML = `<span class="log-key">${key}</span><span class="val-safe">${safeVal}</span>`;
             else line.innerHTML = `<span class="log-key">${key}</span><span class="log-val val-${severity}">${safeVal}</span>`;
             terminalOut.appendChild(line);
             terminalOut.scrollTop = terminalOut.scrollHeight;
         }
 
+        // ==========================================
+        // 5. IMAGE PIPELINE & ROUTING
+        // ==========================================
         function handleFile(file) {
             if (!file) return;
+            
+            // Wipe active blobs to save RAM
             activeUrls.forEach(url => URL.revokeObjectURL(url));
             activeUrls = [];
-            sourceImageObj = new Image(); 
 
             originalFile = file;
             fileExt = file.name.split('.').pop().toUpperCase();
             labelFilenameInput.innerText = file.name;
             
-            processorInstance = ProcessorFactory.create(originalFile, fileExt);
-
+            // Check if it's a Heavy Format
             if (['CR2', 'DNG', 'NEF', 'ARW'].includes(fileExt)) {
+                // If they already chose Forge mode previously, maintain the workflow and skip the modal
                 if (isAdvancedMode) {
                     startWorkspace();
                     return;
                 }
-                document.getElementById('raw-ext-badge').innerText = `.${fileExt}`;
-                crossroadsModal.classList.remove('hidden'); // Uses Tailwind class correctly
+                // Otherwise, show the modal
+                rawExtBadge.innerText = `.${fileExt}`;
+                crossroadsModalWrapper.classList.add('active');
                 return;
             }
+            
+            // For standard files, always clear Forge mode and run
             isAdvancedMode = false;
             startWorkspace(); 
         }
 
         function executeCrossroads(mode) {
+            crossroadsModalWrapper.classList.remove('active');
+            
             if (mode === 'forge') {
                 isAdvancedMode = true;
                 document.body.classList.add('portal-transition'); 
                 mainBody.classList.add('forge-mode');
+                
                 titleAccent.className = "text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-amber-500 transition-all duration-1000";
-                titleAccent.innerText = "Deep Forge";
+                titleAccent.innerText = "Forge";
                 dzIconWrap.className = "bg-rose-500/10 p-6 rounded-full mb-6 border border-rose-500/20";
                 dzIcon.className = "w-12 h-12 text-rose-500";
                 
-                crossroadsModal.classList.add('hidden');
-                startWorkspace();
-                setTimeout(() => document.body.classList.remove('portal-transition'), 800);
+                setTimeout(() => {
+                    startWorkspace();
+                    setTimeout(() => document.body.classList.remove('portal-transition'), 800);
+                }, 300);
             } else {
                 isAdvancedMode = false;
-                // ARCHITECT FIX: Dynamically force the Canvas Processor instead of raw binary splicer
-                processorInstance = new CanvasProcessor(originalFile, fileExt, 'image/jpeg');
-                crossroadsModal.classList.add('hidden');
                 startWorkspace();
             }
         }
 
         function cancelCrossroads() {
-            crossroadsModal.classList.add('hidden');
+            crossroadsModalWrapper.classList.remove('active');
             fileInput.value = '';
+            originalFile = null;
         }
 
+        // ==========================================
+        // 6. UI PREP & EXECUTION
+        // ==========================================
         function startWorkspace() {
             currentScanId++;
             let thisScanId = currentScanId;
+
+            // Generate the specialized processor via the Dispatcher Factory
+            // Pass `isAdvancedMode` so the Factory knows whether to return RawProcessor or CanvasProcessor
+            processorInstance = ProcessorFactory.create(originalFile, fileExt, isAdvancedMode);
 
             rawExifCache = {};
             threatMapContainer.classList.remove('active'); 
@@ -392,18 +466,23 @@
             inputBox.classList.add('scanning');
             imgInput.classList.remove('scanned');
             
+            statusIndicator.className = "status-badge status-scan";
+            statusIndicator.innerHTML = `<svg class="w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Scanning`;
+            actionMsg.innerHTML = `<span class="text-slate-400">Analyzing binary structure...</span>`;
+            
             btnScrub.disabled = true;
             btnScrub.classList.add('opacity-50', 'cursor-not-allowed', 'hidden');
             btnDownload.classList.add('hidden');
+            btnExport.classList.add('hidden');
 
             badgeEngine.innerText = processorInstance.engineName || 'Binary Splicer';
             
             if(isAdvancedMode) {
-                badgeEngine.className = 'text-rose-400 font-mono';
-                btnScrub.className = "hidden w-full md:w-auto bg-rose-700 hover:bg-rose-600 text-white text-sm font-bold px-8 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(225,29,72,0.6)] flex items-center justify-center gap-2 opacity-50 cursor-not-allowed";
+                badgeEngine.className = processorInstance.engineClass || 'text-rose-400 font-mono';
+                btnScrub.className = "hidden w-full md:w-auto bg-rose-700 hover:bg-rose-600 text-white text-sm font-bold px-8 py-3 rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(225,29,72,0.6)] flex items-center justify-center gap-2 opacity-50 cursor-not-allowed";
             } else {
                 badgeEngine.className = processorInstance.engineClass || 'text-blue-300 font-mono';
-                btnScrub.className = "hidden w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-8 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(59,130,246,0.4)] flex items-center justify-center gap-2 opacity-50 cursor-not-allowed";
+                btnScrub.className = "hidden w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-8 py-3 rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(59,130,246,0.4)] flex items-center justify-center gap-2 opacity-50 cursor-not-allowed";
             }
             btnScrubText.innerText = processorInstance.buttonText || 'Remove Metadata';
 
@@ -425,7 +504,7 @@
                     imgInput.src = urlToLoad;
                 }
             } catch(e) { 
-                logToTerminal('WARNING', 'Visual preview extraction failed. Execution continues natively.', 'med');
+                logToTerminal('WARNING', 'Visual preview extraction failed. Execution continues.', 'med');
             }
             scanMetadata(thisScanId);
         }
@@ -437,9 +516,10 @@
 
                 if (exifData && Object.keys(exifData).length > 0) {
                     const usefulKeys = Object.keys(exifData).filter(key => isPrivacyThreat(key, exifData[key]));
+                    
                     if (usefulKeys.length === 0) return handleCleanFile();
                     
-                    metaCount.innerText = `${usefulKeys.length} Tags Found`;
+                    metaCount.innerText = `${usefulKeys.length} Tags`;
                     
                     let idx = 0;
                     function printNextLog() {
@@ -468,12 +548,15 @@
 
                         let key = usefulKeys[idx];
                         let val = exifData[key];
+                        if (val instanceof Date) val = val.toISOString();
                         rawExifCache[key] = val; 
+
                         logToTerminal(key, val, getSeverity(key));
                         idx++;
                         setTimeout(printNextLog, isAdvancedMode ? 5 : 15);
                     }
                     setTimeout(printNextLog, 100);
+
                 } else {
                     handleCleanFile();
                 }
@@ -506,6 +589,7 @@
                 imgInput.classList.add('scanned');
                 metaCount.innerText = `0 Tags`;
                 logToTerminal('', '> SCAN COMPLETE. NO PRIVACY DATA DETECTED.', 'sys');
+                logToTerminal('STATUS', 'CLEAN', 'safe');
                 
                 statusIndicator.className = "status-badge status-safe";
                 statusIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Safe File`;
@@ -516,6 +600,7 @@
                 imgOutput.src = imgInput.src;
                 outputPlaceholder.classList.add('hidden');
                 imgOutput.classList.remove('hidden');
+                
                 labelFilenameOutput.innerText = originalFile.name;
                 labelFilenameOutput.classList.remove('opacity-0');
                 
@@ -526,6 +611,9 @@
             }, 1000);
         }
 
+        // ==========================================
+        // 7. SANITIZATION ENGINES
+        // ==========================================
         function executeImageProcessing() {
             btnScrub.disabled = true;
             btnScrub.classList.add('opacity-50', 'cursor-not-allowed');
@@ -533,11 +621,11 @@
 
             setTimeout(async () => {
                 try {
-                    if(processorInstance.setCache) processorInstance.setCache(rawExifCache);
-                    // Pass sourceImageObj into the scrub function so Canvas processor can physically draw the pixels
+                    // Pass dependencies down
+                    if (processorInstance.setCache) processorInstance.setCache(rawExifCache);
                     const blob = await processorInstance.scrub(sourceImageObj);
                     
-                    // Route output extension natively based on processor used
+                    // The factory determines the output extension perfectly
                     outputExt = processorInstance.outputMime ? `.${processorInstance.outputMime.split('/')[1]}` : `.${fileExt.toLowerCase()}`;
                     if (outputExt === '.jpeg') outputExt = '.jpg';
                     
@@ -551,21 +639,25 @@
 
         async function verifyAndFinalize(blob) {
             logToTerminal('', '> RUNNING POST-SCRUB VERIFICATION AUDIT...', 'sys');
+            
             try {
                 const fileBuffer = await blob.arrayBuffer();
                 const checkData = await window.exifr.parse(fileBuffer, {tiff: true, ifd0: true, exif: true, gps: true});
                 if (checkData) {
                     const surviving = Object.keys(checkData).filter(k => isPrivacyThreat(k, checkData[k]));
                     if (surviving.length > 0) {
-                        logToTerminal('VERIFICATION_FAILED', `${surviving.length} privacy tags survived.`, 'high');
+                        logToTerminal('VERIFICATION_FAILED', `${surviving.length} privacy tags survived. Scrubbing compromised.`, 'high');
                         btnScrubText.innerText = "Verification Failed";
-                        actionMsg.innerHTML = `<span class="text-rose-400 font-bold">Error:</span> Output failed verification.`;
+                        actionMsg.innerHTML = `<span class="text-rose-400 font-bold">Error:</span> Output failed safety verification.`;
                         return;
                     }
                 }
             } catch(e) {}
 
             logToTerminal('VERIFICATION', 'PASSED. 0 PII THREATS DETECTED.', 'safe');
+            logToTerminal('FORMAT', `${outputExt.toUpperCase()} EXACT RETENTION`, 'safe');
+            logToTerminal('IMAGE_STATUS', 'CLEANED', 'safe');
+
             scrubbedBlob = blob;
             threatMapContainer.classList.remove('active'); 
             
@@ -574,23 +666,29 @@
             actionMsg.innerHTML = `<span class="text-emerald-400 font-bold">Success:</span> Metadata completely stripped.`;
             
             fileSizeEl.innerText = formatBytes(blob.size);
+            metaCount.innerText = `0 Tags`;
+
             const outputUrl = URL.createObjectURL(blob);
             activeUrls.push(outputUrl);
             
-            // Only update output image visually if we generated a new Canvas. Otherwise mirror original.
-            if(processorInstance.outputMime) imgOutput.src = outputUrl;
-            else imgOutput.src = imgInput.src;
+            if (processorInstance.outputMime) imgOutput.src = outputUrl;
+            else imgOutput.src = imgInput.src; 
             
             outputPlaceholder.classList.add('hidden');
             imgOutput.classList.remove('hidden');
-            btnScrub.classList.add('hidden');
-            btnDownload.classList.remove('hidden');
-
+            
             const nameBase = originalFile.name.substring(0, originalFile.name.lastIndexOf('.'));
             labelFilenameOutput.innerText = `${nameBase}_clean${outputExt}`;
             labelFilenameOutput.classList.remove('opacity-0');
+            
+            btnScrub.classList.add('hidden');
+            btnExport.classList.add('hidden'); 
+            btnDownload.classList.remove('hidden');
         }
 
+        // ==========================================
+        // 8. DOWNLOAD & STRICT RESET
+        // ==========================================
         function downloadImage() {
             if (!scrubbedBlob) return;
             const nameBase = originalFile.name.substring(0, originalFile.name.lastIndexOf('.'));
@@ -605,46 +703,61 @@
         }
 
         function exportReport() {
-            let report = `SilenVault EXIF Audit Report\n\n`;
+            let report = `SilenVault EXIF Audit Report\nFilename: ${originalFile.name}\nScanned: ${new Date().toLocaleString()}\n----------------------------------------\n\n`;
             for (const [key, value] of Object.entries(rawExifCache)) report += `${key}: ${value}\n`;
             const blob = new Blob([report], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             activeUrls.push(url);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `EXIF_Report.txt`;
+            a.download = `${originalFile.name}_EXIF_Report.txt`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
         }
 
-        // Keep Forge Mode active if user passes "true" (Workflow improvement for batching)
-        function resetApp(retainMode = false) {
+        // ARCHITECT FIX: "Liquid Honey Smooth" Strict Reset. Annihilates all state cache.
+        function resetApp() {
+            // 1. Wipe Memory Blobs
             activeUrls.forEach(url => URL.revokeObjectURL(url));
             activeUrls = [];
             
+            // 2. Clear JS State completely
+            originalFile = null;
+            scrubbedBlob = null;
+            processorInstance = null;
+            rawExifCache = {};
+            currentScanId++; 
+            sourceImageObj = new Image();
+            
+            // 3. Destroy UI Maps
             if (threatMap) { threatMap.remove(); threatMap = null; }
             threatMapContainer.classList.remove('active');
+            
+            // 4. Smoothly revert Theme
+            isAdvancedMode = false;
+            mainBody.classList.remove('forge-mode');
+            document.body.classList.remove('portal-transition');
+            titleAccent.className = "text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 transition-all duration-1000";
+            titleAccent.innerText = "Scrubber";
+            dzIconWrap.className = "bg-blue-500/10 p-6 rounded-full mb-6 border border-blue-500/20";
+            dzIcon.className = "w-12 h-12 text-blue-500";
+            
+            // 5. Hide Workspaces
             stageWorkspace.classList.add('hidden');
             stageUpload.classList.remove('hidden');
-
-            if (!retainMode) {
-                isAdvancedMode = false;
-                mainBody.classList.remove('forge-mode');
-                titleAccent.className = "text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 transition-all duration-1000";
-                titleAccent.innerText = "Remover";
-                dzIconWrap.className = "bg-blue-500/10 p-6 rounded-full mb-6 border border-blue-500/20";
-                dzIcon.className = "w-12 h-12 text-blue-500";
-            }
             
-            fileInput.value = ''; originalFile = null; scrubbedBlob = null;
-            sourceImageObj = new Image(); rawExifCache = {}; currentScanId++; 
+            // 6. Reset DOM Elements
+            fileInput.value = '';
             terminalOut.innerHTML = '';
-            
-            imgInput.src = ''; imgOutput.src = '';
-            inputBox.classList.add('scanning'); imgInput.classList.remove('scanned');
-            outputPlaceholder.classList.remove('hidden'); imgOutput.classList.add('hidden');
-            labelFilenameInput.innerText = '...'; labelFilenameOutput.classList.add('opacity-0');
+            imgInput.src = ''; 
+            imgOutput.src = '';
+            inputBox.classList.add('scanning'); 
+            imgInput.classList.remove('scanned');
+            outputPlaceholder.classList.remove('hidden'); 
+            imgOutput.classList.add('hidden');
+            labelFilenameInput.innerText = '...'; 
+            labelFilenameOutput.classList.add('opacity-0');
 
             btnScrub.disabled = true;
             btnScrub.classList.add('opacity-50', 'cursor-not-allowed', 'hidden');
@@ -652,6 +765,7 @@
             btnExport.classList.add('hidden');
         }
 
+        // ARCHITECT FIX: Bind module functions to global Window scope
         window.handleFile = handleFile;
         window.executeCrossroads = executeCrossroads;
         window.cancelCrossroads = cancelCrossroads;
@@ -659,7 +773,6 @@
         window.downloadImage = downloadImage;
         window.exportReport = exportReport;
         window.resetApp = resetApp;
-
     </script>
 </body>
 </html>
