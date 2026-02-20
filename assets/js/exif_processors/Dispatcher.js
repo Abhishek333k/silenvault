@@ -2,28 +2,33 @@ import { WebpProcessor } from './WebpProcessor.js';
 import { JpegProcessor } from './JpegProcessor.js';
 import { PngProcessor } from './PngProcessor.js';
 import { RawProcessor } from './RawProcessor.js';
+import { CanvasProcessor } from './CanvasProcessor.js';
 
 export class ProcessorFactory {
-    static create(file, ext) {
+    static create(file, ext, isAdvancedMode = false) {
         const extension = ext.toUpperCase();
         
         switch(extension) {
-            case 'WEBP':
+            case 'WEBP': 
                 return new WebpProcessor(file);
-            case 'PNG':
+            case 'PNG': 
                 return new PngProcessor(file);
-            case 'DNG':
-            case 'CR2':
-            case 'NEF':
+            case 'DNG': 
+            case 'CR2': 
+            case 'NEF': 
             case 'ARW':
-                return new RawProcessor(file);
-            case 'JPG':
-            case 'JPEG':
-            case 'JFIF':
+                // CRITICAL FIX: The Factory determines the engine based on user selection.
+                // If Advanced, use the Binary Wiper. If Standard, use the Canvas Fallback.
+                return isAdvancedMode 
+                    ? new RawProcessor(file) 
+                    : new CanvasProcessor(file, extension, 'image/jpeg');
+            case 'JPG': 
+            case 'JPEG': 
+            case 'JFIF': 
                 return new JpegProcessor(file);
             default:
-                console.warn(`No dedicated processor for ${extension}. Using JPEG standard.`);
-                return new JpegProcessor(file); 
+                console.warn(`No dedicated processor for ${extension}. Using generic JPEG Splicer.`);
+                return new CanvasProcessor(file, extension, 'image/jpeg'); 
         }
     }
 }
