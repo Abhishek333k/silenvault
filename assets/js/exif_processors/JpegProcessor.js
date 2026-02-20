@@ -26,15 +26,11 @@ export class JpegProcessor {
         let chunksToKeep = [uint8.slice(0, 2)]; 
 
         while (offset < buffer.byteLength) {
-            // SAFEGUARD: Skip arbitrary 0xFF padding bytes injected by older cameras
-            while (offset < buffer.byteLength && uint8[offset] === 0xFF && uint8[offset + 1] === 0xFF) {
-                offset++;
-            }
+            while (offset < buffer.byteLength && uint8[offset] === 0xFF && uint8[offset + 1] === 0xFF) { offset++; }
             if (offset >= buffer.byteLength - 2) break;
 
             const marker = view.getUint16(offset, false);
             
-            // If Start of Scan (0xFFDA), the metadata header is over. Keep all remaining visual pixels.
             if (marker === 0xFFDA) {
                 chunksToKeep.push(uint8.slice(offset));
                 break;
@@ -42,10 +38,8 @@ export class JpegProcessor {
 
             const segmentLength = view.getUint16(offset + 2, false) + 2; 
 
-            // 0xFFE1 is APP1 (EXIF/XMP), 0xFFED is APP13 (IPTC). We obliterate these.
-            if (marker === 0xFFE1 || marker === 0xFFED) {
-                console.log(`[JpegProcessor] Discarded metadata segment: ${marker.toString(16)}`);
-            } else {
+            // Drop EXIF/XMP (APP1) and IPTC (APP13)
+            if (marker !== 0xFFE1 && marker !== 0xFFED) {
                 chunksToKeep.push(uint8.slice(offset, offset + segmentLength));
             }
             offset += segmentLength;
