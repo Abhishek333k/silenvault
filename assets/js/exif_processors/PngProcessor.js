@@ -1,0 +1,63 @@
+export class PngProcessor {
+    constructor(file) {
+        this.file = file;
+        this.engineName = 'PNG Chunk Splicer';
+        this.engineClass = 'text-blue-300 font-mono';
+        this.buttonText = 'Scrub PNG Chunks';
+    }
+
+    async parse() {
+        const buffer = await this.file.arrayBuffer();
+        return await exifr.parse(buffer, {tiff: true, exif: true, gps: true, xmp: true});
+    }
+
+    async getPreviewUrl() {
+        return URL.createObjectURL(this.file);
+    }
+
+    async scrub() {
+        const buffer = await this.file.arrayBuffer();
+        const view = new DataView(buffer);
+        const uint8 = new Uint8Array(buffer);
+
+        // Verify PNG Magic Number (89 50 4E 47 0D 0A 1A 0A)
+        const pngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+        for (let i = 0; i < 8; i++) {
+            if (uint8[i] !== pngSignature[i]) throw new Error("Invalid PNG format");
+        }
+
+        let offset = 8;
+        let chunksToKeep = [];
+        chunksToKeep.push(uint8.slice(0, 8)); // Keep Signature
+
+        while (offset < buffer.byteLength) {
+            const dataLength = view.getUint32(offset, false);
+            const chunkType = String.fromCharCode(
+                uint8[offset + 4], uint8[offset + 5], uint8[offset + 6], uint8[offset + 7]
+            );
+            const totalChunkLength = 4 + 4 + dataLength + 4; // Length(4) + Type(4) + Data + CRC(4)
+
+            // Threat Chunks: eXIf (raw exif), tEXt (text), zTXt (compressed text), iTXt (international text/xmp)
+            const threatChunks = ['eXIf', 'tEXt', 'zTXt', 'iTXt'];
+
+            if (threatChunks.includes(chunkType)) {
+                console.log(`[PngProcessor] Discarded metadata chunk: ${chunkType}`);
+            } else {
+                chunksToKeep.push(uint8.slice(offset, offset + totalChunkLength));
+            }
+
+            if (chunkType === 'IEND') break; // End of file
+            offset += totalChunkLength;
+        }
+
+        const totalLength = chunksToKeep.reduce((acc, chunk) => acc + chunk.length, 0);
+        const cleanBuffer = new Uint8Array(totalLength);
+        let writeOffset = 0;
+        for (let chunk of chunksToKeep) {
+            cleanBuffer.set(chunk, writeOffset);
+            writeOffset += chunk.length;
+        }
+
+        return new Blob([cleanBuffer], { type: 'image/png' });
+    }
+}
