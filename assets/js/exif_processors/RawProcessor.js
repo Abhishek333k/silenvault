@@ -1,10 +1,9 @@
 export class RawProcessor {
     constructor(file) {
         this.file = file;
-        this.engineName = 'WASM Exiv2 Engine';
+        this.engineName = 'WASM Exiv2 C++ Engine';
         this.engineClass = 'text-rose-400 font-mono';
         this.buttonText = 'Execute WASM Purge';
-        this.wasmLoaded = false;
         this.exifCache = {};
     }
 
@@ -13,44 +12,19 @@ export class RawProcessor {
         return await window.exifr.parse(buffer, {tiff: true, ifd0: true, exif: true, gps: true, xmp: true, iptc: true});
     }
 
-    setCache(cache) { this.exifCache = cache; }
-
-    // THE LAZY-LOADER
-    async initializeWasmEngine() {
-        return new Promise((resolve) => {
-            if (window.Exiv2Wasm) {
-                this.wasmLoaded = true;
-                return resolve(true);
-            }
-            console.log("[RawProcessor] Requesting heavy WebAssembly payload...");
-            
-            const script = document.createElement('script');
-            // Path to where you will eventually host your WASM wrapper
-            script.src = '../assets/wasm/exiv2-browser.js'; 
-            
-            script.onload = () => {
-                console.log("[RawProcessor] WASM Payload successfully injected.");
-                this.wasmLoaded = true;
-                resolve(true);
-            };
-
-            script.onerror = () => {
-                console.warn("[RawProcessor] WASM payload not found. Falling back to native Binary IFD Orphaner.");
-                this.engineName = 'Binary IFD Orphaner (Fallback)';
-                this.wasmLoaded = false;
-                resolve(false); 
-            };
-            document.head.appendChild(script);
-        });
+    setCache(cache) { 
+        this.exifCache = cache; 
     }
 
     async getPreviewUrl() {
         try {
+            // Secretly pull the JPEG thumbnail out of the RAW file to show the user
             const thumbBuffer = await window.exifr.thumbnail(this.file);
             if (thumbBuffer) return URL.createObjectURL(new Blob([thumbBuffer], {type: 'image/jpeg'}));
-            throw new Error("No Exifr Thumb");
+            throw new Error();
         } catch(e) {
             try {
+                // UTIF Fallback for RAW sensor decoding if no thumbnail exists
                 const buffer = await this.file.arrayBuffer();
                 const ifds = window.UTIF.decode(buffer);
                 window.UTIF.decodeImage(buffer, ifds[0]);
@@ -63,56 +37,79 @@ export class RawProcessor {
         }
     }
 
-    async scrub() {
-        const arrayBuffer = await this.file.arrayBuffer();
-        
-        // FUTURE PROOF: Execute C++ WASM here once you compile it
-        if (this.wasmLoaded && window.Exiv2Wasm) {
-            // return window.Exiv2Wasm.scrub(arrayBuffer);
-        }
+    // THE LAZY-LOADER: Injects the C++ environment only when the user clicks the button
+    async initializeWasmEngine() {
+        return new Promise((resolve, reject) => {
+            // Skip if we already loaded it during this session
+            if (window.exiv2ModuleLoaded) return resolve();
 
-        // NATIVE FALLBACK: Binary IFD Orphaner
-        let view = new DataView(arrayBuffer);
-        let uint8View = new Uint8Array(arrayBuffer);
-
-        let isLittleEndian = view.getUint16(0) === 0x4949;
-        const searchLimit = Math.min(uint8View.length, 2000000); 
-
-        // Pass 1
-        const targetTags = [0x8825, 0x8769, 0x010F, 0x0110, 0x0131, 0x0132, 0x02BC, 0x83BB, 0x927C, 0x013B, 0x8298];
-        for (let i = 0; i < searchLimit - 12; i += 2) {
-            let tagId = view.getUint16(i, isLittleEndian);
-            if (targetTags.includes(tagId)) {
-                let type = view.getUint16(i + 2, isLittleEndian);
-                if (type >= 1 && type <= 12) {
-                    for (let j = 4; j < 12; j++) uint8View[i + j] = 0x00; 
+            const script = document.createElement('script');
+            script.src = '../assets/wasm/exiv2.js';
+            
+            script.onload = async () => {
+                try {
+                    // Initialize the Emscripten WebAssembly Module
+                    // It exports a global factory function called 'exiv2' or 'Module'
+                    if (typeof window.exiv2 === 'function') {
+                        window.exiv2Module = await window.exiv2({
+                            // Tell the JS file exactly where to find the .wasm binary
+                            locateFile: (path) => {
+                                if (path.endsWith('.wasm')) return '../assets/wasm/exiv2.wasm';
+                                return path;
+                            }
+                        });
+                    } else if (typeof window.Module === 'object') {
+                        window.exiv2Module = window.Module;
+                    }
+                    window.exiv2ModuleLoaded = true;
+                    resolve();
+                } catch (e) {
+                    reject(new Error("WASM engine initialization failed."));
                 }
-            }
-        }
-
-        // Pass 2: Overwrite cached strings to annihilate XMP
-        const encoder = new TextEncoder();
-        for (const val of Object.values(this.exifCache)) {
-            if (typeof val === 'string' && val.length > 3) {
-                const bytes = encoder.encode(val);
-                for (let i = 0; i < searchLimit - bytes.length; i++) {
-                    let match = true;
-                    for (let j = 0; j < bytes.length; j++) if (uint8View[i + j] !== bytes[j]) { match = false; break; }
-                    if (match) for (let j = 0; j < bytes.length; j++) uint8View[i + j] = 0x20;
-                }
-            }
-        }
-
-        const xmpTags = ['x:xmpmeta', 'xpacket', 'photoshop:', 'tiff:', 'exif:', 'dc:', 'xmlns:'];
-        xmpTags.forEach(tag => {
-            const bytes = encoder.encode(tag);
-            for (let i = 0; i < searchLimit - bytes.length; i++) {
-                let match = true;
-                for (let j = 0; j < bytes.length; j++) if (uint8View[i + j] !== bytes[j]) { match = false; break; }
-                if (match) for (let j = 0; j < bytes.length; j++) uint8View[i + j] = 0x20;
-            }
+            };
+            
+            script.onerror = () => reject(new Error("exiv2.js not found. Please check your /assets/wasm/ path."));
+            document.head.appendChild(script);
         });
+    }
 
-        return new Blob([uint8View], { type: this.file.type || '' });
+    async scrub() {
+        if (!window.exiv2ModuleLoaded || !window.exiv2Module) {
+            throw new Error("WASM Engine is not loaded.");
+        }
+
+        const arrayBuffer = await this.file.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        
+        try {
+            // Emscripten's Virtual File System (MEMFS)
+            const FS = window.exiv2Module.FS;
+            const tempFileName = 'heavy_image' + this.ext.toLowerCase(); // e.g., heavy_image.cr2
+            
+            // 1. Write the physical RAW file into the browser's virtual RAM file system
+            FS.writeFile(tempFileName, uint8Array);
+            
+            // 2. Execute the C++ Exiv2 Command Line Interface
+            // 'rm' = remove metadata
+            // '-a' = ALL metadata (EXIF, IPTC, XMP)
+            if (typeof window.exiv2Module.callMain === 'function') {
+                window.exiv2Module.callMain(['rm', '-a', tempFileName]);
+            } else {
+                throw new Error("Exiv2 callMain execution function not found in WASM build.");
+            }
+
+            // 3. Read the cleaned, completely stripped file back from the virtual system
+            const cleanedData = FS.readFile(tempFileName);
+            
+            // 4. Garbage Collection: Delete the virtual file to free up RAM
+            FS.unlink(tempFileName);
+            
+            // 5. Package it and send it to the UI for download
+            return new Blob([cleanedData], { type: this.file.type || '' });
+
+        } catch (e) {
+            console.error("WASM Execution Error:", e);
+            throw new Error("WASM Engine failed to process the file.");
+        }
     }
 }
