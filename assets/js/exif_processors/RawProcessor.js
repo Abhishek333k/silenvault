@@ -2,15 +2,18 @@ export class RawProcessor {
     constructor(file, ext) {
         this.file = file;
         this.ext = ext || '.cr2';
-        this.engineName = 'WASM Exiv2 Engine';
+        this.engineName = 'WASM Exiv2 C++ Engine';
         this.engineClass = 'text-rose-400 font-mono';
         this.buttonText = 'Execute WASM Purge';
+        this.exifCache = {};
     }
 
     async parse() {
         const buffer = await this.file.arrayBuffer();
         return await window.exifr.parse(buffer, {tiff: true, ifd0: true, exif: true, gps: true, xmp: true, iptc: true});
     }
+
+    setCache(cache) { this.exifCache = cache; }
 
     async getPreviewUrl() {
         try {
@@ -31,41 +34,32 @@ export class RawProcessor {
         }
     }
 
+    // THE FIX: Native ES6 Dynamic Import for the ESM WASM file
     async initializeWasmEngine() {
-        return new Promise((resolve, reject) => {
-            if (window.exiv2ModuleLoaded) return resolve();
+        if (window.exiv2Api) return; // Already loaded
 
-            const script = document.createElement('script');
-            // Points directly to the folder you created
-            script.src = '../assets/wasm/exiv2.js'; 
+        console.log("[RawProcessor] Dynamically importing ESM WebAssembly module...");
+        try {
+            // Import the ESM module you uploaded
+            const module = await import('../../wasm/exiv2.esm.js');
+            const exiv2Factory = module.default || module;
             
-            script.onload = async () => {
-                try {
-                    // gerosyab/exiv2-wasm exposes a global function to boot the engine
-                    if (typeof window.exiv2 === 'function') {
-                        window.exiv2Api = await window.exiv2({
-                            locateFile: (path) => {
-                                if (path.endsWith('.wasm')) return '../assets/wasm/exiv2.wasm';
-                                return path;
-                            }
-                        });
-                        window.exiv2ModuleLoaded = true;
-                        resolve();
-                    } else {
-                        reject(new Error("exiv2 factory function not found. Ensure exiv2.js is intact."));
-                    }
-                } catch (e) {
-                    reject(new Error("WASM Initialization crashed: " + e.message));
+            // Boot the C++ Environment
+            window.exiv2Api = await exiv2Factory({
+                locateFile: (path) => {
+                    if (path.endsWith('.wasm')) return '../assets/wasm/exiv2.esm.wasm';
+                    return path;
                 }
-            };
-            
-            script.onerror = () => reject(new Error("Failed to load /assets/wasm/exiv2.js. File missing."));
-            document.head.appendChild(script);
-        });
+            });
+            console.log("[RawProcessor] WASM Engine Initialized successfully.");
+        } catch (err) {
+            console.error("WASM Load Error:", err);
+            throw new Error("Failed to load Exiv2 WebAssembly module. Ensure exiv2.esm.js and exiv2.esm.wasm are in /assets/wasm/.");
+        }
     }
 
     async scrub() {
-        if (!window.exiv2ModuleLoaded || !window.exiv2Api) {
+        if (!window.exiv2Api) {
             throw new Error("WASM Engine failed to load.");
         }
 
@@ -76,7 +70,7 @@ export class RawProcessor {
             // Instantiate the C++ Image object in WebAssembly RAM
             const img = new window.exiv2Api.Image(uint8Array);
             
-            // Execute absolute metadata annihilation
+            // Execute absolute metadata annihilation via C++ pointers
             img.clearExif();
             img.clearIptc();
             img.clearXmp();
@@ -88,9 +82,8 @@ export class RawProcessor {
             img.delete();
             
             return new Blob([cleanedData], { type: this.file.type || '' });
-
         } catch (e) {
-            console.error("WASM Execution Error:", e);
+            console.error("WASM Scrub Error:", e);
             throw new Error("WASM Engine failed to process the RAW file.");
         }
     }
