@@ -6,24 +6,25 @@ import { CanvasProcessor } from './CanvasProcessor.js';
 
 export class ProcessorFactory {
     static create(file, ext, isAdvancedMode = false) {
-        const extension = ext.toUpperCase();
+        const extension = (ext || '').toUpperCase();
         
         switch(extension) {
             case 'WEBP': 
-                return new WebpProcessor(file);
+                return new WebpProcessor(file, extension);
             case 'PNG': 
-                return new PngProcessor(file);
+                return new PngProcessor(file, extension);
             case 'DNG': 
             case 'CR2': 
             case 'NEF': 
             case 'ARW':
-                return isAdvancedMode ? new RawProcessor(file) : new CanvasProcessor(file, extension, 'image/jpeg');
+                return isAdvancedMode 
+                    ? new RawProcessor(file, extension) 
+                    : new CanvasProcessor(file, extension, 'image/jpeg');
             case 'JPG': 
             case 'JPEG': 
             case 'JFIF': 
-                return new JpegProcessor(file);
+                return new JpegProcessor(file, extension);
             default:
-                console.warn(`No dedicated processor for ${extension}. Using generic Canvas fallback.`);
                 return new CanvasProcessor(file, extension, 'image/jpeg'); 
         }
     }
