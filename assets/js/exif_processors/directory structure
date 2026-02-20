@@ -1,6 +1,6 @@
 /assets
   /js
-    /processors
+    /exif_processors
       ├── Dispatcher.js      (The Brain: Routes files to correct processor)
       ├── JpegProcessor.js   (Handles 0xFFE1 APP1 removal)
       ├── WebpProcessor.js   (Handles RIFF chunk splicing)
