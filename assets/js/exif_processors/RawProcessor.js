@@ -1,9 +1,10 @@
 export class RawProcessor {
     constructor(file) {
         this.file = file;
-        this.engineName = 'Forensic IFD Orphaner';
+        this.engineName = 'Dual-Pass Forensic Wiper';
         this.engineClass = 'text-violet-400 font-mono';
         this.buttonText = 'Execute Binary Splicer';
+        this.exifCache = {}; // Fed by UI
     }
 
     async parse() {
@@ -18,7 +19,6 @@ export class RawProcessor {
             throw new Error("No Exifr Thumb");
         } catch(e) {
             try {
-                // Fallback to UTIF rendering for UI
                 const buffer = await this.file.arrayBuffer();
                 const ifds = window.UTIF.decode(buffer);
                 window.UTIF.decodeImage(buffer, ifds[0]);
@@ -31,6 +31,10 @@ export class RawProcessor {
         }
     }
 
+    setCache(cache) {
+        this.exifCache = cache;
+    }
+
     async scrub() {
         const arrayBuffer = await this.file.arrayBuffer();
         let view = new DataView(arrayBuffer);
@@ -40,10 +44,10 @@ export class RawProcessor {
         if (view.getUint16(0) === 0x4949) isLittleEndian = true;
         else if (view.getUint16(0) === 0x4D4D) isLittleEndian = false;
 
-        // Phase 1: Disconnect Binary Pointers
-        const targetTags = [0x8825, 0x8769, 0x010F, 0x0110, 0x0131, 0x0132, 0x02BC, 0x83BB, 0x927C];
         const searchLimit = Math.min(uint8View.length, 2000000); 
 
+        // Pass 1: IFD Pointer Orphaning
+        const targetTags = [0x8825, 0x8769, 0x010F, 0x0110, 0x0131, 0x0132, 0x02BC, 0x83BB, 0x927C];
         for (let i = 0; i < searchLimit - 12; i += 2) {
             let tagId = view.getUint16(i, isLittleEndian);
             if (targetTags.includes(tagId)) {
@@ -54,10 +58,27 @@ export class RawProcessor {
             }
         }
 
-        // Phase 2: Overwrite ASCII XMP tags to ensure Exifr Verification passes
+        // Pass 2: ASCII Overwriter
         const encoder = new TextEncoder();
-        const xmpTags = ['x:xmpmeta', 'xpacket', 'photoshop:', 'tiff:', 'exif:', 'dc:', 'xmlns:'];
         
+        // 2a. Wipe known strings caught during parse
+        for (const [key, val] of Object.entries(this.exifCache)) {
+            if (typeof val === 'string' && val.length > 3) {
+                const bytes = encoder.encode(val);
+                for (let i = 0; i < searchLimit - bytes.length; i++) {
+                    let match = true;
+                    for (let j = 0; j < bytes.length; j++) {
+                        if (uint8View[i + j] !== bytes[j]) { match = false; break; }
+                    }
+                    if (match) {
+                        for (let j = 0; j < bytes.length; j++) uint8View[i + j] = 0x20;
+                    }
+                }
+            }
+        }
+
+        // 2b. Wipe structural XMP wrappers
+        const xmpTags = ['x:xmpmeta', 'xpacket', 'photoshop:', 'tiff:', 'exif:', 'dc:', 'xmlns:'];
         xmpTags.forEach(tag => {
             const bytes = encoder.encode(tag);
             for (let i = 0; i < searchLimit - bytes.length; i++) {
