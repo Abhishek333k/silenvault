@@ -11,9 +11,7 @@ export class JpegProcessor {
         return await window.exifr.parse(buffer, {tiff: true, exif: true, gps: true, iptc: true, xmp: true});
     }
 
-    async getPreviewUrl() {
-        return URL.createObjectURL(this.file);
-    }
+    async getPreviewUrl() { return URL.createObjectURL(this.file); }
 
     async scrub() {
         const buffer = await this.file.arrayBuffer();
@@ -26,19 +24,20 @@ export class JpegProcessor {
         let chunksToKeep = [uint8.slice(0, 2)]; 
 
         while (offset < buffer.byteLength) {
-            while (offset < buffer.byteLength && uint8[offset] === 0xFF && uint8[offset + 1] === 0xFF) { offset++; }
+            // Safely skip arbitrary 0xFF padding bytes injected by cameras
+            while (offset < buffer.byteLength && uint8[offset] === 0xFF && uint8[offset + 1] === 0xFF) offset++;
             if (offset >= buffer.byteLength - 2) break;
 
             const marker = view.getUint16(offset, false);
             
-            if (marker === 0xFFDA) {
+            if (marker === 0xFFDA) { // Start of Image Scan (Pixels)
                 chunksToKeep.push(uint8.slice(offset));
                 break;
             }
 
             const segmentLength = view.getUint16(offset + 2, false) + 2; 
 
-            // Drop EXIF/XMP (APP1) and IPTC (APP13)
+            // 0xFFE1 is EXIF/XMP. 0xFFED is IPTC. We drop them.
             if (marker !== 0xFFE1 && marker !== 0xFFED) {
                 chunksToKeep.push(uint8.slice(offset, offset + segmentLength));
             }
