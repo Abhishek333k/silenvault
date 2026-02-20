@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EXIF Remover & Image Metadata Scrubber | SilenVault</title>
-    <meta name="description" content="Local-first forensic tool to permanently remove hidden EXIF data and GPS coordinates. Exact format retention for JPEG, PNG, WebP, and RAW formats.">
+    <title>Image Metadata Scrubber | SilenVault</title>
+    <meta name="description" content="Local-first tool to remove EXIF data and GPS coordinates. Exact format retention for JPEG, PNG, WebP, and RAW formats.">
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
 
@@ -46,7 +46,7 @@
 
         /* SMOOTH PORTAL TRANSITION */
         .portal-transition { animation: portalFade 0.8s ease-in-out forwards; }
-        @keyframes portalFade { 0% { filter: contrast(1); opacity: 1; } 50% { filter: contrast(1.1); opacity: 0.8; } 100% { filter: contrast(1); opacity: 1; } }
+        @keyframes portalFade { 0% { filter: blur(0px); opacity: 1; } 50% { filter: blur(4px); opacity: 0.8; } 100% { filter: blur(0px); opacity: 1; } }
 
         /* DROP ZONE */
         .drop-zone { border: 2px dashed var(--border-color); border-radius: 1rem; background: rgba(0,0,0,0.4); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 350px; transition: all 0.4s ease; cursor: pointer; position: relative; }
@@ -148,7 +148,7 @@
                     RAW Sensor Data Detected
                 </h2>
                 <p class="text-sm text-slate-300 mb-6 leading-relaxed">
-                    You uploaded a heavy DSLR format (<span id="raw-ext-badge" class="font-bold text-rose-400">.CR2</span>). Standard browsers cannot physically rewrite RAW files natively. Choose your processing path:
+                    You uploaded a heavy DSLR format (<span id="raw-ext-badge" class="font-bold text-rose-400">.CR2</span>). Choose your processing path:
                 </p>
                 
                 <div class="space-y-4">
@@ -157,7 +157,7 @@
                             <span class="font-bold text-blue-400 group-hover:text-blue-300">Standard Conversion (Fast)</span>
                             <span class="text-[10px] uppercase tracking-widest text-slate-500">Web Standard</span>
                         </div>
-                        <p class="text-xs text-slate-400">Extracts the secret preview and safely exports a clean, highly-compatible JPEG.</p>
+                        <p class="text-xs text-slate-400">Extracts the preview and exports a perfectly clean, compatible JPEG via Canvas API.</p>
                     </button>
 
                     <button onclick="window.executeCrossroads('forge')" class="w-full text-left p-4 rounded-xl border border-rose-900/50 bg-rose-950/20 hover:bg-rose-900/40 hover:border-rose-500/50 transition-all duration-300 group">
@@ -166,7 +166,7 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                                 Advanced Binary Wipe
                             </span>
-                            <span class="text-[10px] uppercase tracking-widest text-amber-500 font-bold animate-pulse">Retain Original Format</span>
+                            <span class="text-[10px] uppercase tracking-widest text-amber-500 font-bold">Retain Original Format</span>
                         </div>
                         <p class="text-xs text-rose-200/70 mt-1">Surgically orphans metadata pointers within the binary file, destroying privacy risks while preserving raw sensor data perfectly.</p>
                     </button>
@@ -228,12 +228,15 @@
                             <svg class="w-4 h-4 text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
                             Forensic Audit Log
                         </span>
-                        <div class="flex items-center gap-4">
-                            <button id="btn-export-report" onclick="window.exportReport()" class="hidden text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded border border-slate-600 transition-colors flex items-center gap-1">
-                                Export Log
-                            </button>
-                            <span id="meta-count" class="bg-slate-900 text-slate-200 px-3 py-1 rounded-md text-[10px] font-mono border border-slate-700">0 Tags</span>
+                        
+                        <div id="export-options" class="hidden flex items-center gap-2">
+                            <span class="text-[10px] text-slate-500 uppercase tracking-widest mr-1">Save As:</span>
+                            <button onclick="window.exportReport('txt')" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded border border-slate-600 transition-colors">TXT</button>
+                            <button onclick="window.exportReport('json')" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded border border-slate-600 transition-colors">JSON</button>
+                            <button onclick="window.exportReport('csv')" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded border border-slate-600 transition-colors">CSV</button>
                         </div>
+                        
+                        <span id="meta-count" class="bg-slate-900 text-slate-200 px-3 py-1 rounded-md text-[10px] font-mono border border-slate-700">0 Tags</span>
                     </div>
                     <div class="terminal-body" id="terminal-out"></div>
                 </div>
@@ -269,7 +272,6 @@
             </div>
         </div>
         
-        <canvas id="scrub-canvas" class="hidden"></canvas>
     </main>
 
     <sv-footer base-path=".."></sv-footer>
@@ -329,11 +331,11 @@
         const btnScrub = document.getElementById('btn-scrub');
         const btnScrubText = document.getElementById('btn-scrub-text');
         const btnDownload = document.getElementById('btn-download');
-        const btnExport = document.getElementById('btn-export-report');
+        const exportOptions = document.getElementById('export-options');
         const dzIconWrap = document.getElementById('dz-icon-wrap');
         const dzIcon = document.getElementById('dz-icon');
 
-        // STRUCTURAL WHITELIST: Ignores visual/architectural chunks so pure files don't throw false alarms.
+        // STRUCTURAL WHITELIST
         const STRUCTURAL_WHITELIST = ['ImageWidth', 'ImageHeight', 'ExifImageWidth', 'ExifImageHeight', 'Orientation', 'ColorSpace', 'Compression', 'XResolution', 'YResolution', 'ResolutionUnit', 'BitDepth', 'ColorType', 'Filter', 'Interlace', 'SamplesPerPixel', 'RowsPerStrip', 'StripByteCounts', 'StripOffsets', 'PlanarConfiguration', 'PhotometricInterpretation', 'SubfileType'];
 
         // ==========================================
@@ -397,20 +399,14 @@
             fileExt = file.name.split('.').pop().toUpperCase();
             labelFilenameInput.innerText = file.name;
             
-            // Check if it's a Heavy Format
+            // Check if it's a Heavy Format requiring Modal
             if (['CR2', 'DNG', 'NEF', 'ARW'].includes(fileExt)) {
-                // If they already chose Forge mode previously, maintain the workflow and skip the modal
-                if (isAdvancedMode) {
-                    startWorkspace();
-                    return;
-                }
-                // Otherwise, show the modal
                 rawExtBadge.innerText = `.${fileExt}`;
                 crossroadsModalWrapper.classList.add('active');
                 return;
             }
             
-            // For standard files, always clear Forge mode and run
+            // For standard files, set to False and run
             isAdvancedMode = false;
             startWorkspace(); 
         }
@@ -452,11 +448,11 @@
             let thisScanId = currentScanId;
 
             // Generate the specialized processor via the Dispatcher Factory
-            // Pass `isAdvancedMode` so the Factory knows whether to return RawProcessor or CanvasProcessor
             processorInstance = ProcessorFactory.create(originalFile, fileExt, isAdvancedMode);
 
             rawExifCache = {};
             threatMapContainer.classList.remove('active'); 
+            exportOptions.classList.add('hidden');
             
             fileSizeEl.innerText = formatBytes(originalFile.size);
             stageUpload.classList.add('hidden');
@@ -473,7 +469,6 @@
             btnScrub.disabled = true;
             btnScrub.classList.add('opacity-50', 'cursor-not-allowed', 'hidden');
             btnDownload.classList.add('hidden');
-            btnExport.classList.add('hidden');
 
             badgeEngine.innerText = processorInstance.engineName || 'Binary Splicer';
             
@@ -516,7 +511,6 @@
 
                 if (exifData && Object.keys(exifData).length > 0) {
                     const usefulKeys = Object.keys(exifData).filter(key => isPrivacyThreat(key, exifData[key]));
-                    
                     if (usefulKeys.length === 0) return handleCleanFile();
                     
                     metaCount.innerText = `${usefulKeys.length} Tags`;
@@ -542,7 +536,7 @@
 
                             btnScrub.disabled = false;
                             btnScrub.classList.remove('opacity-50', 'cursor-not-allowed', 'hidden');
-                            btnExport.classList.remove('hidden');
+                            exportOptions.classList.remove('hidden'); // Reveal Save As buttons
                             return;
                         }
 
@@ -621,11 +615,11 @@
 
             setTimeout(async () => {
                 try {
-                    // Pass dependencies down
                     if (processorInstance.setCache) processorInstance.setCache(rawExifCache);
+                    // Pass sourceImageObj down to the Canvas processor
                     const blob = await processorInstance.scrub(sourceImageObj);
                     
-                    // The factory determines the output extension perfectly
+                    // Route output extension natively based on processor used
                     outputExt = processorInstance.outputMime ? `.${processorInstance.outputMime.split('/')[1]}` : `.${fileExt.toLowerCase()}`;
                     if (outputExt === '.jpeg') outputExt = '.jpg';
                     
@@ -682,12 +676,12 @@
             labelFilenameOutput.classList.remove('opacity-0');
             
             btnScrub.classList.add('hidden');
-            btnExport.classList.add('hidden'); 
+            exportOptions.classList.add('hidden'); // Hide export on success
             btnDownload.classList.remove('hidden');
         }
 
         // ==========================================
-        // 8. DOWNLOAD & STRICT RESET
+        // 8. DOWNLOAD, EXPORT & STRICT RESET
         // ==========================================
         function downloadImage() {
             if (!scrubbedBlob) return;
@@ -702,21 +696,41 @@
             document.body.removeChild(a);
         }
 
-        function exportReport() {
-            let report = `SilenVault EXIF Audit Report\nFilename: ${originalFile.name}\nScanned: ${new Date().toLocaleString()}\n----------------------------------------\n\n`;
-            for (const [key, value] of Object.entries(rawExifCache)) report += `${key}: ${value}\n`;
-            const blob = new Blob([report], { type: 'text/plain' });
+        // MULTI-FORMAT EXPORT ENGINE
+        function exportReport(format = 'txt') {
+            let content = '';
+            let mimeType = 'text/plain';
+            let fileExt = 'txt';
+
+            if (format === 'txt') {
+                content = `SilenVault EXIF Audit Report\nFilename: ${originalFile.name}\nScanned: ${new Date().toLocaleString()}\n----------------------------------------\n\n`;
+                for (const [key, value] of Object.entries(rawExifCache)) content += `${key}: ${value}\n`;
+            } else if (format === 'json') {
+                content = JSON.stringify(rawExifCache, null, 2);
+                mimeType = 'application/json';
+                fileExt = 'json';
+            } else if (format === 'csv') {
+                content = "Key,Value\n";
+                for (const [key, value] of Object.entries(rawExifCache)) {
+                    let safeVal = String(value).replace(/"/g, '""'); // Escape quotes
+                    content += `"${key}","${safeVal}"\n`;
+                }
+                mimeType = 'text/csv';
+                fileExt = 'csv';
+            }
+
+            const blob = new Blob([content], { type: mimeType });
             const url = URL.createObjectURL(blob);
             activeUrls.push(url);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${originalFile.name}_EXIF_Report.txt`;
+            a.download = `${originalFile.name}_EXIF_Report.${fileExt}`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
         }
 
-        // ARCHITECT FIX: "Liquid Honey Smooth" Strict Reset. Annihilates all state cache.
+        // "LIQUID HONEY SMOOTH" STRICT RESET. Annihilates all state cache.
         function resetApp() {
             // 1. Wipe Memory Blobs
             activeUrls.forEach(url => URL.revokeObjectURL(url));
@@ -746,6 +760,7 @@
             // 5. Hide Workspaces
             stageWorkspace.classList.add('hidden');
             stageUpload.classList.remove('hidden');
+            exportOptions.classList.add('hidden');
             
             // 6. Reset DOM Elements
             fileInput.value = '';
@@ -762,10 +777,9 @@
             btnScrub.disabled = true;
             btnScrub.classList.add('opacity-50', 'cursor-not-allowed', 'hidden');
             btnDownload.classList.add('hidden');
-            btnExport.classList.add('hidden');
         }
 
-        // ARCHITECT FIX: Bind module functions to global Window scope
+        // Bind module functions to global Window scope
         window.handleFile = handleFile;
         window.executeCrossroads = executeCrossroads;
         window.cancelCrossroads = cancelCrossroads;
