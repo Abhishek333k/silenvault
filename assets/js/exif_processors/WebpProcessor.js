@@ -11,18 +11,14 @@ export class WebpProcessor {
         return await window.exifr.parse(buffer, {tiff: true, exif: true, gps: true, xmp: true});
     }
 
-    async getPreviewUrl() {
-        return URL.createObjectURL(this.file);
-    }
+    async getPreviewUrl() { return URL.createObjectURL(this.file); }
 
     async scrub() {
         const buffer = await this.file.arrayBuffer();
         const view = new DataView(buffer);
         const uint8 = new Uint8Array(buffer);
         
-        if (view.getUint32(0, false) !== 0x52494646 || view.getUint32(8, false) !== 0x57454250) {
-            throw new Error("Invalid WebP format");
-        }
+        if (view.getUint32(0, false) !== 0x52494646) throw new Error("Invalid WebP");
 
         let offset = 12; 
         let chunksToKeep = [uint8.slice(0, 12)];
@@ -30,16 +26,15 @@ export class WebpProcessor {
         while (offset < buffer.byteLength) {
             if (offset + 8 > buffer.byteLength) break;
 
-            const chunkId = view.getUint32(offset, false);
+            const chunkId = String.fromCharCode(uint8[offset], uint8[offset + 1], uint8[offset + 2], uint8[offset + 3]);
             const chunkSize = view.getUint32(offset + 4, true); 
             const paddedSize = chunkSize + (chunkSize % 2); 
             
-            // Drop EXIF and XMP chunks
-            if (chunkId !== 0x45584946 && chunkId !== 0x584D5020) {
+            if (chunkId !== 'EXIF' && chunkId !== 'XMP ') {
                 let chunkData = uint8.slice(offset, offset + 8 + paddedSize);
                 
-                // If VP8X header, mathematically zero out the EXIF/XMP presence bits
-                if (chunkId === 0x56503858) { 
+                // CRITICAL: Mathematically flip EXIF and XMP bit flags to 0 in the VP8X header
+                if (chunkId === 'VP8X') { 
                     chunkData[8] &= ~0x0C; 
                 }
                 chunksToKeep.push(chunkData);
@@ -56,7 +51,7 @@ export class WebpProcessor {
         }
 
         const cleanView = new DataView(cleanBuffer.buffer);
-        cleanView.setUint32(4, totalLength - 8, true);
+        cleanView.setUint32(4, totalLength - 8, true); // Fix master file size
 
         return new Blob([cleanBuffer], { type: 'image/webp' });
     }
