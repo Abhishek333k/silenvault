@@ -245,7 +245,134 @@
                 </div>
             </div>
         </div>
-        
+        <article class="mt-16 flex flex-col gap-16 border-t border-slate-800 pt-16">
+            
+            <section>
+                <div class="mb-8">
+                    <h2 class="text-2xl md:text-3xl font-bold text-white tracking-tight">Standard Operating Procedure</h2>
+                    <p class="text-slate-400 mt-2">How to securely audit and annihilate image metadata using SilenVault.</p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="glass-panel p-6 relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <span class="text-6xl font-bold font-mono text-blue-500">01</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2 relative z-10">Establish Target</h3>
+                        <p class="text-sm text-slate-400 leading-relaxed relative z-10">Upload any standard web image or heavy DSLR RAW file. The file never leaves your device. Processing occurs 100% within your browser's local RAM.</p>
+                    </div>
+                    
+                    <div class="glass-panel p-6 relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <span class="text-6xl font-bold font-mono text-amber-500">02</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2 relative z-10">Forensic Audit</h3>
+                        <p class="text-sm text-slate-400 leading-relaxed relative z-10">Our engine parses the binary file, extracting hidden structural headers, EXIF data, XMP XML packets, and embedded GPS coordinates into the Terminal.</p>
+                    </div>
+
+                    <div class="glass-panel p-6 relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <span class="text-6xl font-bold font-mono text-rose-500">03</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2 relative z-10">Execute Purge</h3>
+                        <p class="text-sm text-slate-400 leading-relaxed relative z-10">Depending on the format, the system deploys HTML5 Canvas re-encoding, WebAssembly C++ protocols, or a Native Deep TIFF Wiper to annihilate the privacy threats.</p>
+                    </div>
+
+                    <div class="glass-panel p-6 relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <span class="text-6xl font-bold font-mono text-emerald-500">04</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2 relative z-10">Verification Gate</h3>
+                        <p class="text-sm text-slate-400 leading-relaxed relative z-10">The newly generated file is intercepted and re-scanned. If even a single metadata tag survives, the download is blocked to guarantee your absolute privacy.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="grid lg:grid-cols-12 gap-12 items-start">
+                <div class="lg:col-span-4 sticky top-8">
+                    <h2 class="text-2xl md:text-3xl font-bold text-white tracking-tight mb-4">The Architecture</h2>
+                    <p class="text-slate-400 mb-6">Unlike standard online converters that upload your personal files to a remote server, SilenVault utilizes a <strong>Tree-Branching Architecture</strong> to process files locally via browser APIs.</p>
+                    <div class="p-4 bg-blue-900/10 border border-blue-500/20 rounded-xl">
+                        <h4 class="text-blue-400 font-bold mb-2 flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                            Zero-Trust Promise
+                        </h4>
+                        <p class="text-xs text-blue-200/70">Your files are processed in your device's memory. We have no servers, no databases, and no access to your images or their location data.</p>
+                    </div>
+                </div>
+                
+                <div class="lg:col-span-8 space-y-6">
+                    <div class="glass-panel p-6 md:p-8">
+                        <div class="flex items-center gap-4 mb-4">
+                            <span class="p-3 bg-slate-800 rounded-lg text-white font-mono text-sm border border-slate-600">CANVAS API</span>
+                            <h3 class="text-xl font-bold text-white">Pixel-Matrix Re-encoding</h3>
+                        </div>
+                        <p class="text-slate-400 leading-relaxed text-sm mb-4">Used for standard web formats (<span class="text-slate-200 font-mono text-xs">.JPG, .PNG, .WEBP</span>). The browser unpacks the image into a raw matrix of RGB pixels, paints it onto an invisible HTML5 canvas, and exports a brand new file. Because EXIF and XMP are text-based headers attached to the original file, painting only the pixels guarantees that 100% of the tracking data is left behind.</p>
+                    </div>
+
+                    <div class="glass-panel p-6 md:p-8 border-indigo-500/30">
+                        <div class="flex items-center gap-4 mb-4">
+                            <span class="p-3 bg-indigo-900/30 rounded-lg text-indigo-300 font-mono text-sm border border-indigo-500/50">WASM EXIV2</span>
+                            <h3 class="text-xl font-bold text-white">WebAssembly Engine</h3>
+                        </div>
+                        <p class="text-slate-400 leading-relaxed text-sm mb-4">Used for Advanced RAW retention. Standard browser APIs cannot rewrite heavy DSLR files natively. When requested, SilenVault dynamically injects a compiled C++ library (<code class="text-indigo-300 bg-indigo-900/20 px-1 rounded">Exiv2</code>) into your browser using WebAssembly. This allows us to execute enterprise-grade binary manipulation directly in your RAM, scrubbing the data while perfectly preserving the <span class="text-slate-200 font-mono text-xs">.CR2</span> or <span class="text-slate-200 font-mono text-xs">.DNG</span> format.</p>
+                    </div>
+
+                    <div class="glass-panel p-6 md:p-8 border-rose-500/30">
+                        <div class="flex items-center gap-4 mb-4">
+                            <span class="p-3 bg-rose-900/30 rounded-lg text-rose-300 font-mono text-sm border border-rose-500/50">TIFF WIPER</span>
+                            <h3 class="text-xl font-bold text-white">Native IFD Orphaner</h3>
+                        </div>
+                        <p class="text-slate-400 leading-relaxed text-sm">Deployed as a highly aggressive failsafe for proprietary formats. Because RAW files use fragile Image File Directories (IFDs), this algorithm mathematically walks the binary tree, validates structural tags necessary for the image to exist (like <code class="text-rose-300 bg-rose-900/20 px-1 rounded">StripOffsets</code>), and physically severs the pointers to GPS and MakerNotes, followed by a hex-level overwrite of Adobe XMP packets.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="prose prose-invert prose-slate max-w-none glass-panel p-8 md:p-12 rounded-2xl">
+                <h2 class="text-white">Understanding EXIF and Image Metadata</h2>
+                <p>Every time you take a picture with a smartphone or digital camera, the device invisibly attaches a massive payload of text-based information directly into the image file. This umbrella of information is known as <strong>Metadata</strong> (data about data). While some metadata is structurally required to render the image on a screen, much of it poses a severe privacy risk.</p>
+                
+                <h3 class="text-slate-200">The Three Layers of Hidden Data</h3>
+                <ul class="space-y-2">
+                    <li><strong class="text-blue-400">EXIF (Exchangeable Image File Format):</strong> The most common tracking payload. Created by camera manufacturers, EXIF data records the exact make and model of your device, the camera's unique hardware serial number, the date and time the photo was taken, and crucially, the precise GPS latitude and longitude coordinates.</li>
+                    <li><strong class="text-rose-400">XMP (Extensible Metadata Platform):</strong> An XML-based standard created by Adobe. If you edit a photo in Lightroom or Photoshop, an XMP packet is injected into the file detailing your edit history, software versions, and custom creator tags.</li>
+                    <li><strong class="text-emerald-400">Structural Data:</strong> Non-threatening machine data such as Image Width, Height, Bit Depth, and Color Space. SilenVault automatically whitelists structural data to ensure your files remain visually flawless after purging.</li>
+                </ul>
+
+                <h3 class="text-slate-200">Why You Must Scrub Your Images</h3>
+                <p>When you share an un-scrubbed image on forums, personal blogs, or via direct messaging apps, anyone can download that image and extract its EXIF payload in seconds. If the photo was taken at your home, the embedded GPS coordinates reveal your exact physical address to strangers. SilenVault acts as a cryptographic firewall, allowing you to audit the contents of your files, export the reports for your own records, and permanently obliterate the tracking data before you publish.</p>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-bold text-white mb-8 text-center">Frequently Asked Questions</h2>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="glass-panel p-6">
+                        <h4 class="font-bold text-white mb-2">Does removing EXIF data reduce image quality?</h4>
+                        <p class="text-sm text-slate-400">If using our WebAssembly or Native Binary Wiper for RAW files, the process is 100% mathematically lossless. If using the Standard Canvas Fallback for JPEGs, the image is re-encoded, which may result in imperceptible generation loss, though we maintain a 92% quality threshold.</p>
+                    </div>
+                    <div class="glass-panel p-6">
+                        <h4 class="font-bold text-white mb-2">Do you keep a copy of my photos?</h4>
+                        <p class="text-sm text-slate-400">No. SilenVault is a local-first application. When you drop an image into the zone, it is mounted directly into your browser's Random Access Memory (RAM) using Blob URLs. No data is ever transmitted to our servers.</p>
+                    </div>
+                    <div class="glass-panel p-6">
+                        <h4 class="font-bold text-white mb-2">Why did the tool block my download?</h4>
+                        <p class="text-sm text-slate-400">You hit the Verification Gate. After processing, SilenVault re-audits the newly generated file. If the original format was severely corrupted and hid a tracker that survived the purge, the tool intentionally fails the process to protect your identity.</p>
+                    </div>
+                    <div class="glass-panel p-6">
+                        <h4 class="font-bold text-white mb-2">What formats are supported?</h4>
+                        <p class="text-sm text-slate-400 text-mono">We natively support .JPG, .JPEG, .PNG, .WEBP, .HEIC (via WASM decoder), and advanced DSLR sensor formats including .CR2 (Canon), .NEF (Nikon), .ARW (Sony), and .DNG.</p>
+                    </div>
+                </div>
+            </section>
+
+            <div class="text-center pb-8">
+                <p class="text-xs text-slate-600 border-t border-slate-800 pt-8 max-w-3xl mx-auto">
+                    <strong>LEGAL DISCLAIMER:</strong> SilenVault provides this tool for personal privacy protection and forensic auditing. The removal of EXIF metadata and XMP packets is an irreversible cryptographic process. Always maintain backups of your original RAW files before initiating a Deep Forge wipe.
+                </p>
+            </div>
+            
+        </article>
+        ```
     </main>
 
     <script type="module">
