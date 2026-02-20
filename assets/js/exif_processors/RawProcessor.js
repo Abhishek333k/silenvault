@@ -4,7 +4,7 @@ export class RawProcessor {
         this.engineName = 'Dual-Pass Forensic Wiper';
         this.engineClass = 'text-violet-400 font-mono';
         this.buttonText = 'Execute Binary Splicer';
-        this.exifCache = {}; // Fed by UI
+        this.exifCache = {};
     }
 
     async parse() {
@@ -46,7 +46,7 @@ export class RawProcessor {
 
         const searchLimit = Math.min(uint8View.length, 2000000); 
 
-        // Pass 1: IFD Pointer Orphaning
+        // Pass 1: Orphan IFD Pointers (Destroys actual GPS/EXIF numerical data)
         const targetTags = [0x8825, 0x8769, 0x010F, 0x0110, 0x0131, 0x0132, 0x02BC, 0x83BB, 0x927C];
         for (let i = 0; i < searchLimit - 12; i += 2) {
             let tagId = view.getUint16(i, isLittleEndian);
@@ -58,10 +58,8 @@ export class RawProcessor {
             }
         }
 
-        // Pass 2: ASCII Overwriter
+        // Pass 2: Overwrite ASCII text so strict parsers don't see ghosts
         const encoder = new TextEncoder();
-        
-        // 2a. Wipe known strings caught during parse
         for (const [key, val] of Object.entries(this.exifCache)) {
             if (typeof val === 'string' && val.length > 3) {
                 const bytes = encoder.encode(val);
@@ -77,7 +75,6 @@ export class RawProcessor {
             }
         }
 
-        // 2b. Wipe structural XMP wrappers
         const xmpTags = ['x:xmpmeta', 'xpacket', 'photoshop:', 'tiff:', 'exif:', 'dc:', 'xmlns:'];
         xmpTags.forEach(tag => {
             const bytes = encoder.encode(tag);
