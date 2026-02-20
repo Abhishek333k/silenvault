@@ -5,6 +5,7 @@ import { RawProcessor } from './RawProcessor.js';
 import { CanvasProcessor } from './CanvasProcessor.js';
 
 export class ProcessorFactory {
+    // Added isAdvancedMode parameter
     static create(file, ext, isAdvancedMode = false) {
         const extension = ext.toUpperCase();
         
@@ -17,8 +18,7 @@ export class ProcessorFactory {
             case 'CR2': 
             case 'NEF': 
             case 'ARW':
-                // CRITICAL FIX: The Factory determines the engine based on user selection.
-                // If Advanced, use the Binary Wiper. If Standard, use the Canvas Fallback.
+                // CRITICAL FIX: The Factory determines the engine based on user selection in the Modal.
                 return isAdvancedMode 
                     ? new RawProcessor(file) 
                     : new CanvasProcessor(file, extension, 'image/jpeg');
@@ -27,7 +27,7 @@ export class ProcessorFactory {
             case 'JFIF': 
                 return new JpegProcessor(file);
             default:
-                console.warn(`No dedicated processor for ${extension}. Using generic JPEG Splicer.`);
+                console.warn(`No dedicated processor for ${extension}. Using generic Canvas fallback.`);
                 return new CanvasProcessor(file, extension, 'image/jpeg'); 
         }
     }
