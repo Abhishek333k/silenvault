@@ -11,19 +11,12 @@ export class PngProcessor {
         return await window.exifr.parse(buffer, {tiff: true, exif: true, gps: true, xmp: true});
     }
 
-    async getPreviewUrl() {
-        return URL.createObjectURL(this.file);
-    }
+    async getPreviewUrl() { return URL.createObjectURL(this.file); }
 
     async scrub() {
         const buffer = await this.file.arrayBuffer();
         const view = new DataView(buffer);
         const uint8 = new Uint8Array(buffer);
-
-        const pngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
-        for (let i = 0; i < 8; i++) {
-            if (uint8[i] !== pngSignature[i]) throw new Error("Invalid PNG format");
-        }
 
         let offset = 8;
         let chunksToKeep = [uint8.slice(0, 8)];
@@ -33,9 +26,7 @@ export class PngProcessor {
             if (offset + 8 > buffer.byteLength) break;
             const dataLength = view.getUint32(offset, false);
             
-            const chunkType = String.fromCharCode(
-                uint8[offset + 4], uint8[offset + 5], uint8[offset + 6], uint8[offset + 7]
-            );
+            const chunkType = String.fromCharCode(uint8[offset + 4], uint8[offset + 5], uint8[offset + 6], uint8[offset + 7]);
             const totalChunkLength = 4 + 4 + dataLength + 4; 
 
             if (!threatChunks.includes(chunkType)) {
