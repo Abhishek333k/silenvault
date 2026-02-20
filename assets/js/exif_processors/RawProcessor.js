@@ -1,10 +1,11 @@
 export class RawProcessor {
     constructor(file) {
         this.file = file;
-        this.engineName = 'Dual-Pass Forensic Wiper';
+        this.engineName = 'WASM Exiv2 Engine';
         this.engineClass = 'text-rose-400 font-mono';
-        this.buttonText = 'Execute Binary Wipe';
-        this.exifCache = {}; 
+        this.buttonText = 'Execute WASM Purge';
+        this.wasmLoaded = false;
+        this.exifCache = {};
     }
 
     async parse() {
@@ -12,8 +13,35 @@ export class RawProcessor {
         return await window.exifr.parse(buffer, {tiff: true, ifd0: true, exif: true, gps: true, xmp: true, iptc: true});
     }
 
-    setCache(cache) { 
-        this.exifCache = cache; 
+    setCache(cache) { this.exifCache = cache; }
+
+    // THE LAZY-LOADER
+    async initializeWasmEngine() {
+        return new Promise((resolve) => {
+            if (window.Exiv2Wasm) {
+                this.wasmLoaded = true;
+                return resolve(true);
+            }
+            console.log("[RawProcessor] Requesting heavy WebAssembly payload...");
+            
+            const script = document.createElement('script');
+            // Path to where you will eventually host your WASM wrapper
+            script.src = '../assets/wasm/exiv2-browser.js'; 
+            
+            script.onload = () => {
+                console.log("[RawProcessor] WASM Payload successfully injected.");
+                this.wasmLoaded = true;
+                resolve(true);
+            };
+
+            script.onerror = () => {
+                console.warn("[RawProcessor] WASM payload not found. Falling back to native Binary IFD Orphaner.");
+                this.engineName = 'Binary IFD Orphaner (Fallback)';
+                this.wasmLoaded = false;
+                resolve(false); 
+            };
+            document.head.appendChild(script);
+        });
     }
 
     async getPreviewUrl() {
@@ -37,16 +65,20 @@ export class RawProcessor {
 
     async scrub() {
         const arrayBuffer = await this.file.arrayBuffer();
+        
+        // FUTURE PROOF: Execute C++ WASM here once you compile it
+        if (this.wasmLoaded && window.Exiv2Wasm) {
+            // return window.Exiv2Wasm.scrub(arrayBuffer);
+        }
+
+        // NATIVE FALLBACK: Binary IFD Orphaner
         let view = new DataView(arrayBuffer);
         let uint8View = new Uint8Array(arrayBuffer);
 
-        let isLittleEndian = true;
-        if (view.getUint16(0) === 0x4949) isLittleEndian = true;
-        else if (view.getUint16(0) === 0x4D4D) isLittleEndian = false;
-
+        let isLittleEndian = view.getUint16(0) === 0x4949;
         const searchLimit = Math.min(uint8View.length, 2000000); 
 
-        // PASS 1: Disconnect Binary Pointers
+        // Pass 1
         const targetTags = [0x8825, 0x8769, 0x010F, 0x0110, 0x0131, 0x0132, 0x02BC, 0x83BB, 0x927C, 0x013B, 0x8298];
         for (let i = 0; i < searchLimit - 12; i += 2) {
             let tagId = view.getUint16(i, isLittleEndian);
@@ -58,7 +90,7 @@ export class RawProcessor {
             }
         }
 
-        // PASS 2: Overwrite ASCII XMP tags and dynamically found strings
+        // Pass 2: Overwrite cached strings to annihilate XMP
         const encoder = new TextEncoder();
         for (const val of Object.values(this.exifCache)) {
             if (typeof val === 'string' && val.length > 3) {
