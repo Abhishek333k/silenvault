@@ -22,7 +22,7 @@ export class ProcessorFactory {
             case 'JFIF':
                 return new JpegProcessor(file);
             default:
-                console.warn(`No dedicated processor for ${extension}. Using generic JPEG Splicer.`);
+                console.warn(`No dedicated processor for ${extension}. Using JPEG standard.`);
                 return new JpegProcessor(file); 
         }
     }
