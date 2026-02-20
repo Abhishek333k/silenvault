@@ -32,6 +32,7 @@
         .glass-panel { background: var(--panel-bg); backdrop-filter: blur(12px); border: 1px solid var(--border-color); transition: all 0.5s ease; }
         .mono { font-family: 'Fira Code', monospace; }
 
+        /* ADVANCED RAW THEME (Smooth, no glitches) - RESTORED */
         body.advanced-mode {
             --bg-color: #0a000a;
             --panel-bg: rgba(25, 5, 25, 0.7);
@@ -42,6 +43,7 @@
         .advanced-mode .scanner-line { background: #d946ef !important; box-shadow: 0 0 15px #d946ef, 0 0 30px #d946ef !important; }
         .advanced-mode .val-sys { color: #e879f9 !important; }
 
+        /* Smooth Dimension Transition - RESTORED */
         .portal-transition { animation: focusShift 0.8s ease-in-out forwards; }
         @keyframes focusShift {
             0% { filter: blur(0px); opacity: 1; }
@@ -100,7 +102,6 @@
         #crossroads-modal { background: rgba(2, 6, 23, 0.9); backdrop-filter: blur(10px); z-index: 100; }
         
         #meta-count { background: #1e293b; color: #f8fafc; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; border: 1px solid #334155;}
-
         .legal-notice { font-size: 10px; color: #64748b; border-top: 1px solid #1e293b; padding-top: 10px; margin-top: 20px; text-align: justify; }
     </style>
 </head>
@@ -109,6 +110,7 @@
     <sv-header base-path=".."></sv-header>
 
     <main class="flex-1 max-w-[1400px] mx-auto w-full px-4 py-8 flex flex-col gap-6 relative">
+        
         <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-2">
             <div>
                 <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight" id="main-title">
@@ -124,6 +126,13 @@
                     <svg class="w-12 h-12 text-blue-500" id="dz-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 </div>
                 <h3 class="text-2xl font-bold text-white mb-2 pointer-events-none tracking-tight">Select Image to Audit</h3>
+                
+                <div class="flex flex-wrap gap-2 justify-center pointer-events-none mb-6 mt-2">
+                    <span class="px-2 py-1 rounded bg-slate-800 text-[10px] text-slate-100 font-bold border border-slate-600">JPEG / PNG / WEBP</span>
+                    <span class="px-2 py-1 rounded bg-slate-800 text-[10px] text-blue-300 font-bold border border-blue-700">HEIC / HEIF</span>
+                    <span class="px-2 py-1 rounded bg-slate-800 text-[10px] text-violet-300 font-bold border border-violet-700">CR2 / DNG / NEF</span>
+                </div>
+
                 <div class="px-6 py-2 rounded-lg bg-slate-700 text-white text-xs font-bold pointer-events-none border border-slate-500">Click to Browse Files</div>
                 <input type="file" id="file-input" accept="image/*, .dng, .cr2, .nef, .arw, .heic, .heif, .webp, .png, .jpg, .jpeg">
             </div>
@@ -132,72 +141,153 @@
         <div id="crossroads-modal" class="hidden fixed inset-0 flex items-center justify-center p-4 z-50 bg-black/80 backdrop-blur-sm">
             <div class="glass-panel p-8 rounded-2xl max-w-xl w-full border-violet-500/50 relative overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)]">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-violet-500 to-fuchsia-500"></div>
-                <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-3">Advanced RAW Format Detected</h2>
-                <div class="space-y-4 mt-6">
-                    <button onclick="executeCrossroads('standard')" class="w-full text-left p-4 rounded-xl border border-slate-700 bg-slate-900/50 hover:bg-slate-800 transition-all group">Standard Conversion (Fast)</button>
-                    <button onclick="executeCrossroads('forge')" class="w-full text-left p-4 rounded-xl border border-violet-700 bg-violet-900/30 hover:bg-violet-800/50 transition-all group">Proceed with RAW Processing</button>
-                    <button onclick="cancelCrossroads()" class="w-full text-center p-3 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-sm font-bold text-slate-300 transition-all">Cancel & Select New File</button>
+                <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-3">
+                    <svg class="w-6 h-6 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    Advanced RAW Format Detected
+                </h2>
+                <p class="text-sm text-slate-200 mb-6 leading-relaxed">
+                    You uploaded a DSLR format (<span id="raw-ext-badge" class="font-bold text-violet-300">.CR2</span>). To retain this exact file extension, we must perform advanced binary processing.
+                </p>
+                
+                <div class="space-y-4">
+                    <button onclick="executeCrossroads('standard')" class="w-full text-left p-4 rounded-xl border border-slate-700 bg-slate-900/50 hover:bg-slate-800 hover:border-slate-500 transition-all group">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="font-bold text-blue-400 group-hover:text-blue-300">Standard Conversion (Fast)</span>
+                            <span class="text-[10px] uppercase tracking-widest text-slate-400">Web Standard</span>
+                        </div>
+                        <p class="text-xs text-slate-400">Extracts the secret preview and safely exports a clean, highly-compatible JPEG.</p>
+                    </button>
+
+                    <button onclick="executeCrossroads('forge')" class="w-full text-left p-4 rounded-xl border border-violet-700 bg-violet-900/30 hover:bg-violet-800/50 hover:border-violet-400 transition-all group relative overflow-hidden">
+                        <div class="flex items-center justify-between mb-1 relative z-10">
+                            <span class="font-bold text-violet-300 group-hover:text-white flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                                Proceed with RAW Processing
+                            </span>
+                            <span class="text-[10px] uppercase tracking-widest text-violet-200 font-bold">Retain Original Format</span>
+                        </div>
+                        <p class="text-xs text-violet-200/80 relative z-10 mt-2">Surgically disconnects EXIF directories within the binary file, destroying privacy risks while preserving RAW sensor data perfectly.</p>
+                    </button>
+
+                    <button onclick="cancelCrossroads()" class="w-full text-center p-3 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-sm font-bold text-slate-300 transition-all">
+                        Cancel & Select New File
+                    </button>
                 </div>
             </div>
         </div>
 
         <div id="workspace-stage" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
             <div class="lg:col-span-5 flex flex-col gap-4">
                 <div class="glass-panel p-4 rounded-xl flex flex-col gap-4">
+                    
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <div id="input-box" class="preview-box scanning"><img id="img-input" class="preview-img" alt="Input Preview"></div>
+                            <div id="input-box" class="preview-box scanning">
+                                <div class="scanner-line"></div>
+                                <span class="preview-label">Original Input</span>
+                                <img id="img-input" class="preview-img" alt="Input Preview">
+                            </div>
                             <span id="label-filename-input" class="filename-text text-slate-200">...</span>
                         </div>
+                        
                         <div>
                             <div class="preview-box border-emerald-700">
-                                <div id="output-placeholder" class="text-xs text-slate-400 font-mono text-center">Awaiting Processing</div>
+                                <span class="preview-label text-emerald-300 border-emerald-700 bg-emerald-900/80">Scrubbed Output</span>
+                                <div id="output-placeholder" class="text-xs text-slate-400 font-mono text-center px-4 flex flex-col items-center gap-2">
+                                    <svg class="w-6 h-6 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                    Awaiting Processing
+                                </div>
                                 <img id="img-output" class="preview-img hidden" alt="Output Preview">
                             </div>
-                            <span id="label-filename-output" class="filename-text text-emerald-300 opacity-0">...</span>
+                            <span id="label-filename-output" class="filename-text text-emerald-300 opacity-0 transition-opacity">...</span>
                         </div>
                     </div>
+
                     <div class="grid grid-cols-2 gap-2 text-xs">
-                        <div class="bg-black/80 p-3 rounded border border-slate-700"><span id="file-size" class="text-slate-100 font-mono">0 KB</span></div>
-                        <div class="bg-black/80 p-3 rounded border border-slate-700 text-right"><span id="badge-engine" class="text-slate-100 font-mono">Determining...</span></div>
+                        <div class="bg-black/80 p-3 rounded border border-slate-700">
+                            <span class="block text-[10px] text-slate-400 uppercase tracking-widest mb-1">Input Size</span>
+                            <span id="file-size" class="text-slate-100 font-mono">0 KB</span>
+                        </div>
+                        <div class="bg-black/80 p-3 rounded border border-slate-700 text-right">
+                            <span class="block text-[10px] text-slate-400 uppercase tracking-widest mb-1">Engine</span>
+                            <span id="badge-engine" class="text-slate-100 font-mono">Determining...</span>
+                        </div>
                     </div>
-                    <button onclick="resetApp()" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold px-4 py-3 rounded-xl transition-all border border-slate-600">Abort & Load New Target</button>
+
+                    <button onclick="resetApp()" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold px-4 py-3 rounded-xl transition-all border border-slate-600">
+                        Abort & Load New Target
+                    </button>
                 </div>
             </div>
 
             <div class="lg:col-span-7 flex flex-col gap-4">
+                
                 <div class="terminal" id="main-terminal">
                     <div class="terminal-header">
-                        <span class="text-white font-bold text-xs">Forensic Audit Log</span>
+                        <span class="text-white font-bold text-xs uppercase tracking-widest flex items-center gap-2">
+                            <svg class="w-4 h-4 text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                            Forensic Audit Log
+                        </span>
                         <div class="flex items-center gap-4">
-                            <button id="btn-export-report" onclick="exportReport()" class="hidden text-[10px] bg-slate-700 text-white px-3 py-1 rounded">Export Log</button>
+                            <button id="btn-export-report" onclick="exportReport()" class="hidden text-[10px] bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded border border-slate-500 transition-colors flex items-center gap-1">
+                                Export Log
+                            </button>
                             <span id="meta-count">0 Tags</span>
                         </div>
                     </div>
                     <div class="terminal-body" id="terminal-out"></div>
                 </div>
 
-                <div id="location-map-container"><div id="leaflet-map"></div></div>
-
-                <div id="action-area" class="glass-panel p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div id="action-msg-container" class="flex flex-col gap-1">
-                        <span id="status-indicator" class="status-badge status-scan w-max">Scanning</span>
-                        <span id="action-msg" class="text-xs mt-1 block text-slate-300">Analyzing structure...</span>
+                <div id="location-map-container">
+                    <div class="relative w-full h-full">
+                        <div class="absolute top-2 left-2 z-[400] bg-rose-950/90 text-rose-300 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded border border-rose-500/50 shadow-lg backdrop-blur flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                            Location Data Found
+                        </div>
+                        <div id="leaflet-map"></div>
                     </div>
-                    <button id="btn-scrub" onclick="executeImageProcessing()" disabled class="hidden w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-8 py-3 rounded-xl"><span id="btn-scrub-text">Remove Metadata</span></button>
-                    <button id="btn-download" onclick="downloadImage()" class="hidden w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold px-8 py-3 rounded-xl">Download Verified File</button>
+                </div>
+
+                <div id="action-area" class="glass-panel p-4 rounded-xl border-slate-700 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="text-sm text-slate-200">
+                        <div id="action-msg-container" class="flex flex-col gap-1">
+                            <span id="status-indicator" class="status-badge status-scan w-max">
+                                <svg class="w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                Scanning
+                            </span>
+                            <span id="action-msg" class="text-xs mt-1 block text-slate-300">Analyzing structure...</span>
+                        </div>
+                    </div>
+                    
+                    <button id="btn-scrub" onclick="executeImageProcessing()" disabled class="hidden w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-8 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(59,130,246,0.4)] flex items-center justify-center gap-2 opacity-50 cursor-not-allowed">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        <span id="btn-scrub-text">Remove Metadata</span>
+                    </button>
+
+                    <button id="btn-download" onclick="downloadImage()" class="hidden w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold px-8 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.4)] flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        Download Verified File
+                    </button>
                 </div>
             </div>
+
         </div>
-        
+
         <div class="grid lg:grid-cols-3 gap-8 mt-6">
             <div class="lg:col-span-2 glass-panel p-8 rounded-2xl border-slate-800 prose prose-invert max-w-none">
                 <h2 class="text-xl font-bold text-white mb-4">How The Security Engine Works</h2>
+                <ul class="text-sm text-slate-300 leading-relaxed space-y-3 m-0 p-0 list-none">
+                    <li><strong class="text-blue-400">The Binary Engine:</strong> We do not rely on standard HTML5 canvas compression. We physically parse the ArrayBuffer of your image file and splice out the exact EXIF headers natively.</li>
+                    <li><strong class="text-emerald-400">Verification Gate:</strong> We ensure absolute safety. After processing, the tool re-scans the <em>newly generated</em> file. If any privacy tag survives, the download is blocked.</li>
+                    <li><strong class="text-violet-400">Advanced 1-to-1 Formatting:</strong> You get back exactly what you put in. Uploading a WebP or a Raw DNG? Our system safely disconnects the tracking chunks without touching actual sensor data or altering file extensions.</li>
+                </ul>
                 <div class="legal-notice">
-                    <strong>LEGAL DISCLAIMER:</strong> By using this tool, you acknowledge that the removal of EXIF metadata and embedded GPS coordinates is a destructive and irreversible process.
+                    <strong>LEGAL DISCLAIMER:</strong> By using this tool, you acknowledge that the removal of EXIF metadata and embedded GPS coordinates is a destructive and irreversible process. SilenVault assumes no liability for the loss of provenance data, timestamps, or copyright assertions required for legal or evidentiary purposes.
                 </div>
             </div>
         </div>
+
     </main>
 
     <sv-footer base-path=".."></sv-footer>
@@ -205,35 +295,31 @@
     <script type="module">
         'use strict'; 
         
-        // Connect to the isolated external logic 
+        // NEW SECURE BACKEND ARCHITECTURE
         import { ProcessorFactory } from '../assets/js/exif_processors/Dispatcher.js';
 
-        // ==========================================
-        // 1. STATE & MEMORY MANAGEMENT
-        // ==========================================
         let originalFile = null;
         let scrubbedBlob = null;
         let sourceImageObj = new Image(); 
-        
         let processorInstance = null;
         let fileExt = '';
         let outputExt = ''; 
         let isAdvancedMode = false;
-        
         let rawExifCache = {}; 
         let currentScanId = 0;
-
         let threatMap = null;
         let mapMarker = null;
         let activeUrls = []; 
 
-        // DOM Element Cache (Unchanged)
+        // DOM CACHING
         const mainBody = document.getElementById('main-body');
+        const titleAccent = document.getElementById('title-accent');
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('file-input');
         const stageUpload = document.getElementById('upload-stage');
         const stageWorkspace = document.getElementById('workspace-stage');
         const crossroadsModal = document.getElementById('crossroads-modal');
+        const rawExtBadge = document.getElementById('raw-ext-badge');
         const inputBox = document.getElementById('input-box');
         const imgInput = document.getElementById('img-input');
         const imgOutput = document.getElementById('img-output');
@@ -254,9 +340,6 @@
 
         const STRUCTURAL_WHITELIST = ['ImageWidth', 'ImageHeight', 'ExifImageWidth', 'ExifImageHeight', 'Orientation', 'ColorSpace'];
 
-        // ==========================================
-        // 2. LISTENERS & CLEANUP
-        // ==========================================
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, preventDefaults));
         function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
         ['dragenter', 'dragover'].forEach(e => dropZone.classList.add('dragover'));
@@ -269,9 +352,6 @@
             localStorage.clear(); 
         });
 
-        // ==========================================
-        // 3. CORE LOGIC
-        // ==========================================
         function formatBytes(bytes) {
             if (!bytes || bytes === 0) return '0 Bytes';
             const k = 1024, i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -319,21 +399,24 @@
             fileExt = file.name.split('.').pop().toUpperCase();
             labelFilenameInput.innerText = file.name;
             
-            // ARCHITECT FIX: Route to the Dispatcher module
             processorInstance = ProcessorFactory.create(originalFile, fileExt);
 
             if (['CR2', 'DNG', 'NEF', 'ARW'].includes(fileExt) && !isAdvancedMode) {
+                rawExtBadge.innerText = `.${fileExt}`;
                 crossroadsModal.classList.remove('hidden');
                 return;
             }
             startWorkspace(); 
         }
 
+        // RESTORED UI VIBE: Portal Transition Logic
         function executeCrossroads(mode) {
             if (mode === 'forge') {
                 isAdvancedMode = true;
                 document.body.classList.add('portal-transition'); 
                 mainBody.classList.add('advanced-mode');
+                titleAccent.className = "text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-500 transition-all duration-1000";
+                titleAccent.innerText = "Advanced";
                 
                 setTimeout(() => {
                     crossroadsModal.classList.add('hidden');
@@ -342,7 +425,6 @@
                 }, 300);
             } else {
                 isAdvancedMode = false;
-                // Fallback handled inside Dispatcher now
                 crossroadsModal.classList.add('hidden');
                 startWorkspace();
             }
@@ -368,12 +450,26 @@
             inputBox.classList.add('scanning');
             imgInput.classList.remove('scanned');
             
+            statusIndicator.className = "status-badge status-scan";
+            statusIndicator.innerHTML = `<svg class="w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Scanning`;
+            actionMsg.innerHTML = `<span class="text-slate-400">Analyzing structure...</span>`;
+
             btnScrub.disabled = true;
             btnScrub.classList.add('opacity-50', 'cursor-not-allowed', 'hidden');
             btnDownload.classList.add('hidden');
+            btnExport.classList.add('hidden');
 
             badgeEngine.innerText = processorInstance.engineName || 'Binary Splicer';
+            badgeEngine.className = processorInstance.engineClass || 'text-blue-300 font-mono';
             btnScrubText.innerText = processorInstance.buttonText || 'Remove Metadata';
+
+            // RESTORED UI VIBE: Advanced Mode Styling
+            if (isAdvancedMode) {
+                btnScrub.className = "hidden w-full md:w-auto bg-violet-700 hover:bg-violet-600 text-white text-sm font-bold px-8 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(139,92,246,0.6)] flex items-center justify-center gap-2 opacity-50 cursor-not-allowed";
+                logToTerminal('', '> ADVANCED RAW PROCESSING INITIALIZED...', 'sys');
+            } else {
+                btnScrub.className = "hidden w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-8 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(59,130,246,0.4)] flex items-center justify-center gap-2 opacity-50 cursor-not-allowed";
+            }
 
             logToTerminal('', '> INITIALIZING SECURE METADATA AUDIT...', 'sys');
 
@@ -394,6 +490,7 @@
             scanMetadata(thisScanId);
         }
 
+        // RESTORED UI VIBE: The Staggered "Hacking" Log Print
         async function scanMetadata(thisScanId) {
             try {
                 const exifData = await processorInstance.parse();
@@ -414,7 +511,17 @@
                             imgInput.classList.add('scanned');
                             logToTerminal('', `> SCAN COMPLETE. [${usefulKeys.length}] THREAT TAGS FOUND.`, 'sys');
 
-                            if (exifData.latitude && exifData.longitude) triggerMap(exifData.latitude, exifData.longitude);
+                            if (exifData.latitude && exifData.longitude) {
+                                triggerMap(exifData.latitude, exifData.longitude);
+                                statusIndicator.className = "status-badge status-danger";
+                                statusIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-rose-500"></span> CRITICAL THREAT`;
+                                actionMsg.innerHTML = `<span class="text-rose-400 font-bold">Location Exposed:</span> Immediate purge required.`;
+                            } else {
+                                statusIndicator.className = "status-badge status-warn";
+                                statusIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span> Metadata Present`;
+                                actionMsg.innerHTML = `<span class="text-amber-400 font-bold">Action Required:</span> Hidden trackers found.`;
+                            }
+
                             btnScrub.disabled = false;
                             btnScrub.classList.remove('opacity-50', 'cursor-not-allowed', 'hidden');
                             btnExport.classList.remove('hidden');
@@ -426,7 +533,8 @@
                         rawExifCache[key] = val; 
                         logToTerminal(key, val, getSeverity(key));
                         idx++;
-                        setTimeout(printNextLog, 10);
+                        // Delay gives the terminal hack vibe
+                        setTimeout(printNextLog, isAdvancedMode ? 5 : 15);
                     }
                     setTimeout(printNextLog, 100);
                 } else {
@@ -455,18 +563,28 @@
             setTimeout(() => { threatMap.invalidateSize(); }, 300);
         }
 
+        // RESTORED UI VIBE: Clean File Visuals
         function handleCleanFile() {
             setTimeout(() => {
                 inputBox.classList.remove('scanning');
                 imgInput.classList.add('scanned');
+                metaCount.innerText = `0 Tags`;
                 logToTerminal('', '> SCAN COMPLETE. NO PRIVACY DATA DETECTED.', 'sys');
+                logToTerminal('STATUS', 'CLEAN', 'safe');
                 
+                statusIndicator.className = "status-badge status-safe";
+                statusIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Safe File`;
+                actionMsg.innerHTML = `<span class="text-emerald-400 font-bold">Verified:</span> Image is natively safe. You may still Force Purge.`;
+
                 scrubbedBlob = originalFile; 
                 outputExt = `.${fileExt.toLowerCase()}`;
                 imgOutput.src = imgInput.src;
                 outputPlaceholder.classList.add('hidden');
                 imgOutput.classList.remove('hidden');
                 
+                labelFilenameOutput.innerText = originalFile.name;
+                labelFilenameOutput.classList.remove('opacity-0');
+
                 btnScrubText.innerText = "Force Purge";
                 btnScrub.disabled = false;
                 btnScrub.classList.remove('opacity-50', 'cursor-not-allowed', 'hidden');
@@ -503,17 +621,31 @@
             } catch(e) {}
 
             logToTerminal('VERIFICATION', 'PASSED. 0 PII THREATS DETECTED.', 'safe');
+            
+            // RESTORED UI VIBE: Success Messaging
+            statusIndicator.className = "status-badge status-safe";
+            statusIndicator.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> Threat Neutralized`;
+            actionMsg.innerHTML = `<span class="text-emerald-400 font-bold">Success:</span> Metadata completely stripped.`;
+
             scrubbedBlob = blob;
             threatMapContainer.classList.remove('active'); 
             
             fileSizeEl.innerText = formatBytes(blob.size);
+            metaCount.innerText = `0 Tags`;
+            
             const outputUrl = URL.createObjectURL(blob);
             activeUrls.push(outputUrl);
             imgOutput.src = outputUrl;
             
             outputPlaceholder.classList.add('hidden');
             imgOutput.classList.remove('hidden');
+            
+            const nameBase = originalFile.name.substring(0, originalFile.name.lastIndexOf('.'));
+            labelFilenameOutput.innerText = `${nameBase}_clean${outputExt}`;
+            labelFilenameOutput.classList.remove('opacity-0');
+
             btnScrub.classList.add('hidden');
+            btnExport.classList.add('hidden');
             btnDownload.classList.remove('hidden');
         }
 
@@ -531,30 +663,32 @@
         }
 
         function exportReport() {
-            let report = `EXIF Audit Report\n\n`;
+            let report = `SilenVault EXIF Audit Report\nFilename: ${originalFile.name}\nScanned: ${new Date().toLocaleString()}\n----------------------------------------\n\n`;
             for (const [key, value] of Object.entries(rawExifCache)) report += `${key}: ${value}\n`;
             const blob = new Blob([report], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             activeUrls.push(url);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `EXIF_Report.txt`;
+            a.download = `${originalFile.name}_EXIF_Report.txt`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
         }
 
+        // RESTORED UI VIBE: Full State Reset
         function resetApp() {
             activeUrls.forEach(url => URL.revokeObjectURL(url));
             activeUrls = [];
             
-            // ARCHITECT FIX: Destroy map properly to prevent RAM leakage
-            if (threatMap) {
-                threatMap.remove();
-                threatMap = null;
-            }
+            if (threatMap) { threatMap.remove(); threatMap = null; }
             
             mainBody.classList.remove('advanced-mode');
+            document.body.classList.remove('portal-transition');
+            titleAccent.className = "text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 transition-all duration-1000";
+            titleAccent.innerText = "Scrubber";
+
+            isAdvancedMode = false;
             threatMapContainer.classList.remove('active');
             stageWorkspace.classList.add('hidden');
             stageUpload.classList.remove('hidden');
@@ -566,10 +700,16 @@
             imgInput.src = ''; imgOutput.src = '';
             inputBox.classList.add('scanning'); imgInput.classList.remove('scanned');
             outputPlaceholder.classList.remove('hidden'); imgOutput.classList.add('hidden');
+            
+            labelFilenameInput.innerText = '...';
+            labelFilenameOutput.classList.add('opacity-0');
+            
+            btnScrub.disabled = true;
+            btnScrub.classList.add('opacity-50', 'cursor-not-allowed', 'hidden');
+            btnDownload.classList.add('hidden');
+            btnExport.classList.add('hidden');
         }
 
-        // ARCHITECT FIX: Bridge module functions to the global Window object 
-        // This is mandatory for inline HTML onclick="" handlers to function!
         window.handleFile = handleFile;
         window.executeCrossroads = executeCrossroads;
         window.cancelCrossroads = cancelCrossroads;
