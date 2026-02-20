@@ -1,0 +1,8 @@
+/assets
+  /js
+    /processors
+      ├── Dispatcher.js      (The Brain: Routes files to correct processor)
+      ├── JpegProcessor.js   (Handles 0xFFE1 APP1 removal)
+      ├── WebpProcessor.js   (Handles RIFF chunk splicing)
+      ├── PngProcessor.js    (Handles tEXt/zTXt/iTXt chunk removal)
+      └── RawProcessor.js    (Deep Forge: Handles IFD orphaning for CR2/DNG)
