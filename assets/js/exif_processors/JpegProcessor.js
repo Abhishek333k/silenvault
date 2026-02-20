@@ -8,7 +8,7 @@ export class JpegProcessor {
 
     async parse() {
         const buffer = await this.file.arrayBuffer();
-        return await exifr.parse(buffer, {tiff: true, exif: true, gps: true, iptc: true, xmp: true});
+        return await window.exifr.parse(buffer, {tiff: true, exif: true, gps: true, iptc: true, xmp: true});
     }
 
     async getPreviewUrl() {
@@ -20,33 +20,34 @@ export class JpegProcessor {
         const view = new DataView(buffer);
         const uint8 = new Uint8Array(buffer);
 
-        // Verify JPEG Magic Number (0xFFD8)
-        if (view.getUint16(0, false) !== 0xFFD8) {
-            throw new Error("Invalid JPEG format");
-        }
+        if (view.getUint16(0, false) !== 0xFFD8) throw new Error("Invalid JPEG format");
 
-        let offset = 2; // Start after 0xFFD8
-        let chunksToKeep = [];
-        chunksToKeep.push(uint8.slice(0, 2)); // Keep SOI marker
+        let offset = 2; 
+        let chunksToKeep = [uint8.slice(0, 2)]; 
 
         while (offset < buffer.byteLength) {
-            // If we hit the Start of Scan (0xFFDA), the rest of the file is image data. Keep it all.
-            if (view.getUint16(offset, false) === 0xFFDA) {
+            // SAFEGUARD: Skip arbitrary 0xFF padding bytes injected by older cameras
+            while (offset < buffer.byteLength && uint8[offset] === 0xFF && uint8[offset + 1] === 0xFF) {
+                offset++;
+            }
+            if (offset >= buffer.byteLength - 2) break;
+
+            const marker = view.getUint16(offset, false);
+            
+            // If Start of Scan (0xFFDA), the metadata header is over. Keep all remaining visual pixels.
+            if (marker === 0xFFDA) {
                 chunksToKeep.push(uint8.slice(offset));
                 break;
             }
 
-            const marker = view.getUint16(offset, false);
-            const segmentLength = view.getUint16(offset + 2, false) + 2; // Length includes the 2 bytes for the length itself
+            const segmentLength = view.getUint16(offset + 2, false) + 2; 
 
-            // 0xFFE1 is APP1 (EXIF/XMP), 0xFFE2 is APP2 (ICC Profile), 0xFFED is APP13 (IPTC)
-            // We surgically remove APP1 and APP13 to strip metadata, but usually keep APP2 so colors don't wash out.
+            // 0xFFE1 is APP1 (EXIF/XMP), 0xFFED is APP13 (IPTC). We obliterate these.
             if (marker === 0xFFE1 || marker === 0xFFED) {
                 console.log(`[JpegProcessor] Discarded metadata segment: ${marker.toString(16)}`);
             } else {
                 chunksToKeep.push(uint8.slice(offset, offset + segmentLength));
             }
-
             offset += segmentLength;
         }
 
