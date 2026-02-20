@@ -4,263 +4,321 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Converter Pro | SilenVault</title>
-    <meta name="description" content="Convert WebP, AVIF, PNG, JPG, BMP, and GIF images instantly in your browser. 100% lossless-grade format switching.">
+    <meta name="description" content="Instantly convert images between WebP, PNG, and JPEG locally in your browser. Features dynamic matting for transparent images.">
     
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="../assets/js/layout.js" defer></script>
-    
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f8fafc; overflow-x: hidden; }
         .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
-        .sv-select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-right: 2.5rem; appearance: none; }
-        
-        .drag-active { border-color: #3b82f6 !important; background-color: rgba(59, 130, 246, 0.1) !important; transform: scale(1.02); }
+        .mono { font-family: 'Fira Code', monospace; }
+
+        .drop-zone {
+            border: 2px dashed #334155; border-radius: 1.5rem; background: rgba(15, 23, 42, 0.4);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 350px; transition: all 0.3s ease; cursor: pointer; position: relative; overflow: hidden;
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); box-shadow: inset 0 0 30px rgba(59, 130, 246, 0.2);
+        }
+        .drop-zone input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
+
+        /* Format Grid Cards */
+        .format-card {
+            background: #0b1120; border: 1px solid #1e293b; border-radius: 12px; padding: 16px;
+            cursor: pointer; transition: all 0.2s ease; text-align: center; display: flex; flex-direction: column; gap: 8px;
+        }
+        .format-card:hover { border-color: #3b82f6; background: rgba(59, 130, 246, 0.05); transform: translateY(-2px); }
+        .format-card.active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
+
+        /* Color Picker Reset */
+        input[type="color"] {
+            -webkit-appearance: none; border: none; width: 36px; height: 36px;
+            border-radius: 8px; cursor: pointer; padding: 0; background: transparent;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: 2px solid #334155; border-radius: 8px; }
+
+        .preview-img { max-width: 100%; max-height: 400px; border-radius: 12px; object-fit: contain; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="flex flex-col min-h-screen">
 
     <sv-header base-path=".."></sv-header>
 
-    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-12 flex flex-col lg:flex-row gap-8">
+    <main class="flex-1 max-w-[1200px] mx-auto w-full px-4 py-8 flex flex-col gap-6">
         
-        <div class="flex-1 space-y-6">
-            <div class="text-center mb-10">
-                <h1 class="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight">
-                    Image <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Converter Pro</span>
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-2">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight">
+                    Image <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">Converter Pro</span>
                 </h1>
-                <p class="text-slate-400 max-w-lg mx-auto">
-                    Professional format switching supporting Next-Gen WebP and AVIF. 100% Local.
-                </p>
-            </div>
-
-            <div id="dropZone" class="glass-panel rounded-2xl p-16 mb-8 text-center cursor-pointer border-2 border-dashed border-slate-700 hover:border-blue-500 transition-all group" onclick="document.getElementById('fileInput').click()">
-                <input type="file" id="fileInput" accept="image/*" class="hidden">
-                <div class="pointer-events-none group-hover:scale-105 transition-transform">
-                    <div class="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-6 text-blue-500 border border-blue-500/20 group-hover:border-blue-500 shadow-inner">
-                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                    </div>
-                    <h3 class="text-2xl font-bold text-white mb-2">Drop Image Here</h3>
-                    <p class="text-sm text-slate-500">Supports JPG, PNG, WebP, AVIF, HEIC, GIF</p>
-                </div>
-            </div>
-
-            <div id="converterArea" class="hidden space-y-8 animate-in fade-in duration-500">
-                <div class="glass-panel p-8 rounded-3xl border-blue-500/20">
-                    
-                    <div id="gifWarning" class="hidden bg-orange-500/10 border border-orange-500/30 text-orange-400 px-4 py-3 rounded-xl mb-6 flex items-start gap-3 text-sm">
-                        <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                        <div>
-                            <strong class="block">Animated GIF Detected</strong>
-                            HTML5 Canvas cannot process animations. If you proceed, the output will be a <b>static image</b> of the very first frame.
-                        </div>
-                    </div>
-
-                    <div class="grid md:grid-cols-2 gap-8 items-center">
-                        <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-800 flex flex-col items-center justify-center min-h-[250px] relative overflow-hidden group">
-                            <img id="previewImg" class="max-h-56 max-w-full object-contain drop-shadow-2xl z-10">
-                            <div class="absolute inset-0 z-0 opacity-20" style="background-image: linear-gradient(45deg, #334155 25%, transparent 25%), linear-gradient(-45deg, #334155 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #334155 75%), linear-gradient(-45deg, transparent 75%, #334155 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px;"></div>
-                        </div>
-
-                        <div class="space-y-6">
-                            <div>
-                                <h3 class="text-white font-bold text-lg truncate w-full" id="originalFileName">Image.png</h3>
-                                <span id="fileInfo" class="text-xs text-slate-400 font-mono">Loading data...</span>
-                            </div>
-
-                            <div class="h-px w-full bg-slate-800"></div>
-
-                            <div>
-                                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 block">Target Format</label>
-                                <select id="targetFormat" class="sv-select w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors">
-                                    <optgroup label="Next-Gen Web">
-                                        <option value="image/webp" selected>WebP (Highly Recommended)</option>
-                                        <option value="image/avif">AVIF (Ultra Compression)</option>
-                                    </optgroup>
-                                    <optgroup label="Standard Formats">
-                                        <option value="image/png">PNG (Lossless, Transparent)</option>
-                                        <option value="image/jpeg">JPG (Classic, Removes Transparency)</option>
-                                    </optgroup>
-                                    <optgroup label="Legacy Formats">
-                                        <option value="image/bmp">BMP (Uncompressed Windows)</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-                            
-                            <button onclick="convertImage()" id="convertBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-blue-500/20 flex justify-center gap-2 items-center">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                Convert Format
-                            </button>
-                            
-                            <button onclick="resetConverter()" class="w-full text-xs text-slate-500 hover:text-white transition-colors border border-transparent hover:border-slate-700 py-2 rounded-lg">
-                                ← Convert another image
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="smart-ad-unit w-full text-center overflow-hidden transition-all duration-500">
-                    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="7594122081" data-ad-format="auto" data-full-width-responsive="true"></ins>
-                    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-                </div>
+                <p class="text-sm text-slate-400 mt-1">Shift formats instantly at 100% quality. Zero server uploads.</p>
             </div>
         </div>
 
-        <aside class="w-full lg:w-80 flex flex-col gap-6 shrink-0">
-            <div class="glass-panel p-6 rounded-2xl border-blue-500/20">
-                <h3 class="font-bold text-white mb-4 uppercase tracking-wider text-xs">Architect's Note</h3>
-                <ul class="text-xs text-slate-400 space-y-4">
-                    <li class="flex gap-3">
-                        <span class="text-emerald-400">💡</span>
-                        <span><strong>Smart Matting:</strong> If you convert a transparent PNG to JPG or BMP, we automatically apply a clean white background to prevent rendering artifacts.</span>
-                    </li>
-                    <li class="flex gap-3">
-                        <span class="text-blue-400">🛡️</span>
-                        <span><strong>Browser Native:</strong> Chrome/Edge support AVIF natively. If you use an older browser, AVIF may automatically fall back to PNG.</span>
-                    </li>
-                    <li class="flex gap-3">
-                        <span class="text-purple-400">⚡</span>
-                        <span><strong>Compression:</strong> Need to shrink the file size? Use our dedicated <a href="image_compressor.html" class="text-white underline hover:text-blue-400">Smart Compressor</a> tool.</span>
-                    </li>
+        <div id="upload-stage" class="glass-panel p-2 rounded-[2rem]">
+            <div id="drop-zone" class="drop-zone">
+                <div class="bg-blue-500/20 p-4 rounded-full mb-4 pointer-events-none">
+                    <svg class="w-10 h-10 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2 pointer-events-none">Drag & Drop Image Here</h3>
+                <p class="text-sm text-slate-400 pointer-events-none">Supports JPEG, PNG, WebP</p>
+                <input type="file" id="file-input" accept="image/*">
+            </div>
+        </div>
+
+        <div id="workspace-stage" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <div class="lg:col-span-5 flex flex-col gap-6">
+                
+                <div class="glass-panel p-6 rounded-3xl border-slate-700">
+                    <div class="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+                        <div class="flex flex-col">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Original Format</span>
+                            <span id="orig-type-badge" class="text-lg font-bold text-slate-300">UNKNOWN</span>
+                        </div>
+                        <div class="text-right flex flex-col">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Original File Size</span>
+                            <span id="size-original" class="text-lg font-bold text-slate-300 mono">0 KB</span>
+                        </div>
+                    </div>
+
+                    <h2 class="text-sm font-bold text-white uppercase tracking-widest mb-4">Select Target Format</h2>
+                    <div class="grid grid-cols-3 gap-3 mb-6">
+                        <div class="format-card active" onclick="setFormat('image/webp', this)">
+                            <span class="text-lg font-black text-blue-400">WebP</span>
+                            <span class="text-[10px] text-slate-500 font-bold uppercase">Web Standard</span>
+                        </div>
+                        <div class="format-card" onclick="setFormat('image/jpeg', this)">
+                            <span class="text-lg font-black text-white">JPEG</span>
+                            <span class="text-[10px] text-slate-500 font-bold uppercase">Universal Flat</span>
+                        </div>
+                        <div class="format-card" onclick="setFormat('image/png', this)">
+                            <span class="text-lg font-black text-white">PNG</span>
+                            <span class="text-[10px] text-slate-500 font-bold uppercase">Lossless</span>
+                        </div>
+                    </div>
+
+                    <div id="options-panel" class="mb-6">
+                        <div id="option-matting" class="hidden bg-[#0b1120] border border-slate-800 rounded-xl p-5">
+                            <label class="text-xs font-bold text-slate-400 block mb-2">Transparency Matting Color</label>
+                            <div class="flex items-center gap-3">
+                                <input type="color" id="matting-color" value="#FFFFFF" oninput="executeConversion()">
+                                <span class="text-[10px] text-slate-500 leading-tight">JPEGs do not support transparency. Pick the background color that will fill any transparent areas.</span>
+                            </div>
+                        </div>
+
+                        <div id="option-png-info" class="hidden">
+                            <span class="flex items-center gap-2 text-xs font-bold text-emerald-500 bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Converting to PNG is mathematically lossless. File size will likely increase.
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center px-2 mb-6">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Estimated Output Size</span>
+                        <span id="size-new" class="text-xl font-bold text-emerald-400 mono">Calculating...</span>
+                    </div>
+
+                    <div class="flex flex-col gap-3">
+                        <button onclick="downloadImage()" id="btn-download" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-6 py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(59,130,246,0.4)] flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            Download Converted Image
+                        </button>
+                        
+                        <button onclick="resetApp()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-bold px-6 py-3 rounded-xl transition-all border border-slate-700 flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            Convert Another
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-7 glass-panel p-6 rounded-3xl border-slate-700 flex flex-col items-center justify-center min-h-[500px] relative bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAACVJREFUKFNjZCASMDKgAnv37v3PBEWQQRTFMAkMmAwwKTIBAJ2cAxVqFpY7AAAAAElFTkSuQmCC')]">
+                <div class="absolute top-4 left-4 bg-slate-900/80 backdrop-blur text-white text-[10px] font-mono px-3 py-1 rounded-lg border border-slate-700 z-10 shadow-lg">
+                    Real-time Preview
+                </div>
+                <img id="preview-image" class="preview-img" alt="Image Preview">
+            </div>
+
+        </div>
+
+        <canvas id="convert-canvas" class="hidden"></canvas>
+
+        <div class="grid lg:grid-cols-3 gap-8 mt-6">
+            <div class="lg:col-span-2 glass-panel p-8 rounded-2xl border-slate-800 prose prose-invert max-w-none">
+                <h2 class="text-xl font-bold text-white mb-4">Format Mathematics Explained</h2>
+                <ul class="text-sm text-slate-400 leading-relaxed space-y-3 m-0 p-0 list-none">
+                    <li><strong class="text-blue-400">Why does file size change without compression?</strong> Converting an image forces the browser to redraw and re-encode the pixel data using a completely different mathematical algorithm. For example, WebP uses highly efficient VP8 encoding, which often results in smaller files naturally, even at 100% quality.</li>
+                    <li><strong class="text-slate-200">The Matting Engine:</strong> JPEGs do not support alpha channels (transparency). If you convert a transparent logo to a JPEG on a standard site, the background turns black. Our dynamic Matting Engine allows you to select exactly which hex color fills the transparent void before the JPEG algorithm encodes it.</li>
+                    <li><strong class="text-slate-200">Need to compress?</strong> This tool performs a 1:1 max-quality format shift. If you need to heavily reduce the megabyte size of an image, use our dedicated <strong>Smart Image Compressor</strong> tool.</li>
                 </ul>
             </div>
-            
-            <div class="smart-ad-unit w-full text-center overflow-hidden transition-all duration-500 sticky top-24">
-                <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="9264203071" data-ad-format="auto" data-full-width-responsive="true"></ins>
-                <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+            <div class="space-y-6">
+                <div id="sidebar-ad-wrapper" class="hidden opacity-0 transition-opacity duration-1000">
+                    <aside class="smart-ad-unit bg-slate-900/50 border border-slate-800 rounded-2xl flex flex-col items-center justify-center p-4 min-h-[250px]">
+                        <span class="text-[10px] uppercase tracking-widest text-slate-600 block mb-2 pointer-events-none">Sponsored</span>
+                        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="7594122081" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                    </aside>
+                </div>
             </div>
-        </aside>
+        </div>
 
     </main>
 
     <sv-footer base-path=".."></sv-footer>
 
-    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-700 text-white px-6 py-4 rounded-xl text-sm font-bold shadow-2xl opacity-0 transition-all pointer-events-none translate-y-4 z-50 flex items-center gap-3">
-        <svg class="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-        <span id="toastMsg">Notification</span>
-    </div>
-
     <script>
+        let originalImageObj = new Image();
         let originalFile = null;
-        let originalName = "";
+        let convertedBlob = null;
+        let currentTargetFormat = 'image/webp';
 
-        // --- Drag & Drop Engine ---
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
+        // DOM
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const stageUpload = document.getElementById('upload-stage');
+        const stageWorkspace = document.getElementById('workspace-stage');
+        const canvas = document.getElementById('convert-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        const origTypeBadge = document.getElementById('orig-type-badge');
+        const elSizeOrig = document.getElementById('size-original');
+        const elSizeNew = document.getElementById('size-new');
+        const previewImage = document.getElementById('preview-image');
 
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, preventDefaults, false);
-            document.body.addEventListener(eventName, preventDefaults, false);
-        });
+        // Options UI
+        const optMatting = document.getElementById('option-matting');
+        const optPngInfo = document.getElementById('option-png-info');
+        const mattingColor = document.getElementById('matting-color');
 
+        // Drag & Drop
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, preventDefaults));
         function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
-
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.add('drag-active'), false);
-        });
-
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => dropZone.classList.remove('drag-active'), false);
-        });
-
-        dropZone.addEventListener('drop', (e) => {
-            handleFile(e.dataTransfer.files[0]);
-        }, false);
-
-        fileInput.addEventListener('change', function() {
-            handleFile(this.files[0]);
-        });
-        // -------------------------
+        ['dragenter', 'dragover'].forEach(e => dropZone.classList.add('dragover'));
+        ['dragleave', 'drop'].forEach(e => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', e => handleFile(e.dataTransfer.files[0]));
+        fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
 
         function handleFile(file) {
-            if (!file || !file.type.startsWith('image/')) {
-                alert("Please select a valid image file.");
-                return;
-            }
-            
+            if (!file || !file.type.match('image.*')) { alert("Please drop a valid image file."); return; }
+
             originalFile = file;
-            originalName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-
-            // ARCHITECT FIX: Show warning if GIF is uploaded
-            const gifWarning = document.getElementById('gifWarning');
-            if(file.type === 'image/gif') {
-                gifWarning.classList.remove('hidden');
-            } else {
-                gifWarning.classList.add('hidden');
-            }
-
-            document.getElementById('originalFileName').innerText = file.name;
-            document.getElementById('fileInfo').innerText = `Original Format: ${file.type.split('/')[1].toUpperCase()} • Size: ${(file.size/1024).toFixed(1)} KB`;
+            
+            const ext = file.name.split('.').pop().toUpperCase() || 'IMAGE';
+            origTypeBadge.innerText = ext;
+            elSizeOrig.innerText = formatBytes(file.size);
 
             const reader = new FileReader();
-            reader.onload = (e) => {
-                document.getElementById('previewImg').src = e.target.result;
-                document.getElementById('dropZone').classList.add('hidden');
-                document.getElementById('converterArea').classList.remove('hidden');
+            reader.onload = function(event) {
+                const url = event.target.result;
+                
+                originalImageObj.onload = function() {
+                    stageUpload.classList.add('hidden');
+                    stageWorkspace.classList.remove('hidden');
+                    
+                    // Reset to WebP Default
+                    setFormat('image/webp', document.querySelector('.format-card'));
+                };
+                originalImageObj.src = url;
             };
             reader.readAsDataURL(file);
         }
 
-        function convertImage() {
-            const btn = document.getElementById('convertBtn');
-            const originalBtnHTML = btn.innerHTML;
-            btn.innerHTML = `Processing...`; 
+        function setFormat(mimeType, element) {
+            currentTargetFormat = mimeType;
             
-            setTimeout(() => {
-                const img = document.getElementById('previewImg');
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const format = document.getElementById('targetFormat').value;
+            // Highlight Grid Card
+            document.querySelectorAll('.format-card').forEach(card => {
+                card.classList.remove('active');
+                card.querySelector('span').classList.replace('text-blue-400', 'text-white');
+            });
+            element.classList.add('active');
+            element.querySelector('span').classList.replace('text-white', 'text-blue-400');
 
-                canvas.width = img.naturalWidth;
-                canvas.height = img.naturalHeight;
+            // Dynamic Options UI Logic
+            optMatting.classList.add('hidden');
+            optPngInfo.classList.add('hidden');
 
-                if (format === 'image/jpeg' || format === 'image/bmp') {
-                    ctx.fillStyle = "#FFFFFF";
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                }
+            if (mimeType === 'image/jpeg') {
+                optMatting.classList.remove('hidden');
+            } else if (mimeType === 'image/png') {
+                optPngInfo.classList.remove('hidden');
+            }
 
-                ctx.drawImage(img, 0, 0);
-
-                canvas.toBlob((blob) => {
-                    let finalExt = format.split('/')[1].replace('jpeg', 'jpg');
-                    
-                    // ARCHITECT FIX: Browser Fallback Detection & Toast
-                    if (blob.type !== format && format !== 'image/jpeg') {
-                        finalExt = 'png';
-                        showToast(`Your browser doesn't support writing ${format.split('/')[1].toUpperCase()} files natively. Safely backed up as PNG.`);
-                    }
-
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `${originalName}_converted.${finalExt}`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
-                    
-                    btn.innerHTML = originalBtnHTML;
-                }, format, 1.0);
-            }, 50);
+            elSizeNew.innerText = "Calculating...";
+            elSizeNew.classList.replace('text-emerald-400', 'text-slate-400');
+            
+            executeConversion();
         }
 
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMsg').innerText = msg;
-            toast.classList.remove('opacity-0', 'translate-y-4');
-            toast.classList.add('opacity-100', 'translate-y-0');
-            setTimeout(() => {
-                toast.classList.remove('opacity-100', 'translate-y-0');
-                toast.classList.add('opacity-0', 'translate-y-4');
-            }, 5000);
+        function executeConversion() {
+            canvas.width = originalImageObj.width;
+            canvas.height = originalImageObj.height;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // ARCHITECT: Dynamic Matting
+            if (currentTargetFormat === 'image/jpeg') {
+                ctx.fillStyle = mattingColor.value; // Use user's selected hex color
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            
+            ctx.drawImage(originalImageObj, 0, 0, canvas.width, canvas.height);
+
+            // Hardcoded to 1.0 (Maximum possible retention) for true 1:1 format conversion
+            canvas.toBlob((blob) => {
+                convertedBlob = blob;
+                elSizeNew.innerText = formatBytes(blob.size);
+                elSizeNew.classList.replace('text-slate-400', 'text-emerald-400');
+                
+                // Update live visual preview so they can see the matting color change
+                const url = URL.createObjectURL(blob);
+                previewImage.onload = () => URL.revokeObjectURL(url);
+                previewImage.src = url;
+
+            }, currentTargetFormat, 1.0);
         }
 
-        function resetConverter() {
-            originalFile = null;
-            document.getElementById('fileInput').value = '';
-            document.getElementById('converterArea').classList.add('hidden');
-            document.getElementById('dropZone').classList.remove('hidden');
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024, i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + ['Bytes', 'KB', 'MB'][i];
+        }
+
+        function downloadImage() {
+            if (!convertedBlob) return;
+            
+            const origName = originalFile.name;
+            const dotIndex = origName.lastIndexOf('.');
+            const name = origName.substring(0, dotIndex);
+            const ext = currentTargetFormat.split('/')[1]; 
+            
+            const newFilename = `${name}_converted.${ext}`;
+
+            const url = URL.createObjectURL(convertedBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = newFilename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function resetApp() {
+            stageWorkspace.classList.add('hidden');
+            stageUpload.classList.remove('hidden');
+            fileInput.value = '';
+            originalImageObj = new Image();
+            convertedBlob = null;
+            mattingColor.value = "#FFFFFF"; // reset color
         }
     </script>
 </body>
