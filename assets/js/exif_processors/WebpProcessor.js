@@ -7,9 +7,8 @@ export class WebpProcessor {
     }
 
     async parse() {
-        // Fallback to exifr for reading, but we handle the scrubbing manually
         const buffer = await this.file.arrayBuffer();
-        return await exifr.parse(buffer, {tiff: true, exif: true, gps: true});
+        return await window.exifr.parse(buffer, {tiff: true, exif: true, gps: true, xmp: true});
     }
 
     async getPreviewUrl() {
@@ -17,37 +16,39 @@ export class WebpProcessor {
     }
 
     async scrub() {
-        // RUTHLESS BINARY SCRUBBING FOR WEBP
         const buffer = await this.file.arrayBuffer();
         const view = new DataView(buffer);
         const uint8 = new Uint8Array(buffer);
         
-        // Ensure it's a RIFF file and a WEBP
         if (view.getUint32(0, false) !== 0x52494646 || view.getUint32(8, false) !== 0x57454250) {
             throw new Error("Invalid WebP format");
         }
 
-        let offset = 12; // Start after 'RIFF', size, and 'WEBP'
-        let chunksToKeep = [];
-        
-        // Read "RIFF" header into the keep array
-        chunksToKeep.push(uint8.slice(0, 12));
+        let offset = 12; 
+        let chunksToKeep = [uint8.slice(0, 12)];
 
         while (offset < buffer.byteLength) {
+            if (offset + 8 > buffer.byteLength) break;
+
             const chunkId = view.getUint32(offset, false);
-            const chunkSize = view.getUint32(offset + 4, true); // WebP chunk sizes are little-endian
-            const paddedSize = chunkSize + (chunkSize % 2); // Padding byte if odd
+            const chunkSize = view.getUint32(offset + 4, true); 
+            const paddedSize = chunkSize + (chunkSize % 2); 
             
             // 0x45584946 is 'EXIF', 0x584D5020 is 'XMP '
             if (chunkId === 0x45584946 || chunkId === 0x584D5020) {
                 console.log(`[WebpProcessor] Dropped metadata chunk: ${chunkId.toString(16)}`);
             } else {
-                chunksToKeep.push(uint8.slice(offset, offset + 8 + paddedSize));
+                let chunkData = uint8.slice(offset, offset + 8 + paddedSize);
+                
+                // CRITICAL FIX: If this is the VP8X header, we MUST mathematically flip the EXIF and XMP flags to 0.
+                if (chunkId === 0x56503858) { // 'VP8X'
+                    chunkData[8] &= ~0x0C; // Clears Bit 3 (EXIF) and Bit 2 (XMP) safely
+                }
+                chunksToKeep.push(chunkData);
             }
             offset += 8 + paddedSize;
         }
 
-        // Reconstruct file
         const totalLength = chunksToKeep.reduce((acc, chunk) => acc + chunk.length, 0);
         const cleanBuffer = new Uint8Array(totalLength);
         let writeOffset = 0;
@@ -56,7 +57,6 @@ export class WebpProcessor {
             writeOffset += chunk.length;
         }
 
-        // Update main RIFF file size header (totalLength - 8 bytes for RIFF header itself)
         const cleanView = new DataView(cleanBuffer.buffer);
         cleanView.setUint32(4, totalLength - 8, true);
 
