@@ -10,9 +10,10 @@ export class ProcessorFactory {
         switch(extension) {
             case 'WEBP':
                 return new WebpProcessor(file);
-            /* Uncomment as you build them
+            
             case 'PNG':
                 return new PngProcessor(file);
+                /* Uncomment as you build them
             case 'DNG':
             case 'CR2':
             case 'NEF':
