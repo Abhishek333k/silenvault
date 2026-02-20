@@ -1,7 +1,7 @@
 import { WebpProcessor } from './WebpProcessor.js';
-// Import others as you create them:
-// import { JpegProcessor } from './JpegProcessor.js';
-// import { RawProcessor } from './RawProcessor.js';
+import { JpegProcessor } from './JpegProcessor.js';
+import { PngProcessor } from './PngProcessor.js';
+import { RawProcessor } from './RawProcessor.js';
 
 export class ProcessorFactory {
     static create(file, ext) {
@@ -10,20 +10,20 @@ export class ProcessorFactory {
         switch(extension) {
             case 'WEBP':
                 return new WebpProcessor(file);
-            
             case 'PNG':
                 return new PngProcessor(file);
-                /* Uncomment as you build them
             case 'DNG':
             case 'CR2':
             case 'NEF':
+            case 'ARW':
                 return new RawProcessor(file);
-            */
+            case 'JPG':
+            case 'JPEG':
+            case 'JFIF':
+                return new JpegProcessor(file);
             default:
-                // Fallback to a basic CanvasProcessor until you build JpegProcessor
-                console.warn(`No dedicated processor for ${extension}. Using generic.`);
-                // Return generic processor here
-                return null; 
+                console.warn(`No dedicated processor for ${extension}. Falling back to JPEG Splicer.`);
+                return new JpegProcessor(file); 
         }
     }
 }
