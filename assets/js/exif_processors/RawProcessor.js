@@ -2,7 +2,7 @@ export class RawProcessor {
     constructor(file, ext) {
         this.file = file;
         this.ext = ext || '.cr2';
-        this.engineName = 'WASM Exiv2 / Native TIFF Wiper';
+        this.engineName = 'WASM Exiv2 Engine / Native Wiper';
         this.engineClass = 'text-rose-400 font-mono';
         this.buttonText = 'Execute Deep Purge';
         this.exifCache = {};
@@ -36,32 +36,42 @@ export class RawProcessor {
         }
     }
 
-    // Attempts to load the ESM module you uploaded. Doesn't crash if it fails.
     async initializeWasmEngine() {
-        if (window.exiv2Api) return; 
+        return new Promise((resolve, reject) => {
+            if (window.exiv2ModuleLoaded) return resolve();
 
-        console.log("[RawProcessor] Attempting to import WASM Module...");
-        try {
-            const module = await import('../../wasm/exiv2.esm.js');
-            const exiv2Factory = module.default || module;
+            const script = document.createElement('script');
+            script.src = '../assets/wasm/exiv2.js'; 
             
-            window.exiv2Api = await exiv2Factory({
-                locateFile: (path) => {
-                    if (path.endsWith('.wasm')) return '../assets/wasm/exiv2.esm.wasm';
-                    return path;
+            script.onload = async () => {
+                try {
+                    if (typeof window.exiv2 === 'function') {
+                        window.exiv2Api = await window.exiv2({
+                            locateFile: (path) => {
+                                if (path.endsWith('.wasm')) return '../assets/wasm/exiv2.wasm';
+                                return path;
+                            }
+                        });
+                        window.exiv2ModuleLoaded = true;
+                        resolve();
+                    } else {
+                        reject(new Error("exiv2 factory function not found."));
+                    }
+                } catch (e) {
+                    reject(new Error("WASM Initialization crashed: " + e.message));
                 }
-            });
-            console.log("[RawProcessor] WASM Engine Initialized successfully.");
-        } catch (err) {
-            console.warn("[RawProcessor] WASM skipped or failed. Relying on Native TIFF Wiper.", err);
-        }
+            };
+            
+            script.onerror = () => reject(new Error("Failed to load /assets/wasm/exiv2.js. File missing."));
+            document.head.appendChild(script);
+        });
     }
 
     async scrub() {
         const arrayBuffer = await this.file.arrayBuffer();
         
-        // 1. ATTEMPT WASM EXIV2 PURGE
-        if (window.exiv2Api) {
+        // ATTEMPT 1: Try the C++ Exiv2 Engine
+        if (window.exiv2ModuleLoaded && window.exiv2Api) {
             try {
                 console.log("[RawProcessor] Attempting WASM C++ Exiv2 Purge...");
                 const img = new window.exiv2Api.Image(new Uint8Array(arrayBuffer));
@@ -72,12 +82,12 @@ export class RawProcessor {
                 img.delete();
                 return new Blob([cleanedData], { type: this.file.type || '' });
             } catch (e) {
-                // Exiv2 actively rejects modifying CR2 files to prevent corruption. 
-                console.warn("[RawProcessor] WASM Exiv2 rejected the format. Engaging Native TIFF Wiper fallback.");
+                // Exiv2 throws an error when modifying read-only formats like CR2.
+                console.warn("[RawProcessor] Exiv2 rejected the format. Engaging Native Deep TIFF Wiper fallback.");
             }
         }
 
-        // 2. THE TRUE NATIVE TIFF WIPER (Executes when Exiv2 fails on CR2)
+        // ATTEMPT 2: The Native Deep TIFF Wiper
         console.log("[RawProcessor] Executing Native Deep TIFF Wiper...");
         const wipedBuffer = this.runNativeTiffWiper(arrayBuffer);
         return new Blob([wipedBuffer], { type: this.file.type || '' });
@@ -86,9 +96,10 @@ export class RawProcessor {
     runNativeTiffWiper(arrayBuffer) {
         let dataView = new DataView(arrayBuffer);
         let uint8Array = new Uint8Array(arrayBuffer);
-        let isLittle = dataView.getUint16(0) === 0x4949; // Check Endianness ('II' vs 'MM')
+        let isLittle = dataView.getUint16(0) === 0x4949; 
+        const searchLimit = Math.min(uint8Array.length, 5000000); 
 
-        // CRITICAL STRUCTURAL TAGS: We must leave these intact so the RAW sensor data remains readable.
+        // CRITICAL STRUCTURAL TAGS: These must NOT be deleted, or the sensor data corrupts.
         const structuralTags = [
             0x00FE, 0x0100, 0x0101, 0x0102, 0x0103, 0x0106, 0x0111, 0x0112, 0x0115, 0x0116, 0x0117,
             0x011A, 0x011B, 0x011C, 0x0128, 0x014A, 0x0214, 0x0133, 0x0142, 0x0143, 0x0144,
@@ -97,7 +108,7 @@ export class RawProcessor {
             0xC62F, 0xC630, 0xC632, 0xC633, 0xC634, 0xC635, 0xC65A, 0xC65B, 0xC68D, 0xC68E
         ];
 
-        // Recursive function to walk the Image File Directories (IFDs)
+        // 1. Recursive IFD Pointer Orphaning
         const wipeIfd = (offset) => {
             if (offset === 0 || offset >= dataView.byteLength - 2) return;
             const numEntries = dataView.getUint16(offset, isLittle);
@@ -107,39 +118,49 @@ export class RawProcessor {
                 if (currentOffset + 12 > dataView.byteLength) break;
                 const tagId = dataView.getUint16(currentOffset, isLittle);
 
-                // If we find ExifOffset (0x8769), GPSOffset (0x8825), or XMP (0x02BC)
-                if (tagId === 0x8769 || tagId === 0x8825 || tagId === 0x02BC) {
+                if (tagId === 0x8769 || tagId === 0x8825 || tagId === 0x02BC) { 
+                    // ExifOffset, GPSOffset, XMP - Destroy sub-directories
                     const subOffset = dataView.getUint32(currentOffset + 8, isLittle);
                     if(subOffset > 0 && subOffset < dataView.byteLength) wipeIfd(subOffset);
-                    
-                    // Nuke the pointer
                     for (let j = 0; j < 12; j++) uint8Array[currentOffset + j] = 0;
-                } 
-                // If it's a metadata tag (Make, Model, Software) and NOT a structural tag
-                else if (!structuralTags.includes(tagId)) {
-                    // Nuke the entry
+                } else if (!structuralTags.includes(tagId)) {
+                    // Destroy privacy tag
                     for (let j = 0; j < 12; j++) uint8Array[currentOffset + j] = 0;
                 }
                 currentOffset += 12;
             }
-
-            // Move to the next IFD block
             if (currentOffset + 4 <= dataView.byteLength) {
                 const nextIfd = dataView.getUint32(currentOffset, isLittle);
                 if (nextIfd > 0 && nextIfd < dataView.byteLength) wipeIfd(nextIfd);
             }
         };
 
-        // 1. Execute IFD Tree wipe starting from the first offset
-        let firstIfdOffset = dataView.getUint32(4, isLittle);
-        wipeIfd(firstIfdOffset);
+        try {
+            let firstIfdOffset = dataView.getUint32(4, isLittle);
+            wipeIfd(firstIfdOffset);
+        } catch(e) { console.error("IFD wipe failed", e); }
 
-        // 2. Global XML XMP Annihilation (Fixes the 25 Adobe tags that survived)
         const encoder = new TextEncoder();
+
+        // 2. Overwrite cached text strings (MakerNotes, Serial Numbers)
+        for (const val of Object.values(this.exifCache)) {
+            if (typeof val === 'string' && val.length > 3) {
+                const bytes = encoder.encode(val);
+                for (let i = 0; i < searchLimit - bytes.length; i++) {
+                    let match = true;
+                    for (let j = 0; j < bytes.length; j++) {
+                        if (uint8Array[i + j] !== bytes[j]) { match = false; break; }
+                    }
+                    if (match) {
+                        for (let j = 0; j < bytes.length; j++) uint8Array[i + j] = 0x20;
+                    }
+                }
+            }
+        }
+
+        // 3. Absolute XMP XML Annihilation
         const xmpStart = encoder.encode('<?xpacket begin');
         const xmpEnd = encoder.encode('<?xpacket end');
-        
-        let searchLimit = Math.min(uint8Array.length, 5000000); // Usually embedded in first 5MB
         
         for (let i = 0; i < searchLimit - xmpStart.length; i++) {
             let match = true;
@@ -153,11 +174,10 @@ export class RawProcessor {
                     for (let j = 0; j < xmpEnd.length; j++) {
                         if (uint8Array[k + j] !== xmpEnd[j]) { endMatch = false; break; }
                     }
-                    if (endMatch) { endIdx = k + 50; break; } // +50 to clear closing bracket
+                    if (endMatch) { endIdx = k + 50; break; } // +50 clears the closing bracket
                 }
                 if (endIdx !== -1) {
-                    // Overwrite the entire Adobe XML payload with empty spaces
-                    for (let n = i; n < endIdx; n++) uint8Array[n] = 0x20; 
+                    for (let n = i; n < endIdx; n++) uint8Array[n] = 0x20; // Overwrite entire packet with spaces
                 }
             }
         }
