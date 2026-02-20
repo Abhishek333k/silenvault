@@ -2,6 +2,7 @@ import { WebpProcessor } from './WebpProcessor.js';
 import { JpegProcessor } from './JpegProcessor.js';
 import { PngProcessor } from './PngProcessor.js';
 import { RawProcessor } from './RawProcessor.js';
+import { CanvasProcessor } from './CanvasProcessor.js';
 
 export class ProcessorFactory {
     static create(file, ext) {
@@ -22,8 +23,8 @@ export class ProcessorFactory {
             case 'JFIF':
                 return new JpegProcessor(file);
             default:
-                console.warn(`No dedicated processor for ${extension}. Falling back to JPEG Splicer.`);
-                return new JpegProcessor(file); 
+                console.warn(`No dedicated binary processor for ${extension}. Using safe Canvas fallback.`);
+                return new CanvasProcessor(file, ext, 'image/jpeg'); 
         }
     }
 }
