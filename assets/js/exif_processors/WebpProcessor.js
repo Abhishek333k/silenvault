@@ -34,15 +34,13 @@ export class WebpProcessor {
             const chunkSize = view.getUint32(offset + 4, true); 
             const paddedSize = chunkSize + (chunkSize % 2); 
             
-            // 0x45584946 is 'EXIF', 0x584D5020 is 'XMP '
-            if (chunkId === 0x45584946 || chunkId === 0x584D5020) {
-                console.log(`[WebpProcessor] Dropped metadata chunk: ${chunkId.toString(16)}`);
-            } else {
+            // Drop EXIF and XMP chunks
+            if (chunkId !== 0x45584946 && chunkId !== 0x584D5020) {
                 let chunkData = uint8.slice(offset, offset + 8 + paddedSize);
                 
-                // CRITICAL FIX: If this is the VP8X header, we MUST mathematically flip the EXIF and XMP flags to 0.
-                if (chunkId === 0x56503858) { // 'VP8X'
-                    chunkData[8] &= ~0x0C; // Clears Bit 3 (EXIF) and Bit 2 (XMP) safely
+                // If VP8X header, mathematically zero out the EXIF/XMP presence bits
+                if (chunkId === 0x56503858) { 
+                    chunkData[8] &= ~0x0C; 
                 }
                 chunksToKeep.push(chunkData);
             }
