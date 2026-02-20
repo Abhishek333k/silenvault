@@ -27,6 +27,7 @@ export class PngProcessor {
 
         let offset = 8;
         let chunksToKeep = [uint8.slice(0, 8)];
+        const threatChunks = ['eXIf', 'tEXt', 'zTXt', 'iTXt'];
 
         while (offset < buffer.byteLength) {
             if (offset + 8 > buffer.byteLength) break;
@@ -37,12 +38,7 @@ export class PngProcessor {
             );
             const totalChunkLength = 4 + 4 + dataLength + 4; 
 
-            // Targets: eXIf (raw exif), tEXt (text), zTXt (compressed text), iTXt (international text/xmp)
-            const threatChunks = ['eXIf', 'tEXt', 'zTXt', 'iTXt'];
-
-            if (threatChunks.includes(chunkType)) {
-                console.log(`[PngProcessor] Discarded metadata chunk: ${chunkType}`);
-            } else {
+            if (!threatChunks.includes(chunkType)) {
                 chunksToKeep.push(uint8.slice(offset, offset + totalChunkLength));
             }
 
