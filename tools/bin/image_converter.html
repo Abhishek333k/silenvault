@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <title>High-Speed Image Converter | HEIC, WebP, PNG to JPG | SilenVault</title>
-    <meta name="description" content="Secure, local-first image converter. Convert HEIC, WebP, and PNG to high-quality JPEG or PNG instantly. Features dynamic matting for transparency. No uploads, 100% private.">
-    <meta name="keywords" content="image converter, convert heic to jpg, webp to png, local image tool, bulk image converter, transparent jpeg converter">
-    <meta name="author" content="SilenVault">
+    <meta name="description" content="Local image converter. Convert HEIC, WebP, and PNG to JPEG or PNG instantly. Features dynamic matting for transparency. No uploads required.">
     <link rel="canonical" href="https://silenvault.com/tools/image_converter.html">
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
@@ -15,7 +13,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="../assets/js/layout.js" defer></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 
     <style>
@@ -25,11 +22,10 @@
             --border-color: #334155;
             --accent-glow: rgba(59, 130, 246, 0.25);
             --primary-text: #f8fafc;
-            --secondary-text: #cbd5e1;
         }
 
         body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--primary-text); overflow-x: hidden; }
-        .glass-panel { background: var(--panel-bg); backdrop-filter: blur(16px); border: 1px solid var(--border-color); transition: all 0.5s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .glass-panel { background: var(--panel-bg); backdrop-filter: blur(16px); border: 1px solid var(--border-color); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         .mono { font-family: 'Fira Code', monospace; }
 
         .drop-zone { border: 2px dashed var(--border-color); border-radius: 1.5rem; background: rgba(0,0,0,0.2); min-height: 350px; transition: all 0.3s ease; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
@@ -40,15 +36,25 @@
         .format-card:hover { border-color: #3b82f6; background: rgba(59, 130, 246, 0.05); transform: translateY(-2px); }
         .format-card.active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
 
-        .preview-img { max-width: 100%; max-height: 500px; border-radius: 12px; object-fit: contain; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: opacity 0.5s ease; }
+        .preview-img { max-width: 100%; max-height: 500px; border-radius: 12px; object-fit: contain; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: opacity 0.3s ease; }
         
         input[type="color"] { -webkit-appearance: none; border: none; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; padding: 0; background: transparent; }
         input[type="color"]::-webkit-color-swatch { border: 2px solid #334155; border-radius: 8px; }
+
+        /* Professional UI Banner */
+        #ui-alert { position: fixed; top: 0; left: 50%; transform: translateX(-50%) translateY(-100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 9999; }
+        #ui-alert.show { transform: translateX(-50%) translateY(1rem); }
     </style>
 </head>
 <body class="flex flex-col min-h-screen relative">
 
     <sv-header base-path=".."></sv-header>
+
+    <div id="ui-alert" class="glass-panel border-rose-500/50 bg-rose-950/90 p-4 rounded-xl flex items-center gap-3 shadow-2xl max-w-md w-[90%]">
+        <svg class="w-6 h-6 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        <span id="ui-alert-text" class="text-rose-100 text-sm font-medium flex-1">An error occurred.</span>
+        <button onclick="hideAlert()" class="text-rose-400 hover:text-white shrink-0"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
 
     <main class="flex-1 max-w-[1400px] mx-auto w-full px-4 py-8 flex flex-col gap-6">
         
@@ -57,18 +63,18 @@
                 <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
                     Image <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">Converter</span>
                 </h1>
-                <p class="text-base text-slate-300 mt-2 font-medium">Professional-grade, local-first conversion for HEIC, WebP, and standard image assets.</p>
+                <p class="text-base text-slate-300 mt-2 font-medium">Local conversion for HEIC, WebP, and standard image assets.</p>
             </div>
         </div>
 
         <div id="upload-stage" class="glass-panel p-2 rounded-[2rem]">
-            <div id="drop-zone" class="drop-zone">
+            <div id="drop-zone" class="drop-zone" tabindex="0">
                 <div class="bg-blue-500/20 p-6 rounded-full mb-4 pointer-events-none">
                     <svg class="w-12 h-12 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                 </div>
-                <h3 class="text-xl font-bold text-white mb-2 pointer-events-none">Select Image</h3>
-                <p class="text-sm text-slate-400 pointer-events-none mb-6">Supports JPEG, PNG, WebP, HEIC, HEIF</p>
-                <button class="bg-blue-600 px-8 py-3 rounded-xl font-bold text-white shadow-lg pointer-events-none">Browse Files</button>
+                <h3 class="text-xl font-bold text-white mb-2 pointer-events-none">Select File to Convert</h3>
+                <p class="text-sm text-slate-400 pointer-events-none mb-6">Supports JPEG, PNG, WebP, HEIC</p>
+                <button class="bg-blue-600 px-8 py-3 rounded-xl font-bold text-white shadow-lg pointer-events-none">Browse Local Files</button>
                 <input type="file" id="file-input" accept="image/*, .heic, .heif, .webp">
             </div>
         </div>
@@ -90,15 +96,15 @@
 
                     <h2 class="text-sm font-bold text-white uppercase tracking-widest mb-4">Select Target Format</h2>
                     <div class="grid grid-cols-3 gap-3 mb-6">
-                        <div id="btn-webp" class="format-card active" onclick="setFormat('image/webp')">
+                        <div id="btn-webp" class="format-card active" onclick="setFormat('image/webp')" role="button" tabindex="0">
                             <span class="text-lg font-black text-blue-400">WebP</span>
                             <span class="text-[10px] text-slate-500 font-bold uppercase">Optimized</span>
                         </div>
-                        <div id="btn-jpeg" class="format-card" onclick="setFormat('image/jpeg')">
+                        <div id="btn-jpeg" class="format-card" onclick="setFormat('image/jpeg')" role="button" tabindex="0">
                             <span class="text-lg font-black text-white">JPEG</span>
                             <span class="text-[10px] text-slate-500 font-bold uppercase">Universal</span>
                         </div>
-                        <div id="btn-png" class="format-card" onclick="setFormat('image/png')">
+                        <div id="btn-png" class="format-card" onclick="setFormat('image/png')" role="button" tabindex="0">
                             <span class="text-lg font-black text-white">PNG</span>
                             <span class="text-[10px] text-slate-500 font-bold uppercase">Lossless</span>
                         </div>
@@ -108,15 +114,9 @@
                         <div id="option-matting" class="hidden bg-[#0b1120] border border-slate-800 rounded-xl p-5">
                             <label class="text-xs font-bold text-slate-400 block mb-2">Transparency Matting Color</label>
                             <div class="flex items-center gap-3">
-                                <input type="color" id="matting-color" value="#FFFFFF" oninput="executeConversion()">
-                                <span class="text-[10px] text-slate-500 leading-tight">JPEGs don't support transparency. Pick a color to fill transparent areas.</span>
+                                <input type="color" id="matting-color" value="#FFFFFF" oninput="executeConversion()" title="Select background color">
+                                <span class="text-[10px] text-slate-500 leading-tight">JPEGs do not support transparency. Select a color to fill transparent areas.</span>
                             </div>
-                        </div>
-                        <div id="option-png-info" class="hidden">
-                            <span class="flex items-center gap-2 text-xs font-bold text-emerald-500 bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                Converting to PNG is lossless. File size will increase.
-                            </span>
                         </div>
                     </div>
 
@@ -126,12 +126,12 @@
                     </div>
 
                     <div class="flex flex-col gap-3">
-                        <button onclick="downloadImage()" id="btn-download" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-6 py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(59,130,246,0.4)] flex items-center justify-center gap-2">
+                        <button onclick="downloadImage()" id="btn-download" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-6 py-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                            Download Converted Image
+                            Download Converted File
                         </button>
                         <button onclick="resetApp()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-bold px-6 py-3 rounded-xl transition-all border border-slate-700 flex items-center justify-center gap-2">
-                            Convert Another
+                            Convert Another File
                         </button>
                     </div>
                 </div>
@@ -139,11 +139,11 @@
 
             <div class="lg:col-span-7 glass-panel p-6 rounded-3xl border-slate-700 flex flex-col items-center justify-center min-h-[500px] relative bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAACVJREFUKFNjZCASMDKgAnv37v3PBEWQQRTFMAkMmAwwKTIBAJ2cAxVqFpY7AAAAAElFTkSuQmCC')]">
                 <div class="absolute top-4 left-4 bg-slate-900/80 backdrop-blur text-white text-[10px] font-mono px-3 py-1 rounded-lg border border-slate-700 z-10">
-                    Real-time Preview
+                    Live Preview
                 </div>
                 <div id="conversion-loader" class="hidden flex flex-col items-center gap-4 z-20 absolute inset-0 justify-center bg-slate-900/40 backdrop-blur-sm rounded-3xl">
-                    <div class="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
-                    <p class="text-xs font-bold text-slate-300 animate-pulse uppercase tracking-widest">Optimizing Matrix...</p>
+                    <div class="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
+                    <p id="loader-text" class="text-xs font-bold text-white tracking-widest uppercase">Rendering Format...</p>
                 </div>
                 <img id="preview-image" class="preview-img hidden" alt="Image Preview">
             </div>
@@ -152,70 +152,43 @@
         <canvas id="convert-canvas" class="hidden"></canvas>
 
         <article class="mt-20 flex flex-col gap-12 border-t border-slate-800 pt-16">
-            
             <section class="glass-panel p-8 md:p-10 rounded-2xl shadow-xl">
                 <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-8">How to Convert Images</h2>
                 <div class="grid md:grid-cols-4 gap-6">
                     <div class="flex flex-col gap-3">
-                        <span class="flex items-center justify-center w-10 h-10 rounded-full bg-slate-800 text-blue-400 font-bold font-mono text-lg border border-slate-700 shadow-inner">1</span>
-                        <p class="text-sm text-slate-300 leading-relaxed"><strong>Drag or Select:</strong> Add your image or iPhone HEIC files to the converter.</p>
+                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 text-blue-400 font-bold font-mono text-sm border border-slate-700 shadow-inner">1</span>
+                        <p class="text-sm text-slate-300 leading-relaxed"><strong>Upload File:</strong> Select your image or iPhone HEIC file.</p>
                     </div>
                     <div class="flex flex-col gap-3">
-                        <span class="flex items-center justify-center w-10 h-10 rounded-full bg-slate-800 text-blue-400 font-bold font-mono text-lg border border-slate-700 shadow-inner">2</span>
-                        <p class="text-sm text-slate-300 leading-relaxed"><strong>Configure Output:</strong> Select WebP, JPEG, or PNG and adjust the matting color for transparency.</p>
+                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 text-blue-400 font-bold font-mono text-sm border border-slate-700 shadow-inner">2</span>
+                        <p class="text-sm text-slate-300 leading-relaxed"><strong>Select Output:</strong> Choose WebP, JPEG, or PNG formats.</p>
                     </div>
                     <div class="flex flex-col gap-3">
-                        <span class="flex items-center justify-center w-10 h-10 rounded-full bg-slate-800 text-blue-400 font-bold font-mono text-lg border border-slate-700 shadow-inner">3</span>
-                        <p class="text-sm text-slate-300 leading-relaxed"><strong>Instant Render:</strong> The system repaints the pixel matrix locally in your browser's RAM without uploading.</p>
+                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 text-blue-400 font-bold font-mono text-sm border border-slate-700 shadow-inner">3</span>
+                        <p class="text-sm text-slate-300 leading-relaxed"><strong>Process:</strong> The system securely repaints the image in your browser.</p>
                     </div>
                     <div class="flex flex-col gap-3">
-                        <span class="flex items-center justify-center w-10 h-10 rounded-full bg-slate-800 text-blue-400 font-bold font-mono text-lg border border-slate-700 shadow-inner">4</span>
-                        <p class="text-sm text-slate-300 leading-relaxed"><strong>Download:</strong> Save your converted, privacy-scrubbed file instantly to your device.</p>
-                    </div>
-                </div>
-            </section>
-
-            <section class="grid lg:grid-cols-2 gap-8">
-                <div class="prose prose-invert prose-slate max-w-none glass-panel p-8 rounded-2xl shadow-lg">
-                    <h3 class="text-xl font-bold text-white mb-4">Architecture & Privacy</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed mb-4">This system utilizes a <strong>Zero-Trust Canvas Workflow</strong>. Your files are never transmitted to a remote server. Instead, the system relies on native browser logic:</p>
-                    <ul class="space-y-4 list-none pl-0 mt-6 text-sm">
-                        <li class="bg-slate-800/50 p-4 rounded-lg border border-slate-700 text-slate-300">
-                            <strong class="text-blue-400 block mb-1">Canvas API Rendering:</strong> The browser repaints the pixel matrix directly into the new format buffer.
-                        </li>
-                        <li class="bg-slate-800/50 p-4 rounded-lg border border-slate-700 text-slate-300">
-                            <strong class="text-rose-400 block mb-1">Privacy By Design:</strong> Because the file is visually redrawn onto a canvas, 100% of the original EXIF and GPS metadata is naturally stripped from the output file.
-                        </li>
-                    </ul>
-                </div>
-                <div class="glass-panel p-8 rounded-2xl shadow-lg bg-slate-900/60 flex flex-col justify-center">
-                    <h3 class="text-xl font-bold text-white mb-6">Frequently Asked Questions</h3>
-                    <div class="space-y-5 text-sm">
-                        <div>
-                            <strong class="text-blue-400 block mb-1">Why did my file size change?</strong>
-                            <p class="text-slate-400">Converting formats forces the image to use a different compression algorithm. A PNG is uncompressed, WebP uses VP8 efficiency, and JPEG uses block-compression. The byte size will naturally shift.</p>
-                        </div>
-                        <div>
-                            <strong class="text-blue-400 block mb-1">Does this support iPhone HEIC photos?</strong>
-                            <p class="text-slate-400">Yes! The tool automatically intercepts High Efficiency Image Coding (HEIC) files and processes them into universally viewable JPEGs locally.</p>
-                        </div>
+                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 text-blue-400 font-bold font-mono text-sm border border-slate-700 shadow-inner">4</span>
+                        <p class="text-sm text-slate-300 leading-relaxed"><strong>Save:</strong> Download the converted asset directly to your device.</p>
                     </div>
                 </div>
             </section>
         </article>
     </main>
 
-    <div id="compressor-toaster" class="fixed bottom-6 right-6 translate-y-[150%] transition-transform duration-700 ease-out glass-panel p-5 rounded-2xl border-indigo-500/50 shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex items-center gap-5 z-50 max-w-sm">
-        <div class="bg-indigo-500/20 p-3 rounded-full shrink-0">
-            <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+    <div id="compressor-toaster" class="fixed bottom-4 md:bottom-8 left-4 right-4 md:left-auto md:right-8 translate-y-[150%] transition-transform duration-500 ease-out glass-panel p-4 md:p-5 rounded-2xl border-indigo-500/50 shadow-2xl flex items-center gap-4 z-50 md:max-w-md">
+        <div class="bg-indigo-500/20 p-3 rounded-full shrink-0 hidden md:block">
+            <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
         </div>
-        <div class="flex-1">
-            <h4 class="text-white font-bold text-sm">File Size Notification</h4>
-            <p class="text-xs text-slate-300 mt-1">Due to algorithm shifts, this file is quite large. You can easily shrink it without losing visual quality.</p>
+        <div class="flex-1 min-w-0">
+            <h4 class="text-white font-bold text-sm">Optimize File Size</h4>
+            <p id="toaster-dynamic-text" class="text-xs text-slate-300 mt-1 truncate md:whitespace-normal">Output is large. Compress it without losing quality.</p>
         </div>
-        <div class="flex flex-col gap-2 shrink-0">
-            <a href="https://www.silenvault.com/tools/image_compressor.html" target="_blank" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-colors text-center shadow-lg">Compress It</a>
-            <button onclick="document.getElementById('compressor-toaster').classList.add('translate-y-[150%]'); document.getElementById('compressor-toaster').classList.remove('translate-y-0');" class="text-[10px] text-slate-500 hover:text-white uppercase font-bold tracking-wider text-center w-full">Dismiss</button>
+        <div class="flex items-center gap-2 shrink-0">
+            <a href="image_compressor.html" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-colors whitespace-nowrap">Compress</a>
+            <button onclick="hideToaster()" class="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors" aria-label="Dismiss">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
         </div>
     </div>
 
@@ -236,18 +209,36 @@
         const ctx = canvas.getContext('2d');
         const previewImage = document.getElementById('preview-image');
         const loader = document.getElementById('conversion-loader');
+        const loaderText = document.getElementById('loader-text');
         
         const origTypeBadge = document.getElementById('orig-type-badge');
         const elSizeOrig = document.getElementById('size-original');
         const elSizeNew = document.getElementById('size-new');
         const mattingColor = document.getElementById('matting-color');
 
-        // Drag & Drop Listeners
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, (ev) => { ev.preventDefault(); ev.stopPropagation(); }));
+        // UI Helpers
+        function showAlert(msg) {
+            document.getElementById('ui-alert-text').innerText = msg;
+            document.getElementById('ui-alert').classList.add('show');
+            setTimeout(hideAlert, 5000);
+        }
+        function hideAlert() { document.getElementById('ui-alert').classList.remove('show'); }
+        function hideToaster() { document.getElementById('compressor-toaster').classList.replace('translate-y-0', 'translate-y-[150%]'); }
+
+        // Keyboard Access
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') { hideAlert(); hideToaster(); }
+        });
+        dropZone.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') fileInput.click();
+        });
+
+        // Drag & Drop
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }));
         dropZone.addEventListener('dragover', () => dropZone.classList.add('dragover'));
         dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-        dropZone.addEventListener('drop', (e) => { dropZone.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
-        fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+        dropZone.addEventListener('drop', e => { dropZone.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
+        fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
 
         async function handleFile(file) {
             if (!file) return;
@@ -257,41 +248,33 @@
             stageWorkspace.classList.remove('hidden');
             previewImage.classList.add('hidden');
             loader.classList.remove('hidden');
+            loaderText.innerText = "Reading file data...";
 
             const ext = file.name.split('.').pop().toUpperCase();
             origTypeBadge.innerText = ext;
             elSizeOrig.innerText = formatBytes(file.size);
 
             try {
-                // If it's a HEIC from an iPhone, convert it to a Blob via heic2any first
                 if (ext === 'HEIC' || ext === 'HEIF') {
                     const blob = await heic2any({ blob: file, toType: "image/jpeg" });
-                    const url = URL.createObjectURL(blob);
-                    loadImage(url);
+                    loadImage(URL.createObjectURL(blob));
                 } else {
-                    // Standard Image Flow
-                    const url = URL.createObjectURL(file);
-                    loadImage(url);
+                    loadImage(URL.createObjectURL(file));
                 }
             } catch (e) {
-                console.error(e);
-                alert("Could not load file. Please try a standard image format like WebP, PNG, or JPEG.");
+                showAlert("Unsupported file format or corrupted image.");
                 resetApp();
             }
         }
 
         function loadImage(url) {
-            originalImageObj.onload = () => {
-                // Auto trigger conversion to default WebP
-                setFormat('image/webp');
-            };
+            originalImageObj.onload = () => { setFormat('image/webp'); };
             originalImageObj.src = url;
         }
 
         window.setFormat = (mimeType) => {
             currentTargetMime = mimeType;
             
-            // UI Toggle
             ['webp', 'jpeg', 'png'].forEach(f => {
                 const btn = document.getElementById(`btn-${f}`);
                 if (mimeType.includes(f)) {
@@ -304,34 +287,26 @@
             });
 
             document.getElementById('option-matting').classList.toggle('hidden', mimeType !== 'image/jpeg');
-            document.getElementById('option-png-info').classList.toggle('hidden', mimeType !== 'image/png');
-
             executeConversion();
         };
 
         window.executeConversion = () => {
             if (!originalImageObj.src) return;
 
-            // Debounce existing timeouts
             clearTimeout(conversionTimeout);
+            hideToaster();
 
-            // Set UI to loading/ad-viewability state
             loader.classList.remove('hidden');
-            previewImage.classList.add('opacity-30');
-            elSizeNew.innerText = "Processing Matrix...";
+            loaderText.innerText = "Applying format compression...";
+            previewImage.classList.add('opacity-40');
+            elSizeNew.innerText = "Calculating...";
             elSizeNew.classList.replace('text-emerald-400', 'text-slate-400');
 
-            // Hide toaster if it was active
-            document.getElementById('compressor-toaster').classList.add('translate-y-[150%]');
-            document.getElementById('compressor-toaster').classList.remove('translate-y-0');
-
-            // Apply artificial delay to boost AdSense RPM (2.5 seconds)
             conversionTimeout = setTimeout(() => {
                 canvas.width = originalImageObj.width;
                 canvas.height = originalImageObj.height;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
-                // Dynamic Matting (Replaces transparency with a solid color for JPEG)
                 if (currentTargetMime === 'image/jpeg') {
                     ctx.fillStyle = mattingColor.value;
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -349,18 +324,16 @@
                     previewImage.src = url;
                     
                     loader.classList.add('hidden');
-                    previewImage.classList.remove('opacity-30');
-                    previewImage.classList.remove('hidden');
+                    previewImage.classList.remove('opacity-40', 'hidden');
 
-                    // Intelligent Cross-Sell Toaster (Persistent): If the file is 90% the size of the original or larger
+                    // Intelligent Cross-Sell Trigger
                     if (originalFile && blob.size > (originalFile.size * 0.90)) {
-                        const toaster = document.getElementById('compressor-toaster');
-                        toaster.classList.remove('translate-y-[150%]');
-                        toaster.classList.add('translate-y-0');
+                        document.getElementById('toaster-dynamic-text').innerText = `Output size is ${formatBytes(blob.size)}. Compress it further securely.`;
+                        document.getElementById('compressor-toaster').classList.replace('translate-y-[150%]', 'translate-y-0');
                     }
 
                 }, currentTargetMime, 0.95);
-            }, 2500); 
+            }, 2000); 
         };
 
         window.downloadImage = () => {
@@ -382,10 +355,7 @@
             previewImage.classList.add('hidden');
             loader.classList.add('hidden');
             mattingColor.value = "#FFFFFF";
-            
-            // Hide toaster on reset
-            document.getElementById('compressor-toaster').classList.add('translate-y-[150%]');
-            document.getElementById('compressor-toaster').classList.remove('translate-y-0');
+            hideToaster();
         };
 
         function formatBytes(bytes) {
