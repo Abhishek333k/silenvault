@@ -19,6 +19,15 @@ function injectAnalytics() {
 }
 injectAnalytics();
 
+// Mount Global Components CSS securely
+(function loadGlobalCSS() {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = `${window.location.origin}/assets/css/components.css`;
+    document.head.appendChild(link);
+})();
+
 class SVHeader extends HTMLElement {
     connectedCallback() {
         const basePath = this.getAttribute('base-path') || '.';
