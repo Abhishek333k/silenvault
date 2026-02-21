@@ -3,106 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Image Compressor | SilenVault</title>
-    <meta name="description" content="Free, local-first image compressor. Reduce JPEG, PNG, and WebP file sizes locally. No server uploads.">
+    
+    <title>Smart Image Compressor | Shrink JPEG, PNG & WebP | SilenVault</title>
+    <meta name="description" content="Local-first image compressor. Reduce the file size of JPEG, PNG, WebP, and HEIC images by up to 90% without visible quality loss. 100% private processing.">
+    <meta name="keywords" content="image compressor, reduce image size, shrink photo, compress jpeg, compress png, local image compressor, heic compressor, bulk image shrinker">
+    <meta name="author" content="SilenVault">
+    <link rel="canonical" href="https://silenvault.com/tools/image_compressor.html">
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="../assets/js/layout.js" defer></script>
-
+    
+    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/upng-js@2.1.0/UPNG.min.js"></script>
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f8fafc; overflow-x: hidden; }
-        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        :root {
+            --bg-color: #0f172a; 
+            --panel-bg: rgba(30, 41, 59, 0.85); 
+            --border-color: #334155;
+            --accent-glow: rgba(16, 185, 129, 0.25);
+            --primary-text: #f8fafc;
+        }
+
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--primary-text); overflow-x: hidden; }
+        .glass-panel { background: var(--panel-bg); backdrop-filter: blur(16px); border: 1px solid var(--border-color); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         .mono { font-family: 'Fira Code', monospace; }
 
-        .drop-zone {
-            border: 2px dashed #334155; border-radius: 1.5rem; background: rgba(15, 23, 42, 0.4);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 350px; transition: all 0.3s ease; cursor: pointer; position: relative; overflow: hidden;
-        }
-        .drop-zone:hover, .drop-zone.dragover {
-            border-color: #6366f1; background: rgba(99, 102, 241, 0.1); box-shadow: inset 0 0 30px rgba(99, 102, 241, 0.2);
-        }
+        .drop-zone { border: 2px dashed var(--border-color); border-radius: 1.5rem; background: rgba(0,0,0,0.2); min-height: 350px; transition: all 0.3s ease; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        .drop-zone:hover, .drop-zone.dragover { border-color: #10b981; background: var(--accent-glow); }
         .drop-zone input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
 
-        input[type=range].custom-slider { -webkit-appearance: none; width: 100%; background: transparent; }
-        input[type=range].custom-slider::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%;
-            background: #6366f1; cursor: pointer; margin-top: -8px;
-            box-shadow: 0 0 15px rgba(99, 102, 241, 0.6); transition: transform 0.1s;
-        }
-        input[type=range].custom-slider::-webkit-slider-thumb:active { transform: scale(1.1); }
-        input[type=range].custom-slider::-webkit-slider-runnable-track {
-            width: 100%; height: 8px; cursor: pointer; background: #1e293b;
-            border-radius: 4px; border: 1px solid #334155;
-        }
+        /* Custom Target Scale Slider */
+        input[type="range"].custom-slider { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type="range"].custom-slider::-webkit-slider-thumb { -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%; background: #10b981; cursor: pointer; margin-top: -8px; box-shadow: 0 0 15px rgba(16, 185, 129, 0.6); transition: transform 0.1s; }
+        input[type="range"].custom-slider::-webkit-slider-thumb:active { transform: scale(1.1); }
+        input[type="range"].custom-slider::-webkit-slider-runnable-track { width: 100%; height: 8px; cursor: pointer; background: #1e293b; border-radius: 4px; border: 1px solid #334155; }
 
-        .stat-box { background: #0b1120; border: 1px solid #1e293b; border-radius: 12px; padding: 16px; text-align: center; }
+        /* Professional App Window Frame & Viewport */
+        .preview-frame { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(16px); border: 1px solid var(--border-color); border-radius: 1.5rem; padding: 0.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        .preview-header { display: flex; align-items: center; padding: 0.75rem 1rem; border-bottom: 1px solid rgba(51, 65, 85, 0.5); margin-bottom: 0.5rem; }
+        .window-dots { display: flex; gap: 6px; margin-right: 1rem; }
+        .window-dot { width: 12px; height: 12px; border-radius: 50%; opacity: 0.8; }
+        .dot-red { background: #f43f5e; border: 1px solid #e11d48; }
+        .dot-yel { background: #f59e0b; border: 1px solid #d97706; }
+        .dot-grn { background: #10b981; border: 1px solid #059669; }
 
-        .comparison-container {
-            position: relative; width: 100%; height: 500px; overflow: hidden; border-radius: 12px;
-            background-color: #0b1120;
-            background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAACVJREFUKFNjZCASMDKgAnv37v3PBEWQQRTFMAkMmAwwKTIBAJ2cAxVqFpY7AAAAAElFTkSuQmCC');
-            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-            user-select: none;
-        }
-        .comparison-img {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            object-fit: contain; pointer-events: none;
-        }
-        .comparison-slider {
-            position: absolute; top: 0; bottom: 0; left: 50%; width: 2px;
-            background: #6366f1; cursor: ew-resize; z-index: 20; transform: translateX(-50%);
-            display: flex; align-items: center; justify-content: center;
-        }
-        .comparison-slider::before {
-            content: '< >'; display: flex; align-items: center; justify-content: center;
-            width: 36px; height: 36px; background: #6366f1; color: white;
-            font-weight: bold; border-radius: 50%; font-size: 14px; letter-spacing: -2px;
-            box-shadow: 0 0 15px rgba(99, 102, 241, 0.8);
+        /* Precision Comparison Container */
+        .comparison-container { 
+            position: relative; width: 100%; height: 500px; overflow: hidden; border-radius: 1rem; 
+            background-color: #020617; 
+            box-shadow: inset 0 2px 25px rgba(0,0,0,0.8); 
+            user-select: none; border: 1px solid #1e293b; 
         }
         
-        .label-before { position: absolute; bottom: 16px; left: 16px; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); color: white; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; text-transform: uppercase; z-index: 10; border: 1px solid rgba(255,255,255,0.1); }
-        .label-after { position: absolute; bottom: 16px; right: 16px; background: rgba(99,102,241,0.8); backdrop-filter: blur(4px); color: white; padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; text-transform: uppercase; z-index: 10; border: 1px solid rgba(255,255,255,0.2); }
+        /* Sleek Technical Dot Matrix Background */
+        .dot-matrix-bg { position: absolute; inset: 0; background-image: radial-gradient(#334155 1px, transparent 1px); background-size: 16px 16px; opacity: 0.3; z-index: 0; pointer-events: none; }
+        
+        .comparison-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; z-index: 10; filter: drop-shadow(0 10px 25px rgba(0,0,0,0.5)); }
+        
+        .comparison-slider { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; background: #10b981; cursor: ew-resize; z-index: 30; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
+        .comparison-slider::before { content: '< >'; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: #10b981; color: #022c22; font-weight: 900; border-radius: 50%; font-size: 14px; letter-spacing: -2px; box-shadow: 0 0 15px rgba(16, 185, 129, 0.8); transition: transform 0.2s; border: 2px solid #fff; }
+        .comparison-slider:active::before { transform: scale(1.1); }
+        
+        .label-before { position: absolute; top: 16px; left: 16px; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); color: #cbd5e1; padding: 6px 14px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; z-index: 20; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .label-after { position: absolute; top: 16px; right: 16px; background: rgba(16, 185, 129, 0.95); backdrop-filter: blur(8px); color: #022c22; padding: 6px 14px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; z-index: 20; border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 4px 15px rgba(16,185,129,0.3); }
 
-        #processing-overlay {
-            position: absolute; inset: 0; background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(8px);
-            z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.3s ease; opacity: 0; pointer-events: none;
-        }
+        #processing-overlay { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.2s ease; opacity: 0; pointer-events: none; border-radius: 1rem; }
         #processing-overlay.active { opacity: 1; pointer-events: all; }
-        .loader-ring { width: 50px; height: 50px; border: 4px solid rgba(99, 102, 241, 0.2); border-top-color: #6366f1; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* UI Alert Banner */
+        #ui-alert { position: fixed; top: 0; left: 50%; transform: translateX(-50%) translateY(-100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 9999; }
+        #ui-alert.show { transform: translateX(-50%) translateY(1rem); }
+
+        /* Persistent 100% Toaster */
+        #original-toaster { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(150%); transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 9000; }
+        #original-toaster.show { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
-<body class="flex flex-col min-h-screen">
+<body class="flex flex-col min-h-screen relative">
 
     <sv-header base-path=".."></sv-header>
+
+    <div id="ui-alert" class="glass-panel border-rose-500/50 bg-rose-950/90 p-4 rounded-xl flex items-center gap-3 shadow-2xl max-w-md w-[90%]">
+        <svg class="w-6 h-6 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        <span id="ui-alert-text" class="text-rose-100 text-sm font-medium flex-1">An error occurred.</span>
+        <button onclick="hideAlert()" class="text-rose-400 hover:text-white shrink-0"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+
+    <div id="original-toaster" class="glass-panel p-4 rounded-xl border-blue-500/50 shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex items-center gap-4 bg-slate-900 w-[90%] max-w-sm">
+        <div class="bg-blue-500/20 p-2 rounded-full text-blue-400">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <div>
+            <h4 class="text-white font-bold text-sm">Original File Locked</h4>
+            <p class="text-xs text-slate-400">Scale is at 100%. Processing bypassed to prevent file bloat.</p>
+        </div>
+    </div>
 
     <main class="flex-1 max-w-[1400px] mx-auto w-full px-4 py-8 flex flex-col gap-6">
         
         <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-2">
             <div>
-                <h1 class="text-3xl md:text-4xl font-bold text-white tracking-tight">
-                    Smart Image <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-500">Compressor</span>
+                <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
+                    Image <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-500">Compressor</span>
                 </h1>
-                <p class="text-sm text-slate-400 mt-1">Reduce image file size instantly in your browser. Features local PNG Quantization.</p>
+                <p class="text-base text-slate-300 mt-2 font-medium">Mathematically target memory sizes without sacrificing visual fidelity.</p>
             </div>
         </div>
 
         <div id="upload-stage" class="glass-panel p-2 rounded-[2rem]">
-            <div id="drop-zone" class="drop-zone">
-                <div class="bg-indigo-500/20 p-4 rounded-full mb-4 pointer-events-none">
-                    <svg class="w-10 h-10 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            <div id="drop-zone" class="drop-zone" tabindex="0">
+                <div class="bg-emerald-500/20 p-5 rounded-full mb-4 pointer-events-none">
+                    <svg class="w-10 h-10 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
                 </div>
-                <h3 class="text-xl font-bold text-white mb-2 pointer-events-none">Drag & Drop Image Here</h3>
-                <p class="text-sm text-slate-400 pointer-events-none">Supports JPEG, PNG, and WebP</p>
-                <input type="file" id="file-input" accept="image/jpeg, image/png, image/webp, image/jpg">
+                <h3 class="text-xl font-bold text-white mb-2 pointer-events-none">Select File to Compress</h3>
+                <p class="text-sm text-slate-400 pointer-events-none mb-6">Supports JPEG, PNG, WebP, HEIC</p>
+                
+                <div class="flex items-center gap-3">
+                    <button class="bg-emerald-600 hover:bg-emerald-500 transition-colors px-8 py-3 rounded-xl font-bold text-white shadow-lg pointer-events-none">Browse Local Files</button>
+                    <button onclick="pasteFromClipboard()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-4 py-3 rounded-xl transition-colors text-slate-300 hover:text-white flex items-center gap-2 z-20" title="Paste Image from Clipboard">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    </button>
+                </div>
+                <input type="file" id="file-input" accept="image/jpeg, image/png, image/webp, image/heic, image/heif">
             </div>
         </div>
 
@@ -111,97 +138,155 @@
             <div class="lg:col-span-4 flex flex-col gap-6">
                 
                 <div class="glass-panel p-6 rounded-3xl border-slate-700">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-sm font-bold text-slate-300 uppercase tracking-widest">Compression Engine</h2>
-                        <span id="file-type-badge" class="bg-indigo-500/20 text-indigo-400 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest border border-indigo-500/30">JPEG</span>
+                    <div class="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+                        <div class="flex flex-col">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Target Format</span>
+                            <span id="orig-type-badge" class="text-lg font-bold text-slate-300">JPG</span>
+                        </div>
+                        <div class="text-right flex flex-col">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Input Size</span>
+                            <span id="size-original" class="text-lg font-bold text-slate-300 mono">0 KB</span>
+                        </div>
                     </div>
 
-                    <div>
+                    <div class="mb-6">
                         <div class="flex justify-between items-center mb-3">
-                            <label class="text-xs font-bold text-slate-400">Target File Size / Quality</label>
-                            <span id="quality-val" class="text-sm font-bold text-indigo-400 mono">80%</span>
+                            <label class="text-xs font-bold text-slate-300 uppercase tracking-widest">Target File Scale</label>
+                            <span id="quality-val" class="bg-slate-900 border border-slate-700 px-3 py-1 rounded text-emerald-400 font-bold mono text-sm">75%</span>
                         </div>
-                        <input type="range" id="quality-slider" class="custom-slider" min="1" max="100" value="80">
-                        <p id="png-note" class="text-[10px] text-emerald-500 mt-3 hidden border border-emerald-500/30 bg-emerald-500/10 p-2 rounded">
-                            UPNG.js Quantization Engine active. Adjusting slider will reduce available color palette to save space.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="stat-box">
-                        <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Original Size</span>
-                        <span id="size-original" class="text-lg font-bold text-slate-300 mono">0 KB</span>
-                    </div>
-                    <div class="stat-box relative overflow-hidden">
-                        <div class="absolute inset-0 bg-emerald-500/10 hidden" id="save-glow"></div>
-                        <span class="block text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-1 relative z-10">Compressed</span>
-                        <span id="size-new" class="text-lg font-bold text-emerald-400 mono relative z-10">0 KB</span>
-                    </div>
-                    <div class="col-span-2 stat-box border-indigo-500/30 bg-indigo-950/20 relative overflow-hidden">
-                        <span class="block text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-1">Memory Saved</span>
-                        <span id="size-saved" class="text-2xl font-black text-white mono">0%</span>
+                        <input type="range" id="quality-slider" class="custom-slider" min="1" max="100" value="75">
+                        <div class="flex justify-between text-[10px] text-slate-500 mt-2 font-mono uppercase tracking-widest">
+                            <span>1% Size</span>
+                            <span>100% Original</span>
+                        </div>
                         
-                        <div id="inflation-warning" class="absolute inset-0 bg-slate-900/95 flex flex-col items-center justify-center rounded-xl border border-slate-700 hidden z-20">
-                            <span class="text-amber-400 font-bold text-sm">Optimization Capped</span>
-                            <span class="text-slate-300 text-[10px] mt-1">Output locked to original file size.</span>
+                        <div id="png-note" class="hidden mt-4 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl flex gap-2 items-start">
+                            <svg class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <p class="text-[10px] text-emerald-400 leading-tight">PNG format detected. Adjusting scale will mathematically reduce the color palette to hit size targets without losing transparency.</p>
                         </div>
                     </div>
-                </div>
 
-                <div class="flex flex-col gap-3">
-                    <button onclick="downloadImage()" id="btn-download" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold px-6 py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(99,102,241,0.4)] flex items-center justify-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                        Download Image
-                    </button>
-                    
-                    <button onclick="resetApp()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-bold px-6 py-3 rounded-xl transition-all border border-slate-700 flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                        Compress Another Image
-                    </button>
+                    <div class="flex flex-col items-center bg-[#0b1120] border border-slate-800 rounded-2xl p-6 mb-6 relative overflow-hidden">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 z-10">Optimized Output</span>
+                        <span id="size-new" class="text-3xl font-black text-emerald-400 mono z-10 transition-colors duration-300">Calculating...</span>
+                        
+                        <div id="savings-badge" class="mt-3 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 px-4 py-1.5 rounded-full text-xs font-bold tracking-wider z-10 hidden">
+                            Saved 0%
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-3">
+                        <button onclick="downloadImage()" id="btn-download" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold px-6 py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            Download Compressed File
+                        </button>
+                        
+                        <button onclick="resetApp()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-bold px-6 py-3 rounded-xl transition-all border border-slate-700 flex items-center justify-center gap-2">
+                            Load New Image
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div class="lg:col-span-8 p-1">
-                <div class="comparison-container" id="comp-container">
-                    <img id="img-original" class="comparison-img" alt="Original Image">
-                    <div class="label-before">Original</div>
-                    
-                    <img id="img-compressed" class="comparison-img" alt="Compressed Image" style="clip-path: inset(0 0 0 50%);">
-                    <div class="label-after">Compressed</div>
+            <div class="lg:col-span-8 relative">
+                
+                <div class="preview-frame">
+                    <div class="preview-header">
+                        <div class="window-dots">
+                            <div class="window-dot dot-red"></div>
+                            <div class="window-dot dot-yel"></div>
+                            <div class="window-dot dot-grn"></div>
+                        </div>
+                        <span class="text-[10px] font-mono font-bold text-slate-500 tracking-widest uppercase">Canvas Viewport</span>
+                    </div>
 
-                    <div class="comparison-slider" id="comp-slider"></div>
+                    <div class="comparison-container" id="comp-container">
+                        <div class="dot-matrix-bg"></div>
+                        
+                        <img id="img-original" class="comparison-img" alt="Original Image">
+                        <div class="label-before">Original</div>
+                        
+                        <img id="img-compressed" class="comparison-img" alt="Compressed Image" style="clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%);">
+                        <div class="label-after">Compressed</div>
 
-                    <div id="processing-overlay">
-                        <div class="loader-ring"></div>
-                        <span class="text-indigo-400 font-bold tracking-widest uppercase text-sm mt-4">Running Compression...</span>
+                        <div class="comparison-slider" id="comp-slider"></div>
+
+                        <div id="processing-overlay">
+                            <div class="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin shadow-[0_0_15px_rgba(16,185,129,0.5)]"></div>
+                            <p class="text-xs font-bold text-emerald-400 tracking-widest uppercase mt-4 animate-pulse">Running Binary Search...</p>
+                        </div>
                     </div>
                 </div>
+
             </div>
 
         </div>
 
         <canvas id="compress-canvas" class="hidden"></canvas>
 
-        <div class="grid lg:grid-cols-3 gap-8 mt-6">
-            <div class="lg:col-span-2 glass-panel p-8 rounded-2xl border-slate-800 prose prose-invert max-w-none">
-                <h2 class="text-xl font-bold text-white mb-4">The Quantization Engine</h2>
-                <ul class="text-sm text-slate-400 leading-relaxed space-y-3 m-0 p-0 list-none">
-                    <li><strong class="text-indigo-400">Zero Server Uploads:</strong> SilenVault utilizes your browser's internal engines to process the image directly in your RAM. It is 100% private.</li>
-                    <li><strong class="text-slate-200">Solving the PNG Problem:</strong> Browsers native engines cannot compress PNG files effectively. SilenVault solves this by injecting the open-source <strong>UPNG.js Quantization Engine</strong>. When you slide the quality bar on a PNG, we mathematically reduce the color palette from 16 million colors down to 256, cutting the file size dramatically while maintaining transparency.</li>
-                    <li><strong class="text-slate-200">The Capped Optimization Limit:</strong> If an image is already highly compressed, processing it again might theoretically increase its size due to encoding overhead. Our engine instantly detects this, safely discarding the bloated data and returning your original file untouched. You will never accidentally inflate a file.</li>
-                </ul>
-            </div>
-
-            <div class="space-y-6">
-                <div id="sidebar-ad-wrapper" class="hidden opacity-0 transition-opacity duration-1000">
-                    <aside class="smart-ad-unit bg-slate-900/50 border border-slate-800 rounded-2xl flex flex-col items-center justify-center p-4 min-h-[250px]">
-                        <span class="text-[10px] uppercase tracking-widest text-slate-600 block mb-2 pointer-events-none">Sponsored</span>
-                        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="7594122081" data-ad-format="auto" data-full-width-responsive="true"></ins>
-                    </aside>
+        <article class="mt-20 flex flex-col gap-12 border-t border-slate-800 pt-16">
+            
+            <section class="glass-panel p-8 md:p-10 rounded-2xl shadow-xl">
+                <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-8">How to Compress Images Locally</h2>
+                <div class="grid md:grid-cols-4 gap-6">
+                    <div class="flex flex-col gap-3">
+                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 text-emerald-400 font-bold font-mono text-sm border border-slate-700 shadow-inner">1</span>
+                        <h3 class="text-white font-bold text-sm">Upload File</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed">Select your target image. Natively supports massive JPEGs, PNGs, WebP files, and iPhone HEIC photos.</p>
+                    </div>
+                    <div class="flex flex-col gap-3">
+                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 text-emerald-400 font-bold font-mono text-sm border border-slate-700 shadow-inner">2</span>
+                        <h3 class="text-white font-bold text-sm">Target File Size</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed">Use the slider to set your target byte scale. Our engine runs an invisible binary search to perfectly match your desired size.</p>
+                    </div>
+                    <div class="flex flex-col gap-3">
+                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 text-emerald-400 font-bold font-mono text-sm border border-slate-700 shadow-inner">3</span>
+                        <h3 class="text-white font-bold text-sm">Local Processing</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed">Our engine uses the HTML5 Canvas API to repaint and optimize the pixel matrix entirely within your browser's RAM.</p>
+                    </div>
+                    <div class="flex flex-col gap-3">
+                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 text-emerald-400 font-bold font-mono text-sm border border-slate-700 shadow-inner">4</span>
+                        <h3 class="text-white font-bold text-sm">Secure Download</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed">Save the minimized file directly to your hard drive. Because the file is visually redrawn, all hidden tracking data is inherently wiped clean.</p>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </section>
+
+            <section class="grid lg:grid-cols-2 gap-8">
+                <div class="prose prose-invert prose-slate max-w-none glass-panel p-8 rounded-2xl shadow-lg">
+                    <h3 class="text-xl font-bold text-white mb-4">Why Compress Images?</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-4">Uncompressed images are the leading cause of slow website load times and rapidly depleted cloud storage. Modern cameras capture an excess of visual data that the human eye cannot perceive.</p>
+                    <ul class="space-y-4 list-none pl-0 mt-6 text-sm">
+                        <li class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                            <strong class="text-emerald-400 block mb-1 text-base">Web Optimization (SEO)</strong>
+                            <span class="text-slate-300">Google and other search engines heavily penalize websites that load slowly. Compressing hero images and thumbnails by 70-80% drastically improves your Core Web Vitals and PageSpeed scores.</span>
+                        </li>
+                        <li class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                            <strong class="text-blue-400 block mb-1 text-base">Zero-Trust Privacy Design</strong>
+                            <span class="text-slate-300">Unlike cloud-based compressors that upload your personal photographs to a remote server, this tool executes strictly in your browser's local memory. The image is loaded into a local DOM element, drawn onto an invisible canvas, compressed, and exported directly back to you.</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="glass-panel p-8 rounded-2xl shadow-lg bg-slate-900/60 flex flex-col">
+                    <h3 class="text-xl font-bold text-white mb-6">Frequently Asked Questions</h3>
+                    <div class="space-y-6 text-sm">
+                        <div>
+                            <strong class="text-emerald-400 block mb-1 text-base">How does the Target Size Slider work?</strong>
+                            <p class="text-slate-400 leading-relaxed">Instead of guessing a blind quality parameter, you dictate the physical size. If you set the slider to 75%, our algorithm invisibly processes the file multiple times to find the perfect encoding math to output a file exactly 75% of the original memory size.</p>
+                        </div>
+                        <div>
+                            <strong class="text-emerald-400 block mb-1 text-base">What happens to PNG files?</strong>
+                            <p class="text-slate-400 leading-relaxed">The PNG format is inherently "lossless". To reduce a PNG's size without destroying its transparency, this tool injects a mathematical Quantization Engine (UPNG) to safely reduce the available color palette, cutting the file size dynamically.</p>
+                        </div>
+                        <div>
+                            <strong class="text-emerald-400 block mb-1 text-base">Are my EXIF tags preserved during compression?</strong>
+                            <p class="text-slate-400 leading-relaxed">No. As a byproduct of the Canvas rendering process, all hidden metadata, including camera models, timestamps, and embedded GPS location coordinates, are systematically abandoned. The output file is forensically clean.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </article>
 
     </main>
 
@@ -212,6 +297,7 @@
         let originalFile = null;
         let originalSize = 0;
         let finalDownloadBlob = null; 
+        let outputExt = 'jpeg';
         let debounceTimer;
 
         const dropZone = document.getElementById('drop-zone');
@@ -223,14 +309,13 @@
         
         const qualitySlider = document.getElementById('quality-slider');
         const qualityVal = document.getElementById('quality-val');
-        const fileTypeBadge = document.getElementById('file-type-badge');
+        const origTypeBadge = document.getElementById('orig-type-badge');
         const pngNote = document.getElementById('png-note');
         
         const elSizeOrig = document.getElementById('size-original');
         const elSizeNew = document.getElementById('size-new');
-        const elSizeSaved = document.getElementById('size-saved');
-        const saveGlow = document.getElementById('save-glow');
-        const inflationWarning = document.getElementById('inflation-warning');
+        const savingsBadge = document.getElementById('savings-badge');
+        const originalToaster = document.getElementById('original-toaster');
         const overlay = document.getElementById('processing-overlay');
 
         const imgOrig = document.getElementById('img-original');
@@ -238,170 +323,240 @@
         const compContainer = document.getElementById('comp-container');
         const compSlider = document.getElementById('comp-slider');
 
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, preventDefaults));
-        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
-        ['dragenter', 'dragover'].forEach(e => dropZone.classList.add('dragover'));
-        ['dragleave', 'drop'].forEach(e => dropZone.classList.remove('dragover'));
-        dropZone.addEventListener('drop', e => handleFile(e.dataTransfer.files[0]));
+        // UI Helpers
+        function showAlert(msg) {
+            document.getElementById('ui-alert-text').innerText = msg;
+            document.getElementById('ui-alert').classList.add('show');
+            setTimeout(() => document.getElementById('ui-alert').classList.remove('show'), 5000);
+        }
+        function hideAlert() { document.getElementById('ui-alert').classList.remove('show'); }
+
+        // Event Listeners
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideAlert(); });
+        dropZone.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') fileInput.click(); });
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); }));
+        dropZone.addEventListener('dragover', () => dropZone.classList.add('dragover'));
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', e => { dropZone.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
         fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
 
-        function handleFile(file) {
-            if (!file || !file.type.match('image.*')) { alert("Please drop a valid image file."); return; }
+        async function pasteFromClipboard() {
+            try {
+                const items = await navigator.clipboard.read();
+                for (let item of items) {
+                    const imageType = item.types.find(type => type.startsWith('image/'));
+                    if (imageType) {
+                        const blob = await item.getType(imageType);
+                        const file = new File([blob], "pasted_image.png", { type: imageType });
+                        handleFile(file);
+                        return;
+                    }
+                }
+                showAlert("No image found in clipboard.");
+            } catch (err) {
+                showAlert("Clipboard access denied. Please click the drop zone to paste.");
+            }
+        }
 
+        async function handleFile(file) {
+            if (!file) return;
             originalFile = file;
             originalSize = file.size;
             
-            const ext = file.type.split('/')[1].toUpperCase();
-            fileTypeBadge.innerText = ext;
-
+            const rawExt = file.name.split('.').pop().toLowerCase() || 'jpeg';
+            outputExt = rawExt === 'jpg' ? 'jpeg' : rawExt;
+            
+            origTypeBadge.innerText = outputExt.toUpperCase();
+            
             if (file.type === 'image/png') {
                 pngNote.classList.remove('hidden');
-                qualitySlider.value = 80;
             } else {
                 pngNote.classList.add('hidden');
-                qualitySlider.value = 80;
             }
-            qualityVal.innerText = `${qualitySlider.value}%`;
+            
+            qualitySlider.value = 75; // Default target scale
+            updateQualityLabel();
 
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const url = event.target.result;
-                imgOrig.src = url; 
-                
-                originalImageObj.onload = function() {
-                    stageUpload.classList.add('hidden');
-                    stageWorkspace.classList.remove('hidden');
-                    triggerProcess();
-                };
-                originalImageObj.src = url;
+            stageUpload.classList.add('hidden');
+            stageWorkspace.classList.remove('hidden');
+            overlay.classList.add('active');
+
+            try {
+                if (outputExt === 'heic' || outputExt === 'heif') {
+                    outputExt = 'jpeg';
+                    origTypeBadge.innerText = 'HEIC';
+                    const blob = await heic2any({ blob: file, toType: "image/jpeg" });
+                    loadImage(URL.createObjectURL(blob));
+                } else {
+                    loadImage(URL.createObjectURL(file));
+                }
+            } catch (e) {
+                showAlert("Unsupported file format or corrupted image.");
+                resetApp();
+            }
+        }
+
+        function loadImage(url) {
+            imgOrig.src = url; 
+            originalImageObj.onload = function() {
+                executeCompression();
             };
-            reader.readAsDataURL(file);
+            originalImageObj.src = url;
         }
 
-        function triggerProcess() {
+        qualitySlider.addEventListener('input', (e) => {
+            updateQualityLabel();
             clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                overlay.classList.add('active');
-                setTimeout(executeCompression, 800); 
-            }, 300); 
+            overlay.classList.add('active');
+            debounceTimer = setTimeout(() => executeCompression(), 600); 
+        });
+
+        function updateQualityLabel() {
+            qualityVal.innerText = `${qualitySlider.value}% Scale`;
         }
 
-        function executeCompression() {
+        async function executeCompression() {
+            if (!originalImageObj.src) return;
+
+            const targetScale = parseInt(qualitySlider.value);
+            
+            // THE 100% BYPASS LOCK
+            if (targetScale === 100) {
+                finalDownloadBlob = originalFile;
+                elSizeOrig.innerText = formatBytes(originalSize);
+                elSizeNew.innerText = formatBytes(originalSize);
+                elSizeNew.className = "text-3xl font-black text-blue-400 mono z-10 transition-colors duration-300";
+                
+                savingsBadge.innerText = "0% Saved (Original)";
+                savingsBadge.classList.remove('hidden', 'text-emerald-300', 'border-emerald-500/30', 'bg-emerald-500/20');
+                savingsBadge.classList.add('text-blue-300', 'border-blue-500/30', 'bg-blue-500/20');
+                
+                originalToaster.classList.add('show');
+                
+                imgComp.src = imgOrig.src; // Visuals match exactly
+                overlay.classList.remove('active');
+                return;
+            } else {
+                originalToaster.classList.remove('show');
+            }
+
+            // Target Byte Mathematics
+            const targetBytes = originalSize * (targetScale / 100);
+
             canvas.width = originalImageObj.width;
             canvas.height = originalImageObj.height;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            if (originalFile.type === 'image/jpeg') {
+            if (originalFile.type === 'image/jpeg' || outputExt === 'jpeg') {
                 ctx.fillStyle = '#FFFFFF';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
             ctx.drawImage(originalImageObj, 0, 0, canvas.width, canvas.height);
 
-            const qualityValNum = parseInt(qualitySlider.value);
-
             if (originalFile.type === 'image/png') {
-                let colors = 0; 
-                if (qualityValNum < 100) {
-                    colors = Math.max(2, Math.floor((qualityValNum / 100) * 256));
-                }
-                
+                // UPNG Logic maps scale to color reduction (Lossless Format)
+                let colors = Math.max(2, Math.floor((targetScale / 100) * 256));
                 const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 try {
                     const buffer = UPNG.encode([imgData.data.buffer], canvas.width, canvas.height, colors);
                     const blob = new Blob([buffer], { type: 'image/png' });
                     finishCompression(blob);
                 } catch(e) {
-                    console.error("UPNG Error", e);
                     finishCompression(originalFile);
                 }
             } else {
-                canvas.toBlob((blob) => {
-                    finishCompression(blob);
-                }, originalFile.type, qualityValNum / 100);
+                // BINARY SEARCH ENGINE: Find exact quality to hit target byte size
+                let minQ = 0.01;
+                let maxQ = 1.0;
+                let bestBlob = null;
+                let bestDiff = Infinity;
+                let iterations = 5;
+
+                for (let i = 0; i < iterations; i++) {
+                    let midQ = (minQ + maxQ) / 2;
+                    let blob = await new Promise(res => canvas.toBlob(res, `image/${outputExt}`, midQ));
+                    let diff = Math.abs(blob.size - targetBytes);
+                    
+                    if (diff < bestDiff) {
+                        bestDiff = diff;
+                        bestBlob = blob;
+                    }
+                    
+                    if (blob.size > targetBytes) {
+                        maxQ = midQ; // File too big, lower maximum quality
+                    } else {
+                        minQ = midQ; // File too small, raise minimum quality
+                    }
+                }
+                
+                finishCompression(bestBlob);
             }
         }
 
-        function finishCompression(compressedBlob) {
-            updateTelemetry(compressedBlob);
+        function finishCompression(newBlob) {
+            elSizeOrig.innerText = formatBytes(originalSize);
+
+            finalDownloadBlob = newBlob; 
+            savingsBadge.classList.remove('hidden', 'text-blue-300', 'border-blue-500/30', 'bg-blue-500/20');
+            savingsBadge.classList.add('text-emerald-300', 'border-emerald-500/30', 'bg-emerald-500/20');
+            
+            elSizeNew.innerText = formatBytes(newBlob.size);
+            elSizeNew.className = "text-3xl font-black text-emerald-400 mono z-10 transition-colors duration-300";
+            
+            const savings = ((originalSize - newBlob.size) / originalSize) * 100;
+            if (savings > 0) {
+                savingsBadge.innerText = `Saved ${savings.toFixed(1)}%`;
+            } else {
+                // If even the most optimized version is larger, lock to original
+                finalDownloadBlob = originalFile;
+                elSizeNew.innerText = formatBytes(originalSize);
+                elSizeNew.className = "text-3xl font-black text-blue-400 mono z-10";
+                savingsBadge.innerText = `0% Saved (Max Optimized)`;
+            }
+
             const url = URL.createObjectURL(finalDownloadBlob); 
-            imgComp.onload = () => URL.revokeObjectURL(url);
+            imgComp.onload = () => {
+                URL.revokeObjectURL(url);
+                overlay.classList.remove('active');
+            };
             imgComp.src = url;
-            overlay.classList.remove('active');
         }
 
         function formatBytes(bytes) {
             if (bytes === 0) return '0 Bytes';
             const k = 1024, i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + ['Bytes', 'KB', 'MB'][i];
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + ['Bytes', 'KB', 'MB', 'GB'][i];
         }
 
-        function updateTelemetry(compressedBlob) {
-            elSizeOrig.innerText = formatBytes(originalSize);
-            const newSize = compressedBlob.size;
-
-            // ARCHITECT FIX: Hard UI Cap
-            if (newSize >= originalSize) {
-                finalDownloadBlob = originalFile; 
-                
-                inflationWarning.classList.remove('hidden');
-                saveGlow.classList.add('hidden');
-                
-                // Lock UI to original file values
-                elSizeNew.innerText = formatBytes(originalSize);
-                elSizeNew.className = "text-lg font-bold text-slate-400 mono relative z-10";
-                
-                elSizeSaved.innerText = "0%";
-                elSizeSaved.className = "text-2xl font-black text-slate-400 mono";
-            } else {
-                finalDownloadBlob = compressedBlob; 
-                
-                inflationWarning.classList.add('hidden');
-                saveGlow.classList.remove('hidden');
-                
-                // Show actual compressed values
-                elSizeNew.innerText = formatBytes(newSize);
-                elSizeNew.className = "text-lg font-bold text-emerald-400 mono relative z-10";
-                
-                const savings = ((originalSize - newSize) / originalSize) * 100;
-                elSizeSaved.innerText = `↓ ${savings.toFixed(1)}%`;
-                elSizeSaved.className = "text-2xl font-black text-emerald-400 mono";
-            }
-        }
-
-        qualitySlider.addEventListener('input', (e) => {
-            qualityVal.innerText = `${e.target.value}%`;
-            triggerProcess();
-        });
-
-        // Comparison Slider
+        // FLAWLESS COMPARISON SLIDER (Polygon Clip-Path)
         let isDraggingSlider = false;
         function moveSlider(clientX) {
             const rect = compContainer.getBoundingClientRect();
             let x = clientX - rect.left;
-            if (x < 0) x = 0;
-            if (x > rect.width) x = rect.width;
+            x = Math.max(0, Math.min(x, rect.width));
             
             const percent = (x / rect.width) * 100;
             compSlider.style.left = `${percent}%`;
-            imgComp.style.clipPath = `inset(0 0 0 ${percent}%)`;
+            // Corrects object-fit masking overlap entirely
+            imgComp.style.clipPath = `polygon(${percent}% 0, 100% 0, 100% 100%, ${percent}% 100%)`;
         }
 
         compSlider.addEventListener('mousedown', () => isDraggingSlider = true);
         window.addEventListener('mouseup', () => isDraggingSlider = false);
         window.addEventListener('mousemove', (e) => { if (isDraggingSlider) moveSlider(e.clientX); });
+        
         compSlider.addEventListener('touchstart', () => isDraggingSlider = true);
         window.addEventListener('touchend', () => isDraggingSlider = false);
         window.addEventListener('touchmove', (e) => { if (isDraggingSlider) moveSlider(e.touches[0].clientX); });
 
-
         function downloadImage() {
             if (!finalDownloadBlob) return;
-            const origName = originalFile.name;
+            const origName = originalFile.name || "pasted_image";
             const dotIndex = origName.lastIndexOf('.');
-            const name = origName.substring(0, dotIndex);
-            const ext = origName.substring(dotIndex);
+            const name = dotIndex !== -1 ? origName.substring(0, dotIndex) : origName;
             
-            const newFilename = finalDownloadBlob === originalFile ? origName : `${name}_min${ext}`;
+            const newFilename = finalDownloadBlob === originalFile ? origName : `${name}_min.${outputExt}`;
 
             const url = URL.createObjectURL(finalDownloadBlob);
             const a = document.createElement('a');
@@ -419,10 +574,10 @@
             fileInput.value = '';
             originalImageObj = new Image();
             finalDownloadBlob = null;
-            inflationWarning.classList.add('hidden');
+            originalToaster.classList.remove('show');
             
             compSlider.style.left = '50%';
-            imgComp.style.clipPath = 'inset(0 0 0 50%)';
+            imgComp.style.clipPath = 'polygon(50% 0, 100% 0, 100% 100%, 50% 100%)';
         }
     </script>
 </body>
