@@ -5,22 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <title>EXIF Remover & Image Metadata Scrubber | SilenVault</title>
-    <meta name="description" content="Free, local-first forensic tool to permanently remove hidden EXIF data, GPS coordinates, and XMP trackers from images. Lossless support for JPEG, PNG, WebP, and RAW formats.">
+    <meta name="description" content="Free, local-first forensic tool to permanently remove hidden EXIF data, GPS coordinates, and XMP trackers from images. Lossless support for JPEG, PNG, WebP, and RAW (CR2, DNG) formats.">
     <meta name="keywords" content="exif remover, metadata scrubber, remove gps from photo, clear cr2 metadata, raw image metadata cleaner, local exif tool, privacy image editor">
+    <meta name="author" content="SilenVault">
+    <link rel="canonical" href="https://silenvault.com/tools/exif_remover.html">
+    
+    <meta property="og:title" content="EXIF Remover & Metadata Scrubber | SilenVault">
+    <meta property="og:description" content="Securely purge hidden tracking data from your images completely offline. Enterprise-grade RAW sensor support via WebAssembly.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://silenvault.com/tools/exif_remover.html">
+    <meta property="og:site_name" content="SilenVault">
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="../assets/js/layout.js" defer></script>
-
+    
     <script src="https://cdn.jsdelivr.net/npm/exifr/dist/full.umd.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.js"></script>
+
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
+        /* BRIGHTER, MORE READABLE BASE THEME */
         :root {
             --bg-color: #0f172a; 
             --panel-bg: rgba(30, 41, 59, 0.85); 
@@ -34,6 +44,7 @@
         .glass-panel { background: var(--panel-bg); backdrop-filter: blur(16px); border: 1px solid var(--border-color); transition: all 0.5s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         .mono { font-family: 'Fira Code', monospace; }
 
+        /* BRIGHTER FORGE THEME (Deep Crimson) */
         body.forge-mode {
             --bg-color: #22050f; 
             --panel-bg: rgba(60, 10, 24, 0.85);
@@ -48,11 +59,13 @@
         .portal-transition { animation: portalFade 0.6s ease-in-out forwards; }
         @keyframes portalFade { 0% { filter: contrast(1); opacity: 1; } 50% { filter: blur(3px); opacity: 0.8; } 100% { filter: blur(0px); opacity: 1; } }
 
+        /* DROP ZONE */
         .drop-zone { border: 2px dashed var(--border-color); border-radius: 1rem; background: rgba(0,0,0,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 350px; transition: all 0.4s ease; cursor: pointer; position: relative; }
         .drop-zone:hover, .drop-zone.dragover { border-color: #60a5fa; background: var(--accent-glow); }
         .forge-mode .drop-zone:hover { border-color: #fb7185; }
         .drop-zone input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
 
+        /* PREVIEWS */
         .preview-box { border: 2px solid var(--border-color); border-radius: 8px; background: rgba(0,0,0,0.4); overflow: hidden; position: relative; height: 250px; display: flex; align-items: center; justify-content: center; }
         .preview-img { max-width: 100%; max-height: 100%; object-fit: contain; opacity: 0.7; transition: opacity 0.5s ease; }
         .preview-img.scanned { opacity: 1; }
@@ -63,6 +76,7 @@
         .scanning .scanner-line { display: block; }
         @keyframes scan { 0% { top: 0%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
 
+        /* TERMINAL LOGS */
         .terminal { background: rgba(2, 6, 23, 0.9); border: 1px solid var(--border-color); border-radius: 8px; font-family: 'Fira Code', monospace; font-size: 13px; height: 300px; display: flex; flex-direction: column; transition: all 0.5s ease; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5); }
         .terminal-header { background: rgba(255,255,255,0.05); border-bottom: 1px solid var(--border-color); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0; }
         .terminal-body { padding: 16px; overflow-y: auto; flex: 1; color: #e2e8f0; scroll-behavior: smooth; }
@@ -80,6 +94,7 @@
         .forge-mode .val-sys { color: #fca5a5; }
         .val-safe { color: #86efac; font-weight: bold; text-shadow: 0 0 10px rgba(16,185,129,0.3);}
 
+        /* MAP & BADGES */
         #location-map-container { transition: max-height 0.8s ease, opacity 0.5s ease; overflow: hidden; max-height: 0; opacity: 0; border-radius: 8px; }
         #location-map-container.active { max-height: 250px; opacity: 1; border: 1px solid rgba(244,63,94,0.4); margin-top: 1rem; }
         #leaflet-map { height: 200px; width: 100%; z-index: 1; }
@@ -91,6 +106,7 @@
         .status-safe { background: rgba(16, 185, 129, 0.15); color: #86efac; border: 1px solid rgba(16, 185, 129, 0.4); }
         .status-scan { background: rgba(59, 130, 246, 0.15); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); }
         
+        /* MODALS */
         #crossroads-modal-wrapper, #comparison-modal-wrapper { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(2, 6, 23, 0.9); backdrop-filter: blur(8px); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         #crossroads-modal-wrapper.active, #comparison-modal-wrapper.active { opacity: 1; pointer-events: auto; }
         .modal-inner { transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -113,7 +129,7 @@
     <main class="flex-1 max-w-[1400px] mx-auto w-full px-4 py-8 flex flex-col gap-8 relative">
         <div class="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
-                <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight" id="main-title">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight transition-all duration-1000" id="main-title">
                     Metadata <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400 transition-all duration-1000" id="title-accent">Scrubber</span>
                 </h1>
                 <p class="text-base text-slate-300 mt-2 font-medium">Scan, verify, and securely purge tracking data from your images locally.</p>
@@ -127,32 +143,38 @@
                 </div>
                 <h3 class="text-2xl font-bold text-white mb-2 pointer-events-none tracking-tight">Select Image to Audit</h3>
                 <div class="flex flex-wrap gap-2 justify-center pointer-events-none mb-8 mt-2">
-                    <span class="px-3 py-1 rounded bg-slate-800 text-[11px] text-white font-bold border border-slate-600">JPEG / PNG / WEBP</span>
-                    <span class="px-3 py-1 rounded bg-slate-800 text-[11px] text-blue-300 font-bold border border-blue-600">HEIC / HEIF</span>
-                    <span class="px-3 py-1 rounded bg-slate-800 text-[11px] text-rose-300 font-bold border border-rose-600">CR2 / DNG / NEF</span>
+                    <span class="px-3 py-1 rounded bg-slate-800 text-[11px] text-white font-bold border border-slate-600 shadow-sm">JPEG / PNG / WEBP</span>
+                    <span class="px-3 py-1 rounded bg-slate-800 text-[11px] text-blue-300 font-bold border border-blue-600 shadow-sm">HEIC / HEIF</span>
+                    <span class="px-3 py-1 rounded bg-slate-800 text-[11px] text-rose-300 font-bold border border-rose-600 shadow-sm">CR2 / DNG / NEF</span>
                 </div>
-                <div class="px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold pointer-events-none border border-blue-500 shadow-lg">Browse Local Files</div>
+                <div class="px-8 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold pointer-events-none border border-blue-500 shadow-lg transition-colors">Browse Local Files</div>
                 <input type="file" id="file-input" accept="image/*, .dng, .cr2, .nef, .arw, .webp, .png, .jpg, .jpeg">
             </div>
         </div>
 
         <div id="crossroads-modal-wrapper">
-            <div class="glass-panel p-8 rounded-2xl max-w-xl w-full border-rose-500/60 relative overflow-hidden shadow-[0_0_50px_rgba(225,29,72,0.15)] mx-4 modal-inner">
+            <div id="crossroads-modal-inner" class="glass-panel p-8 rounded-2xl max-w-xl w-full border-rose-500/60 relative overflow-hidden shadow-[0_0_50px_rgba(225,29,72,0.15)] mx-4 modal-inner">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-500 to-amber-500"></div>
                 <h2 class="text-2xl font-bold text-white mb-2 flex items-center gap-3">
                     <svg class="w-7 h-7 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                     Advanced RAW Format Detected
                 </h2>
-                <p class="text-sm text-slate-300 mb-6 font-medium">You uploaded a DSLR format (<span id="raw-ext-badge" class="font-bold text-rose-300"></span>). Choose your processing path:</p>
-                <div class="space-y-4">
-                    <button id="btn-modal-standard" class="w-full text-left p-5 rounded-xl border border-slate-600 bg-slate-800/80 hover:bg-slate-700 transition-all group">
+                <p class="text-sm text-slate-300 mb-6 leading-relaxed font-medium">
+                    You uploaded a DSLR format (<span id="raw-ext-badge" class="font-bold text-rose-300"></span>). Choose your processing path:
+                </p>
+                <div class="space-y-4 mt-6">
+                    <button id="btn-modal-standard" class="w-full text-left p-5 rounded-xl border border-slate-600 bg-slate-800/80 hover:bg-slate-700 transition-all group shadow-md">
                         <span class="font-bold text-blue-400 block mb-1 text-lg">Standard Conversion (Fast)</span>
-                        <span class="text-sm text-slate-400">Extracts the secret preview and safely exports a highly-compatible JPEG.</span>
+                        <span class="text-sm text-slate-400">Extracts the secret preview and safely exports a clean, highly-compatible JPEG.</span>
                     </button>
-                    <button id="btn-modal-forge" class="w-full text-left p-5 rounded-xl border border-rose-600 bg-rose-900/40 hover:bg-rose-800/60 transition-all group">
-                        <span id="btn-wasm-text" class="font-bold text-rose-300 flex items-center gap-2 mb-1 text-lg">Execute Double-Pass Wiper</span>
-                        <span class="text-sm text-rose-200/80">Chains WebAssembly C++ and Native Algorithms to strictly retain your exact file extension.</span>
+                    
+                    <button id="btn-modal-forge" class="w-full text-left p-5 rounded-xl border border-rose-600 bg-rose-900/40 hover:bg-rose-800/60 transition-all group shadow-[0_0_15px_rgba(225,29,72,0.2)]">
+                        <span id="btn-wasm-text" class="font-bold text-rose-300 flex items-center gap-2 mb-1 text-lg">
+                            Execute Double-Pass Wiper
+                        </span>
+                        <span class="text-sm text-rose-200/80">Uses diagnostic intel to orchestrate a hex-level overwrite, strictly retaining the exact file format.</span>
                     </button>
+                    
                     <button id="btn-modal-cancel" class="w-full text-center p-3 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-800 text-sm font-bold text-slate-300 transition-all">Cancel</button>
                 </div>
             </div>
@@ -224,10 +246,10 @@
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-3 text-xs">
-                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-700"><span class="block text-[10px] text-slate-400 uppercase tracking-widest mb-1 font-bold">Input Size</span><span id="file-size" class="text-white font-mono text-sm">0 KB</span></div>
-                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 text-right"><span class="block text-[10px] text-slate-400 uppercase tracking-widest mb-1 font-bold">Engine</span><span id="badge-engine" class="text-white font-mono text-sm">Determining...</span></div>
+                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 shadow-inner"><span class="block text-[10px] text-slate-400 uppercase tracking-widest mb-1 font-bold">Input Size</span><span id="file-size" class="text-white font-mono text-sm">0 KB</span></div>
+                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 shadow-inner text-right"><span class="block text-[10px] text-slate-400 uppercase tracking-widest mb-1 font-bold">Engine</span><span id="badge-engine" class="text-white font-mono text-sm">Determining...</span></div>
                     </div>
-                    <button id="btn-reset-app" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold px-4 py-4 rounded-xl transition-all border border-slate-600">Abort & Load New Target</button>
+                    <button id="btn-reset-app" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold px-4 py-4 rounded-xl transition-all border border-slate-600 shadow-lg">Abort & Load New Target</button>
                 </div>
             </div>
 
@@ -237,12 +259,14 @@
                         <span class="text-white font-bold text-xs uppercase tracking-widest flex items-center gap-2">
                             <svg class="w-4 h-4 text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg> Forensic Audit Log
                         </span>
+                        
                         <div id="export-options" class="hidden flex items-center gap-2">
                             <span class="text-[10px] text-slate-400 uppercase tracking-widest mr-1 font-bold">Save As:</span>
-                            <button id="btn-export-txt" class="text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded border border-slate-600">TXT</button>
-                            <button id="btn-export-json" class="text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded border border-slate-600">JSON</button>
-                            <button id="btn-export-csv" class="text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded border border-slate-600">CSV</button>
+                            <button id="btn-export-txt" class="text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded border border-slate-600 transition-colors">TXT</button>
+                            <button id="btn-export-json" class="text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded border border-slate-600 transition-colors">JSON</button>
+                            <button id="btn-export-csv" class="text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded border border-slate-600 transition-colors">CSV</button>
                         </div>
+                        
                         <span id="meta-count" class="bg-blue-900/30 text-blue-300 px-3 py-1 rounded-md text-[11px] font-mono font-bold border border-blue-800/50">0 Tags</span>
                     </div>
                     <div class="terminal-body" id="terminal-out"></div>
@@ -264,30 +288,111 @@
                         </span>
                         <span id="action-msg" class="text-sm mt-1 block text-slate-300 font-medium">Analyzing binary structure...</span>
                     </div>
-                    <button id="btn-scrub" disabled class="hidden w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-8 py-4 rounded-xl opacity-50 cursor-not-allowed shadow-lg">
+                    
+                    <button id="btn-scrub" disabled class="hidden w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-8 py-4 rounded-xl transition-all duration-300 opacity-50 cursor-not-allowed shadow-lg">
                         <span id="btn-scrub-text">Remove Metadata</span>
                     </button>
-                    <button id="btn-download" class="hidden w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold px-8 py-4 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)]">Download Secure File</button>
+                    <button id="btn-download" class="hidden w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold px-8 py-4 rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(16,185,129,0.3)]">Download Secure File</button>
                 </div>
             </div>
         </div>
 
         <article class="mt-20 flex flex-col gap-16 border-t border-slate-800 pt-16">
+            
             <section class="prose prose-invert prose-slate max-w-none glass-panel p-8 md:p-12 rounded-2xl shadow-xl">
                 <h2 class="text-white text-3xl font-extrabold mb-6">Understanding EXIF and Image Metadata</h2>
-                <p class="text-lg text-slate-300 leading-relaxed mb-6">Every time you take a picture, the device invisibly attaches a massive payload of text-based information directly into the image file known as <strong>Metadata</strong>. While some metadata is structurally required to render the image, much of it poses a severe privacy risk.</p>
+                <p class="text-lg text-slate-300 leading-relaxed mb-6">Every time you take a picture with a smartphone or digital camera, the device invisibly attaches a massive payload of text-based information directly into the image file. This umbrella of information is known as <strong>Metadata</strong> (data about data). While some metadata is structurally required to render the image on a screen, much of it poses a severe privacy risk.</p>
+                
                 <h3 class="text-slate-200 text-xl font-bold mt-8 mb-4">The Three Layers of Hidden Data</h3>
                 <ul class="space-y-4 list-none pl-0">
-                    <li class="bg-slate-800/50 p-4 rounded-lg border border-slate-700"><strong class="text-blue-400 font-bold block mb-1 text-lg">EXIF Data:</strong> <span class="text-slate-300 text-sm">Created by camera manufacturers. Records the exact make, model, hardware serial number, date taken, and precise GPS coordinates.</span></li>
-                    <li class="bg-slate-800/50 p-4 rounded-lg border border-slate-700"><strong class="text-rose-400 font-bold block mb-1 text-lg">XMP Packets:</strong> <span class="text-slate-300 text-sm">An XML standard by Adobe. Injects edit history, software versions, and custom creator tags.</span></li>
-                    <li class="bg-slate-800/50 p-4 rounded-lg border border-slate-700"><strong class="text-emerald-400 font-bold block mb-1 text-lg">Structural Data:</strong> <span class="text-slate-300 text-sm">Machine data (Width, Height, Color Space). SilenVault whitelists this so files remain visually flawless.</span></li>
+                    <li class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                        <strong class="text-blue-400 font-bold block mb-1 text-lg">EXIF (Exchangeable Image File Format):</strong> 
+                        <span class="text-slate-300 text-sm">The most common tracking payload. Created by camera manufacturers, EXIF data records the exact make and model of your device, the camera's unique hardware serial number, the date and time the photo was taken, and crucially, the precise GPS latitude and longitude coordinates.</span>
+                    </li>
+                    <li class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                        <strong class="text-rose-400 font-bold block mb-1 text-lg">XMP (Extensible Metadata Platform):</strong> 
+                        <span class="text-slate-300 text-sm">An XML-based standard created by Adobe. If you edit a photo in Lightroom or Photoshop, an XMP packet is injected into the file detailing your edit history, software versions, and custom creator tags.</span>
+                    </li>
+                    <li class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                        <strong class="text-emerald-400 font-bold block mb-1 text-lg">Structural Data:</strong> 
+                        <span class="text-slate-300 text-sm">Non-identifying machine data such as Image Width, Height, Bit Depth, and Color Space. SilenVault automatically whitelists structural data to ensure your files remain visually flawless after purging.</span>
+                    </li>
                 </ul>
+
+                <h3 class="text-slate-200 text-2xl font-bold mt-10 mb-4">Why You Must Scrub Your Images</h3>
+                <p class="text-slate-300 leading-relaxed text-base">When you share an un-scrubbed image on forums, personal blogs, or via direct messaging apps, anyone can download that image and extract its EXIF payload in seconds. If the photo was taken at your home, the embedded GPS coordinates reveal your exact physical address to strangers. SilenVault acts as a cryptographic firewall, allowing you to audit the contents of your files, export the reports for your own records, and permanently obliterate the tracking data before you publish.</p>
             </section>
+
+            <section>
+                <div class="mb-10 text-center max-w-2xl mx-auto">
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Standard Operating Procedure</h2>
+                    <p class="text-slate-400 mt-4 text-lg">How to securely audit and annihilate image metadata using SilenVault.</p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="glass-panel p-8 rounded-2xl relative overflow-hidden group shadow-lg">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><span class="text-7xl font-black font-mono text-blue-500">01</span></div>
+                        <h3 class="text-xl font-bold text-white mb-3 relative z-10">Establish Target</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed relative z-10">Upload any standard web image or heavy DSLR RAW file. Processing occurs 100% within your browser's local RAM. No uploads.</p>
+                    </div>
+                    <div class="glass-panel p-8 rounded-2xl relative overflow-hidden group shadow-lg">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><span class="text-7xl font-black font-mono text-amber-500">02</span></div>
+                        <h3 class="text-xl font-bold text-white mb-3 relative z-10">Diagnostic Audit</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed relative z-10">Our engine parses the binary file, mapping hidden structural headers, EXIF data, XMP XML packets, and embedded GPS coordinates.</p>
+                    </div>
+                    <div class="glass-panel p-8 rounded-2xl relative overflow-hidden group shadow-lg">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><span class="text-7xl font-black font-mono text-rose-500">03</span></div>
+                        <h3 class="text-xl font-bold text-white mb-3 relative z-10">Execute Purge</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed relative z-10">Depending on the format, the system deploys HTML5 Canvas re-encoding or a Native Deep TIFF Wiper to annihilate privacy risks.</p>
+                    </div>
+                    <div class="glass-panel p-8 rounded-2xl relative overflow-hidden group shadow-lg">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><span class="text-7xl font-black font-mono text-emerald-500">04</span></div>
+                        <h3 class="text-xl font-bold text-white mb-3 relative z-10">Verification Gate</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed relative z-10">The newly generated file is intercepted and re-scanned. If even a single tracking tag survives, the download is blocked to guarantee safety.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="grid lg:grid-cols-12 gap-12 items-start bg-slate-900/50 p-8 md:p-12 rounded-3xl border border-slate-800">
+                <div class="lg:col-span-5 sticky top-8">
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight mb-4">The Architecture</h2>
+                    <p class="text-slate-300 mb-8 text-lg leading-relaxed">Unlike standard online converters that upload your personal files to a remote server, SilenVault utilizes a <strong>Tree-Branching Architecture</strong> to process files locally.</p>
+                    <div class="p-6 bg-blue-900/20 border border-blue-500/30 rounded-2xl shadow-inner">
+                        <h4 class="text-blue-400 font-bold mb-3 flex items-center gap-2 text-lg">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg> Zero-Trust Promise
+                        </h4>
+                        <p class="text-sm text-blue-200/80 leading-relaxed">Your files are processed strictly in your device's memory. We have no servers, no databases, and absolutely no access to your images or their contents.</p>
+                    </div>
+                </div>
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="glass-panel p-8 rounded-2xl shadow-md border-slate-700 hover:border-blue-500/50 transition-colors">
+                        <div class="flex items-center gap-4 mb-4"><span class="p-2 bg-slate-800 rounded text-white font-mono text-xs font-bold border border-slate-600 shadow-inner">CANVAS API</span><h3 class="text-xl font-bold text-white">Pixel-Matrix Re-encoding</h3></div>
+                        <p class="text-slate-400 leading-relaxed text-sm">Used for standard web formats. The browser unpacks the image into a raw matrix of RGB pixels, paints it onto an invisible HTML5 canvas, and exports a brand new file. Painting only the pixels guarantees that 100% of the tracking data is left behind.</p>
+                    </div>
+                    
+                    <div class="glass-panel p-8 rounded-2xl shadow-md border-rose-900/30 hover:border-rose-500/50 transition-colors bg-rose-950/10">
+                        <div class="flex flex-col gap-2 mb-4">
+                            <div class="flex gap-2">
+                                <span class="p-2 bg-indigo-900/40 rounded text-indigo-300 font-mono text-xs font-bold border border-indigo-500/50 shadow-inner">WASM EXIV2</span>
+                                <span class="p-2 bg-rose-900/40 rounded text-rose-300 font-mono text-xs font-bold border border-rose-500/50 shadow-inner">NATIVE TIFF WIPER</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mt-2">The Double-Pass Wiper</h3>
+                        </div>
+                        <p class="text-slate-400 leading-relaxed text-sm">Deployed for advanced proprietary formats (CR2, DNG). SilenVault dynamically injects a WebAssembly C++ engine to perform a structural sweep. Immediately after, a custom Native Javascript Algorithm mathematically walks the binary tree, validates structural tags necessary for the image to exist, and physically orchestrates a hex-level overwrite on any surviving privacy pointers.</p>
+                    </div>
+                </div>
+            </section>
+            
+            <div class="text-center pb-8 mt-8">
+                <p class="text-xs text-slate-500 border-t border-slate-800 pt-8 max-w-3xl mx-auto leading-relaxed">
+                    <strong>LEGAL DISCLAIMER:</strong> SilenVault provides this tool for personal privacy protection and forensic auditing. The removal of EXIF metadata and XMP packets is an irreversible cryptographic process. Always maintain backups of your original RAW files before initiating a Deep Forge wipe.
+                </p>
+            </div>
         </article>
     </main>
 
     <script type="module">
-        import { ProcessorFactory } from '../assets/js/exif_processors/Dispatcher.js?v=8.0';
+        import { ProcessorFactory } from '../assets/js/exif_processors/Dispatcher.js?v=9.0';
 
         // STATE
         let originalFile = null;
@@ -301,6 +406,7 @@
         // Caches for the Before/After Feature
         let originalMetadataCache = {}; 
         let scrubbedMetadataCache = {};
+        let rawExifCache = {}; // For the Native Wiper (The Missile) to find exact strings
 
         let currentScanId = 0;
         let threatMap = null;
@@ -336,7 +442,6 @@
             document.getElementById('comparison-modal-wrapper').classList.add('active'); 
         });
         document.getElementById('btn-close-comparison').addEventListener('click', () => { document.getElementById('comparison-modal-wrapper').classList.remove('active'); });
-
 
         function formatBytes(bytes) {
             if (!bytes || bytes === 0) return '0 Bytes';
@@ -442,6 +547,8 @@
 
             originalMetadataCache = {};
             scrubbedMetadataCache = {};
+            rawExifCache = {};
+            
             if (threatMap) document.getElementById('location-map-container').classList.remove('active');
             document.getElementById('export-options').classList.add('hidden');
             document.getElementById('toaster-notification').classList.remove('show');
@@ -461,10 +568,10 @@
             document.getElementById('badge-engine').innerText = processorInstance.engineName;
             
             if(isAdvancedMode) {
-                document.getElementById('badge-engine').className = processorInstance.engineClass || 'text-rose-400 font-mono';
+                document.getElementById('badge-engine').className = processorInstance.engineClass || 'text-rose-400 font-mono text-sm';
                 document.getElementById('btn-scrub').className = "hidden w-full md:w-auto bg-rose-700 hover:bg-rose-600 text-white text-sm font-bold px-8 py-4 rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(225,29,72,0.4)] flex items-center justify-center opacity-50 cursor-not-allowed";
             } else {
-                document.getElementById('badge-engine').className = processorInstance.engineClass || 'text-blue-300 font-mono';
+                document.getElementById('badge-engine').className = processorInstance.engineClass || 'text-blue-300 font-mono text-sm';
                 document.getElementById('btn-scrub').className = "hidden w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-8 py-4 rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(59,130,246,0.3)] flex items-center justify-center opacity-50 cursor-not-allowed";
             }
             document.getElementById('btn-scrub-text').innerText = processorInstance.buttonText;
@@ -493,12 +600,12 @@
         async function scanMetadata(thisScanId) {
             try {
                 const buffer = await originalFile.arrayBuffer();
+                // Exifr acts as our SCOUT. It extracts the values, which we pass to the Native Wiper (the missile)
                 const exifData = await window.exifr.parse(buffer, {tiff: true, ifd0: true, exif: true, gps: true, xmp: true, iptc: true});
                 if (thisScanId !== currentScanId) return; 
 
                 if (exifData && Object.keys(exifData).length > 0) {
                     
-                    // Save ALL data to initial cache for the modal
                     for(let key in exifData) {
                         let val = exifData[key];
                         if (val instanceof Date) val = val.toISOString();
@@ -518,7 +625,7 @@
                         if (idx >= usefulKeys.length) {
                             document.getElementById('input-box').classList.remove('scanning');
                             document.getElementById('img-input').classList.add('scanned');
-                            logToTerminal('', `> SCAN COMPLETE. [${usefulKeys.length}] PRIVACY TAGS FOUND.`, 'sys');
+                            logToTerminal('', `> SCAN COMPLETE. [${usefulKeys.length}] PRIVACY RISKS FOUND.`, 'sys');
 
                             if (exifData.latitude && exifData.longitude) {
                                 triggerMap(exifData.latitude, exifData.longitude);
@@ -535,6 +642,7 @@
                             document.getElementById('btn-scrub').classList.remove('opacity-50', 'cursor-not-allowed', 'hidden');
                             document.getElementById('export-options').classList.remove('hidden'); 
                             
+                            // Passing the Scout's intelligence cache to the Processor
                             if (processorInstance.setCache) processorInstance.setCache(originalMetadataCache);
                             return;
                         }
@@ -609,7 +717,7 @@
 
             setTimeout(async () => {
                 try {
-                    const blob = await processorInstance.scrub(sourceImageObj);
+                    const blob = await processorInstance.scrub();
                     outputExt = processorInstance.outputMime ? `.${processorInstance.outputMime.split('/')[1]}` : `.${fileExt.toLowerCase()}`;
                     if (outputExt === '.jpeg') outputExt = '.jpg';
                     verifyAndFinalize(blob);
@@ -627,7 +735,6 @@
                 const checkData = await window.exifr.parse(fileBuffer, {tiff: true, ifd0: true, exif: true, gps: true, xmp: true});
                 
                 if (checkData) {
-                    // Populate scrubbed cache for comparison
                     for(let key in checkData) {
                         let val = checkData[key];
                         if (val instanceof Date) val = val.toISOString();
@@ -675,24 +782,18 @@
             document.getElementById('export-options').classList.add('hidden'); 
             document.getElementById('btn-download').classList.remove('hidden');
 
-            // Trigger the Toaster Notification
             document.getElementById('toaster-notification').classList.add('show');
         }
 
-        // Before/After Comparison Population
         function populateComparison() {
             const listOrig = document.getElementById('list-original');
             const listScrub = document.getElementById('list-scrubbed');
             
-            listOrig.innerHTML = '';
-            listScrub.innerHTML = '';
-
-            let origCount = 0;
-            let scrubCount = 0;
+            listOrig.innerHTML = ''; listScrub.innerHTML = '';
+            let origCount = 0; let scrubCount = 0;
 
             for (const [key, val] of Object.entries(originalMetadataCache)) {
                 let div = document.createElement('div');
-                // If it's a threat that was removed, show it red
                 if (isPrivacyThreat(key, val) && !scrubbedMetadataCache[key]) {
                     div.innerHTML = `<span class="text-rose-400 font-bold">${key}:</span> <span class="text-rose-200/70 truncate block">${val}</span>`;
                 } else {
