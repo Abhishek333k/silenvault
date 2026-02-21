@@ -2,9 +2,9 @@ export class RawProcessor {
     constructor(file, ext) {
         this.file = file;
         this.ext = ext || '.cr2';
-        this.engineName = 'WASM Exiv2 Engine / Native Wiper';
+        this.engineName = 'Double-Pass Wiper (WASM + Native)';
         this.engineClass = 'text-rose-400 font-mono';
-        this.buttonText = 'Execute Deep Purge';
+        this.buttonText = 'Execute Double-Pass Wiper';
         this.exifCache = {};
     }
 
@@ -36,70 +36,73 @@ export class RawProcessor {
         }
     }
 
-    async initializeWasmEngine() {
-        return new Promise((resolve, reject) => {
-            if (window.exiv2ModuleLoaded) return resolve();
-
-            const script = document.createElement('script');
-            script.src = '../assets/wasm/exiv2.js'; 
-            
-            script.onload = async () => {
-                try {
-                    if (typeof window.exiv2 === 'function') {
-                        window.exiv2Api = await window.exiv2({
-                            locateFile: (path) => {
-                                if (path.endsWith('.wasm')) return '../assets/wasm/exiv2.wasm';
-                                return path;
-                            }
-                        });
-                        window.exiv2ModuleLoaded = true;
-                        resolve();
-                    } else {
-                        reject(new Error("exiv2 factory function not found."));
-                    }
-                } catch (e) {
-                    reject(new Error("WASM Initialization crashed: " + e.message));
+    async loadWasm() {
+        if (window.exiv2Api) return; 
+        try {
+            const module = await import('../../wasm/exiv2.esm.js');
+            const exiv2Factory = module.default || module;
+            window.exiv2Api = await exiv2Factory({
+                locateFile: (path) => {
+                    if (path.endsWith('.wasm')) return '../assets/wasm/exiv2.esm.wasm';
+                    return path;
                 }
-            };
-            
-            script.onerror = () => reject(new Error("Failed to load /assets/wasm/exiv2.js. File missing."));
-            document.head.appendChild(script);
-        });
+            });
+        } catch (err) {
+            console.warn("WASM Engine failed to load. Will rely entirely on Native Wiper.");
+        }
     }
 
     async scrub() {
-        const arrayBuffer = await this.file.arrayBuffer();
+        let bufferToProcess = await this.file.arrayBuffer();
         
-        // ATTEMPT 1: Try the C++ Exiv2 Engine
-        if (window.exiv2ModuleLoaded && window.exiv2Api) {
+        // PASS 1: WASM C++ Engine
+        if (window.exiv2Api) {
             try {
-                console.log("[RawProcessor] Attempting WASM C++ Exiv2 Purge...");
-                const img = new window.exiv2Api.Image(new Uint8Array(arrayBuffer));
+                const terminalOut = document.getElementById('terminal-out');
+                if(terminalOut) terminalOut.innerHTML += `<div class="log-line"><span class="val-sys">> INITIATING PASS 1: WASM C++ ENGINE...</span></div>`;
+                
+                const img = new window.exiv2Api.Image(new Uint8Array(bufferToProcess));
                 img.clearExif();
                 img.clearIptc();
                 img.clearXmp();
-                const cleanedData = img.getBytes();
+                bufferToProcess = img.getBytes().buffer; // Update buffer with WASM-cleaned data
                 img.delete();
-                return new Blob([cleanedData], { type: this.file.type || '' });
+                
+                if(terminalOut) {
+                    terminalOut.innerHTML += `<div class="log-line"><span class="log-key">PASS 1</span><span class="val-safe">WASM EXECUTION SUCCESSFUL</span></div>`;
+                    terminalOut.scrollTop = terminalOut.scrollHeight;
+                }
             } catch (e) {
-                // Exiv2 throws an error when modifying read-only formats like CR2.
-                console.warn("[RawProcessor] Exiv2 rejected the format. Engaging Native Deep TIFF Wiper fallback.");
+                const terminalOut = document.getElementById('terminal-out');
+                if(terminalOut) {
+                    terminalOut.innerHTML += `<div class="log-line"><span class="log-key">PASS 1</span><span class="val-med">WASM REJECTED FORMAT. BYPASSING TO NATIVE...</span></div>`;
+                    terminalOut.scrollTop = terminalOut.scrollHeight;
+                }
             }
         }
 
-        // ATTEMPT 2: The Native Deep TIFF Wiper
-        console.log("[RawProcessor] Executing Native Deep TIFF Wiper...");
-        const wipedBuffer = this.runNativeTiffWiper(arrayBuffer);
-        return new Blob([wipedBuffer], { type: this.file.type || '' });
+        // PASS 2: Native Deep TIFF Wiper
+        const terminalOut = document.getElementById('terminal-out');
+        if(terminalOut) {
+            terminalOut.innerHTML += `<div class="log-line"><span class="val-sys">> INITIATING PASS 2: NATIVE DEEP TIFF WIPER...</span></div>`;
+            terminalOut.scrollTop = terminalOut.scrollHeight;
+        }
+        
+        const finalUint8Array = this.runNativeTiffWiper(bufferToProcess);
+        
+        if(terminalOut) {
+            terminalOut.innerHTML += `<div class="log-line"><span class="log-key">PASS 2</span><span class="val-safe">NATIVE ORPHANING COMPLETE</span></div>`;
+            terminalOut.scrollTop = terminalOut.scrollHeight;
+        }
+
+        return new Blob([finalUint8Array], { type: this.file.type || '' });
     }
 
     runNativeTiffWiper(arrayBuffer) {
         let dataView = new DataView(arrayBuffer);
         let uint8Array = new Uint8Array(arrayBuffer);
         let isLittle = dataView.getUint16(0) === 0x4949; 
-        const searchLimit = Math.min(uint8Array.length, 5000000); 
 
-        // CRITICAL STRUCTURAL TAGS: These must NOT be deleted, or the sensor data corrupts.
         const structuralTags = [
             0x00FE, 0x0100, 0x0101, 0x0102, 0x0103, 0x0106, 0x0111, 0x0112, 0x0115, 0x0116, 0x0117,
             0x011A, 0x011B, 0x011C, 0x0128, 0x014A, 0x0214, 0x0133, 0x0142, 0x0143, 0x0144,
@@ -108,7 +111,6 @@ export class RawProcessor {
             0xC62F, 0xC630, 0xC632, 0xC633, 0xC634, 0xC635, 0xC65A, 0xC65B, 0xC68D, 0xC68E
         ];
 
-        // 1. Recursive IFD Pointer Orphaning
         const wipeIfd = (offset) => {
             if (offset === 0 || offset >= dataView.byteLength - 2) return;
             const numEntries = dataView.getUint16(offset, isLittle);
@@ -117,14 +119,20 @@ export class RawProcessor {
             for (let i = 0; i < numEntries; i++) {
                 if (currentOffset + 12 > dataView.byteLength) break;
                 const tagId = dataView.getUint16(currentOffset, isLittle);
+                const type = dataView.getUint16(currentOffset + 2, isLittle);
+                const count = dataView.getUint32(currentOffset + 4, isLittle);
+                const valueOffset = dataView.getUint32(currentOffset + 8, isLittle);
 
-                if (tagId === 0x8769 || tagId === 0x8825 || tagId === 0x02BC) { 
-                    // ExifOffset, GPSOffset, XMP - Destroy sub-directories
-                    const subOffset = dataView.getUint32(currentOffset + 8, isLittle);
-                    if(subOffset > 0 && subOffset < dataView.byteLength) wipeIfd(subOffset);
+                let bytesPerComponent = [0, 1, 1, 2, 4, 8, 1, 1, 2, 4, 8, 4, 8][type] || 1;
+                let totalSize = count * bytesPerComponent;
+
+                if (tagId === 0x8769 || tagId === 0x8825 || tagId === 0x927C || tagId === 0x02BC) { 
+                    if(valueOffset > 0 && valueOffset < dataView.byteLength && type === 4) wipeIfd(valueOffset);
                     for (let j = 0; j < 12; j++) uint8Array[currentOffset + j] = 0;
                 } else if (!structuralTags.includes(tagId)) {
-                    // Destroy privacy tag
+                    if (totalSize > 4 && valueOffset > 0 && valueOffset + totalSize <= dataView.byteLength) {
+                        for (let j = 0; j < totalSize; j++) uint8Array[valueOffset + j] = 0;
+                    }
                     for (let j = 0; j < 12; j++) uint8Array[currentOffset + j] = 0;
                 }
                 currentOffset += 12;
@@ -135,52 +143,25 @@ export class RawProcessor {
             }
         };
 
-        try {
-            let firstIfdOffset = dataView.getUint32(4, isLittle);
-            wipeIfd(firstIfdOffset);
-        } catch(e) { console.error("IFD wipe failed", e); }
+        try { wipeIfd(dataView.getUint32(4, isLittle)); } catch(e) {}
 
         const encoder = new TextEncoder();
+        const targets = ['<?xpacket', 'x:xmpmeta', 'http://ns.adobe.com', 'Exif', 'Canon', 'Nikon', 'Sony'];
+        Object.values(this.exifCache).forEach(val => { if (typeof val === 'string' && val.length > 3) targets.push(val); });
 
-        // 2. Overwrite cached text strings (MakerNotes, Serial Numbers)
-        for (const val of Object.values(this.exifCache)) {
-            if (typeof val === 'string' && val.length > 3) {
-                const bytes = encoder.encode(val);
-                for (let i = 0; i < searchLimit - bytes.length; i++) {
-                    let match = true;
-                    for (let j = 0; j < bytes.length; j++) {
-                        if (uint8Array[i + j] !== bytes[j]) { match = false; break; }
-                    }
-                    if (match) {
-                        for (let j = 0; j < bytes.length; j++) uint8Array[i + j] = 0x20;
+        targets.forEach(str => {
+            const bytes = encoder.encode(str);
+            for (let i = 0; i < uint8Array.length - bytes.length; i++) {
+                let match = true;
+                for (let j = 0; j < bytes.length; j++) if (uint8Array[i + j] !== bytes[j]) { match = false; break; }
+                if (match) {
+                    for (let j = 0; j < Math.min(1000, uint8Array.length - i); j++) {
+                        if (uint8Array[i + j] === 0) break;
+                        uint8Array[i + j] = 0x20; 
                     }
                 }
             }
-        }
-
-        // 3. Absolute XMP XML Annihilation
-        const xmpStart = encoder.encode('<?xpacket begin');
-        const xmpEnd = encoder.encode('<?xpacket end');
-        
-        for (let i = 0; i < searchLimit - xmpStart.length; i++) {
-            let match = true;
-            for (let j = 0; j < xmpStart.length; j++) {
-                if (uint8Array[i + j] !== xmpStart[j]) { match = false; break; }
-            }
-            if (match) {
-                let endIdx = -1;
-                for (let k = i; k < searchLimit - xmpEnd.length; k++) {
-                    let endMatch = true;
-                    for (let j = 0; j < xmpEnd.length; j++) {
-                        if (uint8Array[k + j] !== xmpEnd[j]) { endMatch = false; break; }
-                    }
-                    if (endMatch) { endIdx = k + 50; break; } // +50 clears the closing bracket
-                }
-                if (endIdx !== -1) {
-                    for (let n = i; n < endIdx; n++) uint8Array[n] = 0x20; // Overwrite entire packet with spaces
-                }
-            }
-        }
+        });
 
         return uint8Array;
     }
