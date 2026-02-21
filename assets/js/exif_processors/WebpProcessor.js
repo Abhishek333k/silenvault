@@ -2,8 +2,8 @@ export class WebpProcessor {
     constructor(file, ext) {
         this.file = file;
         this.ext = ext || '.webp';
-        this.engineName = 'ExifReader Scout + Native Splicer';
-        this.engineClass = 'text-blue-400 font-mono text-sm';
+        this.engineName = 'Native Hex Scout & RIFF Splicer';
+        this.engineClass = 'text-blue-400 font-bold font-mono text-sm';
         this.buttonText = 'Execute RIFF Purge';
     }
 
@@ -11,38 +11,20 @@ export class WebpProcessor {
         const buffer = await this.file.arrayBuffer();
         let exifData = {};
 
-        // --- DEBUGGING UX: Alert if the library didn't load due to a typo ---
-        if (!window.ExifReader) {
-            console.error("[WebpProcessor] CRITICAL: window.ExifReader is undefined. Check your HTML script tag for typos.");
-            const terminalOut = document.getElementById('terminal-out');
-            if (terminalOut) {
-                terminalOut.innerHTML += `<div class="log-line"><span class="val-high">SYSTEM WARNING: ExifReader missing from HTML. Using weak fallback.</span></div>`;
-            }
-        }
-
-        // 1. PASS ONE: Global ExifReader (MattiasW's Engine)
+        // 1. Let the standard engine try first
         try {
-            if (window.ExifReader) {
-                // ExifReader parses the ArrayBuffer natively
-                const tags = window.ExifReader.load(buffer);
-                for (const [key, tag] of Object.entries(tags)) {
-                    // Ignore auto-generated structural properties
-                    if (['Image Width', 'Image Height', 'colorSpace'].includes(key)) continue;
-                    let val = tag.description !== undefined ? tag.description : tag.value;
-                    if (Array.isArray(val)) val = val.join(', ');
-                    exifData[key] = val;
-                }
-            }
-        } catch(e) { 
-            console.warn("[WebpProcessor] Global ExifReader parse failed.", e); 
-        }
+            const standardData = await window.exifr.parse(buffer, {tiff: true, exif: true, gps: true, xmp: true});
+            if (standardData) Object.assign(exifData, standardData);
+        } catch(e) {}
 
-        // 2. PASS TWO: The Rogue Chunk Slicer
+        // 2. THE NATIVE HEX SCOUT
+        // This physically walks the WebP binary to hunt for injected chunks that standard parsers miss.
         const view = new DataView(buffer);
         const uint8 = new Uint8Array(buffer);
 
+        // Verify it's a valid WebP RIFF container
         if (view.byteLength > 12 && view.getUint32(0, false) === 0x52494646 && view.getUint32(8, false) === 0x57454250) {
-            let offset = 12; // Skip 'RIFF' + Size + 'WEBP'
+            let offset = 12; // Skip master header
             
             while (offset < buffer.byteLength) {
                 if (offset + 8 > buffer.byteLength) break;
@@ -51,15 +33,15 @@ export class WebpProcessor {
                 const chunkSize = view.getUint32(offset + 4, true); 
                 const paddedSize = chunkSize + (chunkSize % 2); 
 
-                // Target Acquired
+                // If we find an EXIF chunk manually...
                 if (chunkId === 'EXIF' || chunkId === 'exif') {
                     try {
                         const payload = buffer.slice(offset + 8, offset + 8 + chunkSize);
                         const payload8 = new Uint8Array(payload);
 
-                        // Find pure TIFF offset ('II' for Intel, 'MM' for Motorola)
-                        // This strips away the "Exif\x00\x00" garbage padding that chokes parsers
-                        let tiffOffset = 0;
+                        // CRITICAL HACK: Find the exact start of the pure TIFF block ('II' or 'MM').
+                        // This strips away the "Exif\x00\x00" garbage padding that chokes standard readers.
+                        let tiffOffset = -1;
                         for(let i = 0; i < payload8.length - 1; i++) {
                             if ((payload8[i] === 0x49 && payload8[i+1] === 0x49) || (payload8[i] === 0x4D && payload8[i+1] === 0x4D)) {
                                 tiffOffset = i;
@@ -67,39 +49,32 @@ export class WebpProcessor {
                             }
                         }
                         
-                        const cleanPayload = payload.slice(tiffOffset);
+                        if (tiffOffset !== -1) {
+                            // Slice out the pure TIFF block
+                            const cleanPayload = payload.slice(tiffOffset);
 
-                        if (window.ExifReader) {
-                            const smuggledTags = window.ExifReader.load(cleanPayload);
-                            let recovered = 0;
+                            // Force-feed the pure block directly into exifr
+                            const smuggledData = await window.exifr.parse(cleanPayload, {tiff: true, exif: true, gps: true});
                             
-                            for (const [key, tag] of Object.entries(smuggledTags)) {
-                                if (['Image Width', 'Image Height', 'colorSpace'].includes(key)) continue;
-                                if (!exifData[key]) {
-                                    let val = tag.description !== undefined ? tag.description : tag.value;
-                                    if (Array.isArray(val)) val = val.join(', ');
-                                    exifData[key] = val;
-                                    recovered++;
+                            if (smuggledData) {
+                                let recovered = 0;
+                                for (const [key, val] of Object.entries(smuggledData)) {
+                                    if (exifData[key] === undefined) {
+                                        exifData[key] = val;
+                                        recovered++;
+                                    }
                                 }
-                            }
-                            if(recovered > 0) {
-                                exifData['FORENSIC_ALERT'] = `Recovered ${recovered} hidden tags from rogue EXIF chunk.`;
+                                if(recovered > 0) {
+                                    exifData['FORENSIC_ALERT'] = `Recovered ${recovered} hidden tags from smuggled EXIF chunk.`;
+                                }
                             }
                         }
                     } catch(e) { 
-                        console.warn("[WebpProcessor] Rogue chunk force-feed failed.", e); 
+                        console.warn("[WebpProcessor] Native Hex Scout failed to parse slice.", e); 
                     }
                 }
                 offset += 8 + paddedSize;
             }
-        }
-
-        // 3. PASS THREE: Exifr Fallback (if ExifReader fails completely)
-        if (Object.keys(exifData).length === 0) {
-            try {
-                const standardData = await window.exifr.parse(buffer, {tiff: true, exif: true, gps: true, xmp: true});
-                if (standardData) Object.assign(exifData, standardData);
-            } catch(e) {}
         }
 
         return Object.keys(exifData).length > 0 ? exifData : null;
@@ -114,7 +89,7 @@ export class WebpProcessor {
         const terminalOut = document.getElementById('terminal-out');
         
         if(terminalOut) {
-            terminalOut.innerHTML += `<div class="log-line"><span class="val-sys">> INITIATING NATIVE RIFF SPLICER (THE MISSILE)...</span></div>`;
+            terminalOut.innerHTML += `<div class="log-line"><span class="val-sys">> INITIATING NATIVE RIFF SPLICER...</span></div>`;
             terminalOut.scrollTop = terminalOut.scrollHeight;
         }
 
@@ -139,13 +114,11 @@ export class WebpProcessor {
             if (!threatChunks.includes(chunkId)) {
                 let chunkData = uint8.slice(offset, offset + 8 + paddedSize);
                 
-                // CRITICAL FIX: Mathematically flip EXIF and XMP flags to 0 in the master VP8X header.
+                // CRITICAL REPAIR: Mathematically flip EXIF and XMP flags to 0 in the master VP8X header.
                 if (chunkId === 'VP8X') { 
                     chunkData[8] &= ~0x0C; 
                 }
                 chunksToKeep.push(chunkData);
-            } else {
-                console.log(`[WebpProcessor] Target acquired and destroyed: ${chunkId}`);
             }
             offset += 8 + paddedSize;
         }
