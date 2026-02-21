@@ -2,70 +2,78 @@ export class WebpProcessor {
     constructor(file, ext) {
         this.file = file;
         this.ext = ext || '.webp';
-        this.engineName = 'WebP RIFF Splicer';
-        this.engineClass = 'text-blue-400 font-mono text-sm';
-        this.buttonText = 'Execute RIFF Purge';
+        this.engineName = 'WASM Scout + Native Splicer';
+        this.engineClass = 'text-indigo-400 font-mono text-sm';
+        this.buttonText = 'Execute WASM/RIFF Purge';
+    }
+
+    // THE WASM SCOUT: Downloads the 5MB payload secretly during the "Scanning..." phase
+    async loadWasm() {
+        if (window.exiv2Api) return;
+        try {
+            const module = await import('../../wasm/exiv2.esm.js');
+            const exiv2Factory = module.default || module;
+            window.exiv2Api = await exiv2Factory({
+                locateFile: (path) => {
+                    if (path.endsWith('.wasm')) return '../assets/wasm/exiv2.esm.wasm';
+                    return path;
+                }
+            });
+            console.log("[WebpProcessor] WASM Scout successfully deployed behind enemy lines.");
+        } catch (err) {
+            console.warn("WASM Engine failed to load. Will rely on standard JS parsing.");
+        }
     }
 
     async parse() {
         const buffer = await this.file.arrayBuffer();
-        
-        // 1. The Standard Scout (Reads compliant metadata)
-        let exifData = await window.exifr.parse(buffer, {tiff: true, exif: true, gps: true, xmp: true}) || {};
+        let exifData = {};
 
-        // 2. The Forensic Rogue Scout (Hunts down dirty injections)
-        const view = new DataView(buffer);
-        const uint8 = new Uint8Array(buffer);
+        // 1. The Standard JS Scout (Catches normal, compliant metadata instantly)
+        try {
+            const standardData = await window.exifr.parse(buffer, {tiff: true, exif: true, gps: true, xmp: true});
+            if (standardData) Object.assign(exifData, standardData);
+        } catch(e) {}
+
+        // 2. THE WASM SCOUT (Boots C++ to hunt down smuggled/dirty injections)
+        await this.loadWasm();
         
-        // Verify it's a valid WebP RIFF
-        if (view.byteLength > 12 && view.getUint32(0, false) === 0x52494646 && view.getUint32(8, false) === 0x57454250) {
-            let offset = 12; // Skip 'RIFF' + Size + 'WEBP'
-            
-            while (offset < buffer.byteLength) {
-                if (offset + 8 > buffer.byteLength) break;
+        if (window.exiv2Api) {
+            try {
+                const uint8Array = new Uint8Array(buffer);
+                const img = new window.exiv2Api.Image(uint8Array);
                 
-                // Read 4-letter chunk ID
-                const chunkId = String.fromCharCode(uint8[offset], uint8[offset+1], uint8[offset+2], uint8[offset+3]);
-                const chunkSize = view.getUint32(offset + 4, true); 
-                const paddedSize = chunkSize + (chunkSize % 2); 
+                // Exiv2 C++ Extraction
+                const wasmExif = img.exif();
+                let recoveredCount = 0;
                 
-                // If we manually spot an EXIF chunk...
-                if (chunkId === 'EXIF' || chunkId === 'exif') {
-                    try {
-                        const payload = buffer.slice(offset + 8, offset + 8 + chunkSize);
-                        const payload8 = new Uint8Array(payload);
+                if (wasmExif) {
+                    for (let key in wasmExif) {
+                        // Exiv2 returns ugly C++ keys like "Exif.Photo.DateTimeOriginal". We clean them up.
+                        const simpleKey = key.split('.').pop();
                         
-                        // CRITICAL FIX: Find the exact start of the TIFF header ('II' for Intel or 'MM' for Motorola)
-                        // This strips away the "Exif\x00\x00" garbage padding that chokes standard parsers.
-                        let tiffOffset = 0;
-                        for(let i = 0; i < payload8.length - 1; i++) {
-                            if ((payload8[i] === 0x49 && payload8[i+1] === 0x49) || (payload8[i] === 0x4D && payload8[i+1] === 0x4D)) {
-                                tiffOffset = i;
-                                break;
-                            }
+                        // If standard JS missed it, but C++ found it, we expose it!
+                        if (exifData[simpleKey] === undefined) {
+                            exifData[simpleKey] = wasmExif[key];
+                            recoveredCount++;
                         }
-                        
-                        const cleanPayload = payload.slice(tiffOffset);
-                        
-                        // Force-feed the perfectly clean TIFF binary into the parser
-                        const smuggledData = await window.exifr.parse(cleanPayload, {tiff: true, exif: true, gps: true}) || {};
-                        
-                        let recoveredCount = 0;
-                        for (let key in smuggledData) {
-                            if (exifData[key] === undefined) {
-                                exifData[key] = smuggledData[key];
-                                recoveredCount++;
-                            }
-                        }
-                        
-                        if (recoveredCount > 0) {
-                            exifData['FORENSIC_ALERT'] = `Recovered ${recoveredCount} hidden tracking tags from smuggled EXIF chunk.`;
-                        }
-                    } catch (e) {
-                        console.warn("[WebpProcessor] Failed to force-parse rogue chunk.", e);
+                    }
+
+                    // Explicitly hunt for smuggled GPS coordinates
+                    if (wasmExif['Exif.GPSInfo.GPSLatitude'] || wasmExif['Exif.Image.GPSTag']) {
+                        exifData['GPSLatitude'] = wasmExif['Exif.GPSInfo.GPSLatitude'] || "SMUGGLED_LAT_FOUND";
+                        exifData['GPSLongitude'] = wasmExif['Exif.GPSInfo.GPSLongitude'] || "SMUGGLED_LNG_FOUND";
+                        recoveredCount++;
                     }
                 }
-                offset += 8 + paddedSize;
+                
+                if (recoveredCount > 0) {
+                    exifData['WASM_FORENSIC_ALERT'] = `Recovered ${recoveredCount} hidden tracking tags using Deep C++ Scan.`;
+                }
+
+                img.delete(); // Free RAM
+            } catch (e) {
+                console.warn("[WebpProcessor] WASM read failed.", e);
             }
         }
 
@@ -78,6 +86,15 @@ export class WebpProcessor {
 
     async scrub() {
         const buffer = await this.file.arrayBuffer();
+        const terminalOut = document.getElementById('terminal-out');
+        
+        if(terminalOut) {
+            terminalOut.innerHTML += `<div class="log-line"><span class="val-sys">> INITIATING NATIVE RIFF SPLICER (THE MISSILE)...</span></div>`;
+            terminalOut.scrollTop = terminalOut.scrollHeight;
+        }
+
+        // THE MISSILE: We use our native JS RIFF Splicer instead of WASM to delete it, 
+        // because we MUST mathematically fix the WebP VP8X bit-flags, which C++ Exiv2 sometimes fails to do.
         const view = new DataView(buffer);
         const uint8 = new Uint8Array(buffer);
         
@@ -86,7 +103,7 @@ export class WebpProcessor {
         }
 
         let offset = 12; 
-        let chunksToKeep = [uint8.slice(0, 12)]; // Keep master RIFF header
+        let chunksToKeep = [uint8.slice(0, 12)]; 
         const threatChunks = ['EXIF', 'exif', 'XMP ', 'xmp '];
 
         while (offset < buffer.byteLength) {
@@ -99,7 +116,8 @@ export class WebpProcessor {
             if (!threatChunks.includes(chunkId)) {
                 let chunkData = uint8.slice(offset, offset + 8 + paddedSize);
                 
-                // CRITICAL: Mathematically flip EXIF and XMP flags to 0 in the master VP8X header
+                // CRITICAL MISSILE PAYLOAD: Mathematically flip EXIF and XMP flags to 0 in the master VP8X header.
+                // This ensures the container structurally validates after we nuke the data.
                 if (chunkId === 'VP8X') { 
                     chunkData[8] &= ~0x0C; 
                 }
