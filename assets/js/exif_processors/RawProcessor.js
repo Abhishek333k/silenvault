@@ -3,13 +3,14 @@ export class RawProcessor {
         this.file = file;
         this.ext = ext || '.cr2';
         this.engineName = 'Double-Pass Wiper (WASM + Native)';
-        this.engineClass = 'text-rose-400 font-mono';
+        this.engineClass = 'text-rose-400 font-mono text-sm';
         this.buttonText = 'Execute Double-Pass Wiper';
         this.exifCache = {};
     }
 
     async parse() {
         const buffer = await this.file.arrayBuffer();
+        // The Scout: Fast, accurate, RAM-direct reading.
         return await window.exifr.parse(buffer, {tiff: true, ifd0: true, exif: true, gps: true, xmp: true, iptc: true});
     }
 
@@ -48,52 +49,36 @@ export class RawProcessor {
                 }
             });
         } catch (err) {
-            console.warn("WASM Engine failed to load. Will rely entirely on Native Wiper.");
+            console.warn("WASM Engine failed to load. Falling back entirely to Native Wiper.");
         }
     }
 
     async scrub() {
         let bufferToProcess = await this.file.arrayBuffer();
+        const terminalOut = document.getElementById('terminal-out');
         
         // PASS 1: WASM C++ Engine
         if (window.exiv2Api) {
             try {
-                const terminalOut = document.getElementById('terminal-out');
-                if(terminalOut) terminalOut.innerHTML += `<div class="log-line"><span class="val-sys">> INITIATING PASS 1: WASM C++ ENGINE...</span></div>`;
-                
+                if(terminalOut) { terminalOut.innerHTML += `<div class="log-line"><span class="val-sys">> INITIATING PASS 1: WASM C++ ENGINE...</span></div>`; terminalOut.scrollTop = terminalOut.scrollHeight; }
                 const img = new window.exiv2Api.Image(new Uint8Array(bufferToProcess));
                 img.clearExif();
                 img.clearIptc();
                 img.clearXmp();
-                bufferToProcess = img.getBytes().buffer; // Update buffer with WASM-cleaned data
+                bufferToProcess = img.getBytes().buffer; 
                 img.delete();
-                
-                if(terminalOut) {
-                    terminalOut.innerHTML += `<div class="log-line"><span class="log-key">PASS 1</span><span class="val-safe">WASM EXECUTION SUCCESSFUL</span></div>`;
-                    terminalOut.scrollTop = terminalOut.scrollHeight;
-                }
+                if(terminalOut) { terminalOut.innerHTML += `<div class="log-line"><span class="log-key">PASS 1</span><span class="val-safe">WASM EXECUTION SUCCESSFUL</span></div>`; terminalOut.scrollTop = terminalOut.scrollHeight; }
             } catch (e) {
-                const terminalOut = document.getElementById('terminal-out');
-                if(terminalOut) {
-                    terminalOut.innerHTML += `<div class="log-line"><span class="log-key">PASS 1</span><span class="val-med">WASM REJECTED FORMAT. BYPASSING TO NATIVE...</span></div>`;
-                    terminalOut.scrollTop = terminalOut.scrollHeight;
-                }
+                if(terminalOut) { terminalOut.innerHTML += `<div class="log-line"><span class="log-key">PASS 1</span><span class="val-med">WASM REJECTED FORMAT. BYPASSING TO NATIVE...</span></div>`; terminalOut.scrollTop = terminalOut.scrollHeight; }
             }
         }
 
         // PASS 2: Native Deep TIFF Wiper
-        const terminalOut = document.getElementById('terminal-out');
-        if(terminalOut) {
-            terminalOut.innerHTML += `<div class="log-line"><span class="val-sys">> INITIATING PASS 2: NATIVE DEEP TIFF WIPER...</span></div>`;
-            terminalOut.scrollTop = terminalOut.scrollHeight;
-        }
+        if(terminalOut) { terminalOut.innerHTML += `<div class="log-line"><span class="val-sys">> INITIATING PASS 2: NATIVE DEEP TIFF WIPER...</span></div>`; terminalOut.scrollTop = terminalOut.scrollHeight; }
         
         const finalUint8Array = this.runNativeTiffWiper(bufferToProcess);
         
-        if(terminalOut) {
-            terminalOut.innerHTML += `<div class="log-line"><span class="log-key">PASS 2</span><span class="val-safe">NATIVE ORPHANING COMPLETE</span></div>`;
-            terminalOut.scrollTop = terminalOut.scrollHeight;
-        }
+        if(terminalOut) { terminalOut.innerHTML += `<div class="log-line"><span class="log-key">PASS 2</span><span class="val-safe">NATIVE ORPHANING COMPLETE</span></div>`; terminalOut.scrollTop = terminalOut.scrollHeight; }
 
         return new Blob([finalUint8Array], { type: this.file.type || '' });
     }
