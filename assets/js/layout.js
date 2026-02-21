@@ -19,29 +19,6 @@ function injectAnalytics() {
 }
 injectAnalytics();
 
-// Mount Global Components CSS securely with Smart Pathing
-(function loadGlobalCSS() {
-    if (document.getElementById('sv-components-css')) return;
-    
-    // Intelligently find the base path by looking at where layout.js was loaded from
-    const scripts = document.getElementsByTagName('script');
-    let cssPath = '../assets/css/components.css'; // Fallback
-    
-    for (let i = 0; i < scripts.length; i++) {
-        if (scripts[i].src && scripts[i].src.includes('layout.js')) {
-            cssPath = scripts[i].src.replace('js/layout.js', 'css/components.css');
-            break;
-        }
-    }
-
-    const link = document.createElement('link');
-    link.id = 'sv-components-css';
-    link.rel = 'stylesheet';
-    link.type = 'text/css';
-    link.href = cssPath;
-    document.head.appendChild(link);
-})();
-
 class SVHeader extends HTMLElement {
     connectedCallback() {
         const basePath = this.getAttribute('base-path') || '.';
