@@ -8,7 +8,7 @@
     <meta name="description" content="Local-first image compressor. Reduce the file size of JPEG, PNG, WebP, and HEIC images by up to 90% without visible quality loss. 100% private processing.">
     <meta name="keywords" content="image compressor, reduce image size, shrink photo, compress jpeg, compress png, local image compressor, heic compressor, bulk image shrinker">
     <meta name="author" content="SilenVault">
-    <link rel="canonical" href="https://silenvault.com/tools/image_compressor">
+    <link rel="canonical" href="https://silenvault.com/tools/image_compressor.html">
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
 
@@ -60,14 +60,15 @@
             user-select: none; border: 1px solid #1e293b; 
         }
         
-        /* Sleek Technical Dot Matrix Background */
         .dot-matrix-bg { position: absolute; inset: 0; background-image: radial-gradient(#334155 1px, transparent 1px); background-size: 16px 16px; opacity: 0.3; z-index: 0; pointer-events: none; }
         
         .comparison-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; z-index: 10; filter: drop-shadow(0 10px 25px rgba(0,0,0,0.5)); }
         
-        .comparison-slider { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; background: #10b981; cursor: ew-resize; z-index: 30; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
-        .comparison-slider::before { content: '< >'; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: #10b981; color: #022c22; font-weight: 900; border-radius: 50%; font-size: 14px; letter-spacing: -2px; box-shadow: 0 0 15px rgba(16, 185, 129, 0.8); transition: transform 0.2s; border: 2px solid #fff; }
-        .comparison-slider:active::before { transform: scale(1.1); }
+        /* SLEEK, PROFESSIONAL SLIDER */
+        .comparison-slider { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; background: rgba(255, 255, 255, 0.9); cursor: ew-resize; z-index: 30; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+        .comparison-handle { position: absolute; width: 32px; height: 32px; background: #ffffff; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; gap: 3px; transition: transform 0.1s ease; border: 1px solid #e2e8f0; }
+        .comparison-slider:active .comparison-handle { transform: scale(1.1); }
+        .comparison-handle::before, .comparison-handle::after { content: ''; width: 2px; height: 10px; background: #94a3b8; border-radius: 2px; }
         
         .label-before { position: absolute; top: 16px; left: 16px; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); color: #cbd5e1; padding: 6px 14px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; z-index: 20; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
         .label-after { position: absolute; top: 16px; right: 16px; background: rgba(16, 185, 129, 0.95); backdrop-filter: blur(8px); color: #022c22; padding: 6px 14px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; z-index: 20; border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 4px 15px rgba(16,185,129,0.3); }
@@ -99,8 +100,8 @@
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         </div>
         <div>
-            <h4 class="text-white font-bold text-sm">Original File Locked</h4>
-            <p class="text-xs text-slate-400">Scale is at 100%. Processing bypassed to prevent file bloat.</p>
+            <h4 class="text-white font-bold text-sm">Original File Retained</h4>
+            <p class="text-xs text-slate-400">Target size is 100%. Compression bypassed to preserve original file.</p>
         </div>
     </div>
 
@@ -111,7 +112,7 @@
                 <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
                     Image <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-500">Compressor</span>
                 </h1>
-                <p class="text-base text-slate-300 mt-2 font-medium">Mathematically target memory sizes without sacrificing visual fidelity.</p>
+                <p class="text-base text-slate-300 mt-2 font-medium">Reduce file sizes locally without sacrificing visual quality.</p>
             </div>
         </div>
 
@@ -140,38 +141,44 @@
                 <div class="glass-panel p-6 rounded-3xl border-slate-700">
                     <div class="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
                         <div class="flex flex-col">
-                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Target Format</span>
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Output Format</span>
                             <span id="orig-type-badge" class="text-lg font-bold text-slate-300">JPG</span>
                         </div>
                         <div class="text-right flex flex-col">
-                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Input Size</span>
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Original Size</span>
                             <span id="size-original" class="text-lg font-bold text-slate-300 mono">0 KB</span>
                         </div>
                     </div>
 
                     <div class="mb-6">
                         <div class="flex justify-between items-center mb-3">
-                            <label class="text-xs font-bold text-slate-300 uppercase tracking-widest">Target File Scale</label>
+                            <label class="text-xs font-bold text-slate-300 uppercase tracking-widest">Target Size (%)</label>
                             <span id="quality-val" class="bg-slate-900 border border-slate-700 px-3 py-1 rounded text-emerald-400 font-bold mono text-sm">75%</span>
                         </div>
                         <input type="range" id="quality-slider" class="custom-slider" min="1" max="100" value="75">
                         <div class="flex justify-between text-[10px] text-slate-500 mt-2 font-mono uppercase tracking-widest">
-                            <span>1% Size</span>
-                            <span>100% Original</span>
+                            <span>1% (Smallest)</span>
+                            <span>100% (Original)</span>
                         </div>
                         
                         <div id="png-note" class="hidden mt-4 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl flex gap-2 items-start">
                             <svg class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <p class="text-[10px] text-emerald-400 leading-tight">PNG format detected. Adjusting scale will mathematically reduce the color palette to hit size targets without losing transparency.</p>
+                            <p class="text-[10px] text-emerald-400 leading-tight">PNG format detected. Adjusting scale will safely reduce the color palette to hit size targets without losing transparency.</p>
                         </div>
                     </div>
 
                     <div class="flex flex-col items-center bg-[#0b1120] border border-slate-800 rounded-2xl p-6 mb-6 relative overflow-hidden">
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 z-10">Optimized Output</span>
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 z-10">Compressed File Size</span>
                         <span id="size-new" class="text-3xl font-black text-emerald-400 mono z-10 transition-colors duration-300">Calculating...</span>
                         
                         <div id="savings-badge" class="mt-3 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 px-4 py-1.5 rounded-full text-xs font-bold tracking-wider z-10 hidden">
                             Saved 0%
+                        </div>
+                        
+                        <div id="inflation-warning" class="absolute inset-0 bg-slate-900/95 flex flex-col items-center justify-center rounded-2xl border border-slate-700 hidden z-20">
+                            <svg class="w-6 h-6 text-amber-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <span class="text-amber-400 font-bold text-sm">Compression Limit Reached</span>
+                            <span class="text-slate-400 text-[10px] mt-1 text-center px-4">Maximum compression achieved. Original file retained to avoid increasing size.</span>
                         </div>
                     </div>
 
@@ -197,7 +204,7 @@
                             <div class="window-dot dot-yel"></div>
                             <div class="window-dot dot-grn"></div>
                         </div>
-                        <span class="text-[10px] font-mono font-bold text-slate-500 tracking-widest uppercase">Canvas Viewport</span>
+                        <span class="text-[10px] font-mono font-bold text-slate-500 tracking-widest uppercase">Preview</span>
                     </div>
 
                     <div class="comparison-container" id="comp-container">
@@ -209,11 +216,13 @@
                         <img id="img-compressed" class="comparison-img" alt="Compressed Image" style="clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%);">
                         <div class="label-after">Compressed</div>
 
-                        <div class="comparison-slider" id="comp-slider"></div>
+                        <div class="comparison-slider" id="comp-slider">
+                            <div class="comparison-handle"></div>
+                        </div>
 
                         <div id="processing-overlay">
                             <div class="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin shadow-[0_0_15px_rgba(16,185,129,0.5)]"></div>
-                            <p class="text-xs font-bold text-emerald-400 tracking-widest uppercase mt-4 animate-pulse">Running Binary Search...</p>
+                            <p class="text-xs font-bold text-emerald-400 tracking-widest uppercase mt-4 animate-pulse" id="loader-text">Processing...</p>
                         </div>
                     </div>
                 </div>
@@ -237,7 +246,7 @@
                     <div class="flex flex-col gap-3">
                         <span class="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 text-emerald-400 font-bold font-mono text-sm border border-slate-700 shadow-inner">2</span>
                         <h3 class="text-white font-bold text-sm">Target File Size</h3>
-                        <p class="text-sm text-slate-300 leading-relaxed">Use the slider to set your target byte scale. Our engine runs an invisible binary search to perfectly match your desired size.</p>
+                        <p class="text-sm text-slate-300 leading-relaxed">Use the slider to set your target byte scale. Our engine processes the image to optimally match your desired size.</p>
                     </div>
                     <div class="flex flex-col gap-3">
                         <span class="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 text-emerald-400 font-bold font-mono text-sm border border-slate-700 shadow-inner">3</span>
@@ -247,7 +256,7 @@
                     <div class="flex flex-col gap-3">
                         <span class="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 text-emerald-400 font-bold font-mono text-sm border border-slate-700 shadow-inner">4</span>
                         <h3 class="text-white font-bold text-sm">Secure Download</h3>
-                        <p class="text-sm text-slate-300 leading-relaxed">Save the minimized file directly to your hard drive. Because the file is visually redrawn, all hidden tracking data is inherently wiped clean.</p>
+                        <p class="text-sm text-slate-300 leading-relaxed">Save the minimized file directly to your hard drive. Because the file is visually redrawn, hidden tracking data is naturally removed.</p>
                     </div>
                 </div>
             </section>
@@ -277,11 +286,11 @@
                         </div>
                         <div>
                             <strong class="text-emerald-400 block mb-1 text-base">What happens to PNG files?</strong>
-                            <p class="text-slate-400 leading-relaxed">The PNG format is inherently "lossless". To reduce a PNG's size without destroying its transparency, this tool injects a mathematical Quantization Engine (UPNG) to safely reduce the available color palette, cutting the file size dynamically.</p>
+                            <p class="text-slate-400 leading-relaxed">The PNG format is inherently "lossless". To reduce a PNG's size without destroying its transparency, this tool safely reduces the available color palette, cutting the file size dynamically.</p>
                         </div>
                         <div>
                             <strong class="text-emerald-400 block mb-1 text-base">Are my EXIF tags preserved during compression?</strong>
-                            <p class="text-slate-400 leading-relaxed">No. As a byproduct of the Canvas rendering process, all hidden metadata, including camera models, timestamps, and embedded GPS location coordinates, are systematically abandoned. The output file is forensically clean.</p>
+                            <p class="text-slate-400 leading-relaxed">No. As a byproduct of the Canvas rendering process, all hidden metadata, including camera models, timestamps, and embedded GPS location coordinates, are abandoned. The output file is clean.</p>
                         </div>
                     </div>
                 </div>
@@ -317,6 +326,7 @@
         const savingsBadge = document.getElementById('savings-badge');
         const originalToaster = document.getElementById('original-toaster');
         const overlay = document.getElementById('processing-overlay');
+        const loaderText = document.getElementById('loader-text');
 
         const imgOrig = document.getElementById('img-original');
         const imgComp = document.getElementById('img-compressed');
@@ -375,12 +385,13 @@
                 pngNote.classList.add('hidden');
             }
             
-            qualitySlider.value = 75; // Default target scale
+            qualitySlider.value = 75; 
             updateQualityLabel();
 
             stageUpload.classList.add('hidden');
             stageWorkspace.classList.remove('hidden');
             overlay.classList.add('active');
+            loaderText.innerText = 'Reading file data...';
 
             try {
                 if (outputExt === 'heic' || outputExt === 'heif') {
@@ -409,11 +420,12 @@
             updateQualityLabel();
             clearTimeout(debounceTimer);
             overlay.classList.add('active');
+            loaderText.innerText = 'Compressing...';
             debounceTimer = setTimeout(() => executeCompression(), 600); 
         });
 
         function updateQualityLabel() {
-            qualityVal.innerText = `${qualitySlider.value}% Scale`;
+            qualityVal.innerText = `${qualitySlider.value}%`;
         }
 
         async function executeCompression() {
@@ -434,14 +446,13 @@
                 
                 originalToaster.classList.add('show');
                 
-                imgComp.src = imgOrig.src; // Visuals match exactly
+                imgComp.src = imgOrig.src; 
                 overlay.classList.remove('active');
                 return;
             } else {
                 originalToaster.classList.remove('show');
             }
 
-            // Target Byte Mathematics
             const targetBytes = originalSize * (targetScale / 100);
 
             canvas.width = originalImageObj.width;
@@ -455,7 +466,6 @@
             ctx.drawImage(originalImageObj, 0, 0, canvas.width, canvas.height);
 
             if (originalFile.type === 'image/png') {
-                // UPNG Logic maps scale to color reduction (Lossless Format)
                 let colors = Math.max(2, Math.floor((targetScale / 100) * 256));
                 const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 try {
@@ -466,7 +476,6 @@
                     finishCompression(originalFile);
                 }
             } else {
-                // BINARY SEARCH ENGINE: Find exact quality to hit target byte size
                 let minQ = 0.01;
                 let maxQ = 1.0;
                 let bestBlob = null;
@@ -484,9 +493,9 @@
                     }
                     
                     if (blob.size > targetBytes) {
-                        maxQ = midQ; // File too big, lower maximum quality
+                        maxQ = midQ; 
                     } else {
-                        minQ = midQ; // File too small, raise minimum quality
+                        minQ = midQ; 
                     }
                 }
                 
@@ -508,11 +517,10 @@
             if (savings > 0) {
                 savingsBadge.innerText = `Saved ${savings.toFixed(1)}%`;
             } else {
-                // If even the most optimized version is larger, lock to original
                 finalDownloadBlob = originalFile;
                 elSizeNew.innerText = formatBytes(originalSize);
                 elSizeNew.className = "text-3xl font-black text-blue-400 mono z-10";
-                savingsBadge.innerText = `0% Saved (Max Optimized)`;
+                savingsBadge.innerText = `0% Saved (Limit Reached)`;
             }
 
             const url = URL.createObjectURL(finalDownloadBlob); 
@@ -538,7 +546,6 @@
             
             const percent = (x / rect.width) * 100;
             compSlider.style.left = `${percent}%`;
-            // Corrects object-fit masking overlap entirely
             imgComp.style.clipPath = `polygon(${percent}% 0, 100% 0, 100% 100%, ${percent}% 100%)`;
         }
 
