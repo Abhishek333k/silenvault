@@ -1,6 +1,3 @@
-// Import MattiasW's ExifReader natively as an ES6 Module
-import ExifReader from 'https://esm.sh/exifreader';
-
 export class WebpProcessor {
     constructor(file, ext) {
         this.file = file;
@@ -11,29 +8,92 @@ export class WebpProcessor {
     }
 
     async parse() {
+        const buffer = await this.file.arrayBuffer();
         let exifData = {};
 
+        // 1. PASS ONE: Global ExifReader 
         try {
-            // ExifReader is extremely aggressive. It reads the raw file object directly
-            // and ignores corrupted or lying VP8X master headers.
-            const tags = await ExifReader.load(this.file);
-            
-            for (const [key, tag] of Object.entries(tags)) {
-                // Skip base structural properties that ExifReader auto-generates
-                if (['Image Width', 'Image Height', 'colorSpace'].includes(key)) continue;
-                
-                // ExifReader provides a human-readable 'description' or raw 'value'
-                let val = tag.description !== undefined ? tag.description : tag.value;
-                if (Array.isArray(val)) val = val.join(', ');
-
-                exifData[key] = val;
+            if (window.ExifReader) {
+                const tags = window.ExifReader.load(buffer);
+                for (const [key, tag] of Object.entries(tags)) {
+                    // Ignore auto-generated structural properties
+                    if (['Image Width', 'Image Height', 'colorSpace'].includes(key)) continue;
+                    let val = tag.description !== undefined ? tag.description : tag.value;
+                    if (Array.isArray(val)) val = val.join(', ');
+                    exifData[key] = val;
+                }
             }
-            
-            // Log to console for debugging so we know ExifReader caught it
-            console.log("[WebpProcessor] ExifReader successfully parsed data:", exifData);
+        } catch(e) { 
+            console.warn("[WebpProcessor] Global ExifReader parse failed.", e); 
+        }
 
-        } catch (e) {
-            console.error("[WebpProcessor] ExifReader failed to parse file.", e);
+        // 2. PASS TWO: The Rogue Chunk Slicer
+        // If the file was maliciously/poorly injected, the VP8X flags might lie.
+        // We walk the binary, slice out the EXIF chunk, strip the padding, and force-feed the pure TIFF data.
+        const view = new DataView(buffer);
+        const uint8 = new Uint8Array(buffer);
+
+        if (view.getUint32(0, false) === 0x52494646 && view.getUint32(8, false) === 0x57454250) {
+            let offset = 12; // Skip 'RIFF' + Size + 'WEBP'
+            
+            while (offset < buffer.byteLength) {
+                if (offset + 8 > buffer.byteLength) break;
+                
+                const chunkId = String.fromCharCode(uint8[offset], uint8[offset+1], uint8[offset+2], uint8[offset+3]);
+                const chunkSize = view.getUint32(offset + 4, true); 
+                const paddedSize = chunkSize + (chunkSize % 2); 
+
+                // Target Acquired
+                if (chunkId === 'EXIF' || chunkId === 'exif') {
+                    try {
+                        const payload = buffer.slice(offset + 8, offset + 8 + chunkSize);
+                        const payload8 = new Uint8Array(payload);
+
+                        // Find pure TIFF offset ('II' for Intel, 'MM' for Motorola)
+                        // This strips away the "Exif\x00\x00" padding that crashes parsers
+                        let tiffOffset = 0;
+                        for(let i = 0; i < payload8.length - 1; i++) {
+                            if ((payload8[i] === 0x49 && payload8[i+1] === 0x49) || (payload8[i] === 0x4D && payload8[i+1] === 0x4D)) {
+                                tiffOffset = i;
+                                break;
+                            }
+                        }
+                        
+                        const cleanPayload = payload.slice(tiffOffset);
+
+                        // Force pure TIFF binary into ExifReader
+                        if (window.ExifReader) {
+                            const smuggledTags = window.ExifReader.load(cleanPayload);
+                            let recovered = 0;
+                            
+                            for (const [key, tag] of Object.entries(smuggledTags)) {
+                                if (['Image Width', 'Image Height', 'colorSpace'].includes(key)) continue;
+                                // If we found something new, add it!
+                                if (!exifData[key]) {
+                                    let val = tag.description !== undefined ? tag.description : tag.value;
+                                    if (Array.isArray(val)) val = val.join(', ');
+                                    exifData[key] = val;
+                                    recovered++;
+                                }
+                            }
+                            if(recovered > 0) {
+                                exifData['FORENSIC_ALERT'] = `Recovered ${recovered} hidden tags from rogue EXIF chunk.`;
+                            }
+                        }
+                    } catch(e) { 
+                        console.warn("[WebpProcessor] Rogue chunk force-feed failed.", e); 
+                    }
+                }
+                offset += 8 + paddedSize;
+            }
+        }
+
+        // 3. PASS THREE: Exifr Fallback (Just in case ExifReader breaks completely)
+        if (Object.keys(exifData).length === 0) {
+            try {
+                const standardData = await window.exifr.parse(buffer, {tiff: true, exif: true, gps: true, xmp: true});
+                if (standardData) Object.assign(exifData, standardData);
+            } catch(e) {}
         }
 
         return Object.keys(exifData).length > 0 ? exifData : null;
@@ -52,7 +112,7 @@ export class WebpProcessor {
             terminalOut.scrollTop = terminalOut.scrollHeight;
         }
 
-        // THE MISSILE: We physically cut the EXIF chunks out of the WebP RIFF container.
+        // THE MISSILE: Physically slice the threat chunks out of the WebP container.
         const view = new DataView(buffer);
         const uint8 = new Uint8Array(buffer);
         
@@ -61,29 +121,27 @@ export class WebpProcessor {
         }
 
         let offset = 12; 
-        let chunksToKeep = [uint8.slice(0, 12)]; // Preserve the master RIFF header
+        let chunksToKeep = [uint8.slice(0, 12)]; // Keep master RIFF header
         const threatChunks = ['EXIF', 'exif', 'XMP ', 'xmp '];
 
         while (offset < buffer.byteLength) {
             if (offset + 8 > buffer.byteLength) break;
 
-            // Read the 4-character chunk ID
             const chunkId = String.fromCharCode(uint8[offset], uint8[offset + 1], uint8[offset + 2], uint8[offset + 3]);
             const chunkSize = view.getUint32(offset + 4, true); 
             const paddedSize = chunkSize + (chunkSize % 2); 
             
-            // If the chunk is NOT a threat chunk, we keep it
             if (!threatChunks.includes(chunkId)) {
                 let chunkData = uint8.slice(offset, offset + 8 + paddedSize);
                 
-                // CRITICAL FIX: We MUST mathematically flip the EXIF and XMP flags to 0 in the master VP8X header.
-                // This prevents the file from becoming corrupted after we delete the payload.
+                // CRITICAL FIX: Mathematically flip EXIF (Bit 3) and XMP (Bit 2) flags to 0 in the VP8X header.
+                // If we don't do this, the image viewer will expect data that no longer exists and crash.
                 if (chunkId === 'VP8X') { 
-                    chunkData[8] &= ~0x0C; // Flips bit 2 and 3 to 0 using bitwise NOT
+                    chunkData[8] &= ~0x0C; 
                 }
                 chunksToKeep.push(chunkData);
             } else {
-                console.log(`[WebpProcessor] Target acquired and destroyed: ${chunkId} chunk.`);
+                console.log(`[WebpProcessor] Target acquired and destroyed: ${chunkId}`);
             }
             offset += 8 + paddedSize;
         }
@@ -98,7 +156,7 @@ export class WebpProcessor {
             writeOffset += chunk.length;
         }
 
-        // Fix the master RIFF container file size header so the file opens flawlessly
+        // Recalculate master file size
         const cleanView = new DataView(cleanBuffer.buffer);
         cleanView.setUint32(4, totalLength - 8, true); 
 
