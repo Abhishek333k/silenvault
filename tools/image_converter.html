@@ -6,13 +6,16 @@
     
     <title>High-Speed Image Converter | HEIC, WebP, PNG to JPG | SilenVault</title>
     <meta name="description" content="Local image converter. Convert HEIC, WebP, and PNG to JPEG or PNG instantly. Features dynamic matting for transparency. No uploads required.">
-    <link rel="canonical" href="https://silenvault.com/tools/image_converter">
+    <meta name="keywords" content="image converter, convert heic to jpg, webp to png, local image tool, bulk image converter, transparent jpeg converter">
+    <meta name="author" content="SilenVault">
+    <link rel="canonical" href="https://silenvault.com/tools/image_converter.html">
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="../assets/js/layout.js" defer></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 
     <style>
@@ -143,7 +146,7 @@
                 </div>
                 <div id="conversion-loader" class="hidden flex flex-col items-center gap-4 z-20 absolute inset-0 justify-center bg-slate-900/40 backdrop-blur-sm rounded-3xl">
                     <div class="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
-                    <p id="loader-text" class="text-xs font-bold text-white tracking-widest uppercase">Rendering Format...</p>
+                    <p id="loader-text" class="text-xs font-bold text-white tracking-widest uppercase">Encoding new format...</p>
                 </div>
                 <img id="preview-image" class="preview-img hidden" alt="Image Preview">
             </div>
@@ -152,24 +155,72 @@
         <canvas id="convert-canvas" class="hidden"></canvas>
 
         <article class="mt-20 flex flex-col gap-12 border-t border-slate-800 pt-16">
+            
             <section class="glass-panel p-8 md:p-10 rounded-2xl shadow-xl">
-                <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-8">How to Convert Images</h2>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-8">How to Convert Images Locally</h2>
                 <div class="grid md:grid-cols-4 gap-6">
                     <div class="flex flex-col gap-3">
                         <span class="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 text-blue-400 font-bold font-mono text-sm border border-slate-700 shadow-inner">1</span>
-                        <p class="text-sm text-slate-300 leading-relaxed"><strong>Upload File:</strong> Select your image or iPhone HEIC file.</p>
+                        <h3 class="text-white font-bold text-sm">Upload File</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed">Select your target image. We natively support high-efficiency formats like iPhone HEIC alongside standard JPEGs, PNGs, and WebPs.</p>
                     </div>
                     <div class="flex flex-col gap-3">
                         <span class="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 text-blue-400 font-bold font-mono text-sm border border-slate-700 shadow-inner">2</span>
-                        <p class="text-sm text-slate-300 leading-relaxed"><strong>Select Output:</strong> Choose WebP, JPEG, or PNG formats.</p>
+                        <h3 class="text-white font-bold text-sm">Select Output Format</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed">Choose between WebP (for modern web performance), JPEG (for universal compatibility), or PNG (for lossless transparency).</p>
                     </div>
                     <div class="flex flex-col gap-3">
                         <span class="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 text-blue-400 font-bold font-mono text-sm border border-slate-700 shadow-inner">3</span>
-                        <p class="text-sm text-slate-300 leading-relaxed"><strong>Process:</strong> The system securely repaints the image in your browser.</p>
+                        <h3 class="text-white font-bold text-sm">Real-time Encoding</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed">Our engine uses the HTML5 Canvas API to repaint the image entirely within your browser. If converting a transparent PNG to JPEG, utilize the dynamic color picker to fill the background.</p>
                     </div>
                     <div class="flex flex-col gap-3">
                         <span class="flex items-center justify-center w-8 h-8 rounded-full bg-slate-800 text-blue-400 font-bold font-mono text-sm border border-slate-700 shadow-inner">4</span>
-                        <p class="text-sm text-slate-300 leading-relaxed"><strong>Save:</strong> Download the converted asset directly to your device.</p>
+                        <h3 class="text-white font-bold text-sm">Secure Download</h3>
+                        <p class="text-sm text-slate-300 leading-relaxed">Save the newly encoded file directly to your hard drive. Because the file is visually redrawn, 100% of the original EXIF and GPS tracking data is inherently wiped clean.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="grid lg:grid-cols-2 gap-8">
+                <div class="prose prose-invert prose-slate max-w-none glass-panel p-8 rounded-2xl shadow-lg">
+                    <h3 class="text-xl font-bold text-white mb-4">Supported Format Matrix</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-4">Understanding the technical nuances of your target format ensures the best balance between visual fidelity and file size.</p>
+                    <ul class="space-y-4 list-none pl-0 mt-6 text-sm">
+                        <li class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                            <strong class="text-blue-400 block mb-1 text-base">HEIC to JPEG Pipeline</strong>
+                            <span class="text-slate-300">Modern Apple devices capture images in High Efficiency Image Coding (HEIC). While excellent for saving space on an iPhone, these files are largely unsupported on Windows PCs and legacy web browsers. This tool integrates a specialized decoder to break down HEIC containers and re-encode them into universally accessible JPEGs.</span>
+                        </li>
+                        <li class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                            <strong class="text-emerald-400 block mb-1 text-base">WebP Optimization</strong>
+                            <span class="text-slate-300">WebP is a modern image format engineered by Google that provides superior lossless and lossy compression for images on the web. Converting standard PNGs or JPEGs into WebP can drastically reduce file size without a noticeable drop in quality, improving website load times.</span>
+                        </li>
+                        <li class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                            <strong class="text-rose-400 block mb-1 text-base">Zero-Trust Privacy Design</strong>
+                            <span class="text-slate-300">Unlike cloud-based converters that upload your personal photographs to a remote server, this tool executes strictly in your browser's local memory. The image is loaded into a local DOM element, drawn onto an invisible canvas, and exported directly back to you.</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="glass-panel p-8 rounded-2xl shadow-lg bg-slate-900/60 flex flex-col">
+                    <h3 class="text-xl font-bold text-white mb-6">Frequently Asked Questions</h3>
+                    <div class="space-y-6 text-sm">
+                        <div>
+                            <strong class="text-blue-400 block mb-1 text-base">Why did my file size increase after converting?</strong>
+                            <p class="text-slate-400 leading-relaxed">Converting an image is not the same as compressing it. If you convert a highly optimized WebP file into a PNG, the file size will massively increase because PNG is a "lossless" format that stores every single pixel explicitly. To reduce file size, you need our dedicated Image Compressor.</p>
+                        </div>
+                        <div>
+                            <strong class="text-blue-400 block mb-1 text-base">What happens to the transparent background in my PNG?</strong>
+                            <p class="text-slate-400 leading-relaxed">If you convert a transparent PNG or WebP into a format that supports transparency (like another PNG or WebP), the transparency is preserved perfectly. However, the JPEG format mathematically cannot handle transparency. If you target JPEG, our engine allows you to pick a "Matting Color" to seamlessly fill the transparent areas.</p>
+                        </div>
+                        <div>
+                            <strong class="text-blue-400 block mb-1 text-base">Is there a maximum file size limit?</strong>
+                            <p class="text-slate-400 leading-relaxed">Because the tool runs purely on client-side logic, the only limit is the available Random Access Memory (RAM) on your device. Most modern smartphones and laptops can easily decode and convert files up to 100MB without crashing the browser tab.</p>
+                        </div>
+                        <div>
+                            <strong class="text-blue-400 block mb-1 text-base">Are my EXIF tags preserved during the conversion?</strong>
+                            <p class="text-slate-400 leading-relaxed">No. As a byproduct of the Canvas rendering process, all hidden metadata, including camera models, timestamps, and embedded GPS location coordinates, are systematically abandoned. The output file is forensically clean.</p>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -185,7 +236,7 @@
             <p id="toaster-dynamic-text" class="text-xs text-slate-300 mt-1 truncate md:whitespace-normal">Output is large. Compress it without losing quality.</p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
-            <a href="image_compressor" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-colors whitespace-nowrap">Compress</a>
+            <a href="image_compressor.html" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-colors whitespace-nowrap">Compress</a>
             <button onclick="hideToaster()" class="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors" aria-label="Dismiss">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
@@ -248,6 +299,7 @@
             stageWorkspace.classList.remove('hidden');
             previewImage.classList.add('hidden');
             loader.classList.remove('hidden');
+            // Changed wording from "Processing..."
             loaderText.innerText = "Reading file data...";
 
             const ext = file.name.split('.').pop().toUpperCase();
@@ -297,7 +349,8 @@
             hideToaster();
 
             loader.classList.remove('hidden');
-            loaderText.innerText = "Applying format compression...";
+            // Changed wording from "Compressing/Processing"
+            loaderText.innerText = "Encoding new format...";
             previewImage.classList.add('opacity-40');
             elSizeNew.innerText = "Calculating...";
             elSizeNew.classList.replace('text-emerald-400', 'text-slate-400');
@@ -326,7 +379,7 @@
                     loader.classList.add('hidden');
                     previewImage.classList.remove('opacity-40', 'hidden');
 
-                    // Intelligent Cross-Sell Trigger
+                    // Intelligent Cross-Sell Trigger stays on screen until dismissed/reset
                     if (originalFile && blob.size > (originalFile.size * 0.90)) {
                         document.getElementById('toaster-dynamic-text').innerText = `Output size is ${formatBytes(blob.size)}. Compress it further securely.`;
                         document.getElementById('compressor-toaster').classList.replace('translate-y-[150%]', 'translate-y-0');
