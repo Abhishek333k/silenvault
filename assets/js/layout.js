@@ -30,7 +30,7 @@ class SVHeader extends HTMLElement {
             favicon.rel = 'icon';
             document.head.appendChild(favicon);
         }
-        favicon.href = `${basePath}/assets/img/SILENVAULT_CREST.png`;
+        favicon.href = `${basePath}/assets/img/SILENVAULT_CREST.webp`;
 
         if (!document.getElementById('sv-adsense')) {
             const adScript = document.createElement('script');
@@ -45,7 +45,7 @@ class SVHeader extends HTMLElement {
             <nav class="border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                     <a href="${basePath}/index" class="flex items-center gap-3 transition-transform hover:scale-105">
-                        <img src="${basePath}/assets/img/Banner_with_CREST.png" alt="SilenVault" class="h-10 w-auto object-contain">
+                        <img src="${basePath}/assets/img/Banner_with_CREST.webp" alt="SilenVault" class="h-10 w-auto object-contain">
                     </a>
                     
                     <div class="flex items-center gap-4">
@@ -83,7 +83,7 @@ class SVFooter extends HTMLElement {
                     <div class="grid md:grid-cols-4 gap-8">
                         <div class="col-span-2">
                             <span class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-                                <img src="${basePath}/assets/img/SILENVAULT_CREST.png" alt="SilenVault Crest" class="h-6 w-auto object-contain grayscale opacity-50">
+                                <img src="${basePath}/assets/img/SILENVAULT_CREST.webp" alt="SilenVault Crest" class="h-6 w-auto object-contain grayscale opacity-50">
                                 SilenVault <span class="text-[10px] align-top text-slate-500 uppercase tracking-widest mt-1">Initiative</span>
                             </span>
                             <p class="text-slate-500 text-sm mt-4 max-w-xs leading-relaxed">
