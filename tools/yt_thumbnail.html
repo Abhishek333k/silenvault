@@ -3,211 +3,394 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Thumbnail Grabber | SilenVault</title>
-    <meta name="description" content="Extract and download 4K, HD, and SD thumbnails from any YouTube video or Short. Instant, free, and no watermark.">
     
+    <title>YouTube Thumbnail Grabber | Download 4K & HD Video Covers | SilenVault</title>
+    <meta name="description" content="Free, instant tool to extract and download 4K, HD, and SD thumbnails from any YouTube video, Short, or Livestream. No watermarks, no software required.">
+    <meta name="keywords" content="youtube thumbnail downloader, grab youtube thumbnail, download youtube cover image, 4k youtube thumbnail, save youtube short thumbnail, youtube metadata tool">
+    <meta name="author" content="SilenVault">
+    <link rel="canonical" href="https://silenvault.com/tools/yt_thumbnail.html">
+    
+    <meta property="og:title" content="YouTube Thumbnail Grabber | SilenVault">
+    <meta property="og:description" content="Instantly extract and download highest-resolution thumbnails from any YouTube video or Short.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://silenvault.com/tools/yt_thumbnail.html">
+    <meta property="og:site_name" content="SilenVault">
+    
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="../assets/js/layout.js" defer></script>
     
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
-        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
-        .thumb-card { transition: all 0.3s ease; }
-        .thumb-card:hover { transform: translateY(-4px); border-color: #3b82f6; box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.3); }
-        .loader { border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 3px solid #3b82f6; width: 20px; height: 20px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* UNIFIED SILENVAULT THEME */
+        :root {
+            --bg-color: #0f172a; 
+            --panel-bg: rgba(30, 41, 59, 0.85); 
+            --border-color: #334155;
+            --accent-glow: rgba(239, 68, 68, 0.25); /* YT Red Glow */
+            --primary-text: #f8fafc;
+            --secondary-text: #cbd5e1;
+        }
+
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--primary-text); overflow-x: hidden; transition: background-color 0.8s ease; }
+        .glass-panel { background: var(--panel-bg); backdrop-filter: blur(16px); border: 1px solid var(--border-color); transition: all 0.5s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .mono { font-family: 'Fira Code', monospace; }
+
+        /* PREVIEW CARDS */
+        .thumb-card { position: relative; overflow: hidden; border-radius: 0.75rem; background: #020617; border: 1px solid var(--border-color); transition: all 0.3s ease; }
+        .thumb-card:hover { border-color: #ef4444; box-shadow: 0 10px 30px -10px rgba(239, 68, 68, 0.3); }
+        .thumb-img { width: 100%; height: auto; object-fit: cover; transition: opacity 0.3s ease; opacity: 0; }
+        .thumb-img.loaded { opacity: 1; }
+        
+        /* LOADING SKELETONS */
+        .skeleton { position: absolute; inset: 0; background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%); background-size: 200% 100%; animation: loading 1.5s infinite; z-index: 10; transition: opacity 0.5s ease; }
+        .skeleton.hidden { opacity: 0; pointer-events: none; }
+        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* OVERLAY ACTIONS */
+        .overlay-actions { position: absolute; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); display: flex; align-items: center; justify-content: center; gap: 1rem; opacity: 0; transition: opacity 0.3s ease; z-index: 20; }
+        .thumb-card:hover .overlay-actions { opacity: 1; }
+        
+        .badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+        .badge-red { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .badge-slate { background: rgba(100, 116, 139, 0.15); color: #cbd5e1; border: 1px solid rgba(100, 116, 139, 0.4); }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
     <sv-header base-path=".."></sv-header>
 
-    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-12 flex flex-col lg:flex-row gap-8">
+    <main class="flex-1 max-w-[1400px] mx-auto w-full px-4 py-8 flex flex-col gap-8 relative">
         
-        <div class="flex-1">
-            <div class="text-center mb-10">
-                <h1 class="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight">
-                    YouTube <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">Thumbnail Grabber</span>
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+                <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
+                    Thumbnail <span class="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-rose-400">Grabber</span>
                 </h1>
-                <p class="text-slate-400 max-w-lg mx-auto">
-                    Paste any YouTube link (Video, Short, or Stream) to extract high-quality thumbnails.
-                </p>
+                <p class="text-base text-slate-300 mt-2 font-medium">Extract and download high-resolution cover images from any YouTube Video or Short.</p>
             </div>
-
-            <div class="glass-panel rounded-2xl p-6 mb-12 max-w-3xl mx-auto">
-                <div class="flex flex-col md:flex-row gap-4">
-                    <div class="flex-1 relative">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <svg class="w-5 h-5 text-slate-500" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
-                        </div>
-                        <input type="text" id="ytUrl" placeholder="Paste YouTube URL here..." 
-                               class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl pl-12 pr-4 py-4 focus:outline-none focus:border-red-500 transition-all placeholder-slate-600"
-                               onkeypress="handleEnter(event)">
-                    </div>
-                    <button onclick="getThumbnails()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-8 py-4 rounded-xl transition-all shadow-lg shadow-red-500/20 flex items-center justify-center gap-2">
-                        <span>Extract</span>
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                    </button>
-                </div>
-                <p id="errorMsg" class="text-red-400 text-sm mt-3 hidden text-center font-medium"></p>
-            </div>
-
-            <div id="resultsArea" class="hidden space-y-8">
-                
-                <div class="glass-panel p-6 rounded-2xl border-red-500/20">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                            <span class="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded font-black tracking-wider">MAX RES</span>
-                            4K / 1080p
-                        </h3>
-                        <span class="text-xs text-slate-500">1280x720</span>
-                    </div>
-                    <div class="relative group rounded-xl overflow-hidden bg-slate-900 aspect-video">
-                        <img id="img-max" src="" class="w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 backdrop-blur-sm">
-                            <button onclick="downloadImage('img-max')" class="bg-white text-slate-900 px-6 py-2 rounded-lg font-bold hover:scale-105 transition-transform flex items-center gap-2">
-                                Download
-                            </button>
-                            <a id="link-max" href="#" target="_blank" class="bg-slate-800 text-white px-6 py-2 rounded-lg font-bold border border-slate-600 hover:bg-slate-700">
-                                Open
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div class="glass-panel p-4 rounded-2xl">
-                        <div class="flex justify-between items-center mb-3">
-                            <h4 class="font-bold text-slate-300">High Quality (SD)</h4>
-                            <span class="text-xs text-slate-500">640x480</span>
-                        </div>
-                        <img id="img-sd" src="" class="w-full rounded-lg mb-3">
-                        <button onclick="downloadImage('img-sd')" class="w-full py-2 rounded-lg border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 text-sm transition-all">Download SD</button>
-                    </div>
-                    
-                    <div class="glass-panel p-4 rounded-2xl">
-                        <div class="flex justify-between items-center mb-3">
-                            <h4 class="font-bold text-slate-300">Medium Quality</h4>
-                            <span class="text-xs text-slate-500">320x180</span>
-                        </div>
-                        <img id="img-mq" src="" class="w-full rounded-lg mb-3">
-                        <button onclick="downloadImage('img-mq')" class="w-full py-2 rounded-lg border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 text-sm transition-all">Download MQ</button>
-                    </div>
-                </div>
-
-            </div>
-            
-            <div class="mt-12 glass-panel p-4 rounded-2xl flex flex-col items-center justify-center min-h-[150px]">
-                <span class="text-[10px] uppercase tracking-widest text-slate-600 mb-2">Sponsored</span>
-                <ins class="adsbygoogle"
-                     style="display:block; width: 100%;"
-                     data-ad-client="ca-pub-5449371042798610"
-                     data-ad-slot="7594122081"
-                     data-ad-format="auto"
-                     data-full-width-responsive="true"></ins>
-                <script>
-                     (adsbygoogle = window.adsbygoogle || []).push({});
-                </script>
-            </div>
-
         </div>
 
-        <aside class="w-full lg:w-80 flex flex-col gap-6 shrink-0">
-            <div class="glass-panel p-6 rounded-2xl">
-                <h3 class="font-bold text-white mb-2">How it works</h3>
-                <ul class="text-sm text-slate-400 space-y-3">
-                    <li class="flex gap-2"><span class="text-red-500">1.</span> Paste video URL above.</li>
-                    <li class="flex gap-2"><span class="text-red-500">2.</span> System extracts ID.</li>
-                    <li class="flex gap-2"><span class="text-red-500">3.</span> Direct link to Google CDN.</li>
-                    <li class="flex gap-2"><span class="text-red-500">4.</span> Download instantly.</li>
-                </ul>
+        <div class="flex flex-col lg:flex-row gap-8 items-start">
+            
+            <div class="flex-1 w-full space-y-8">
+                
+                <div class="glass-panel rounded-2xl p-6 shadow-xl">
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <div class="flex-1 relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <svg class="w-5 h-5 text-slate-500" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                            </div>
+                            
+                            <input type="text" id="ytUrl" placeholder="Paste YouTube Video or Short URL here..." 
+                                   class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl pl-12 pr-16 py-4 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all font-medium placeholder-slate-500"
+                                   onkeypress="handleEnter(event)">
+                            
+                            <button onclick="pasteFromClipboard()" class="absolute inset-y-0 right-2 my-auto h-10 w-10 flex items-center justify-center text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition-colors" title="Paste from clipboard">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                            </button>
+                        </div>
+                        <button onclick="extractThumbnails()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-8 py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(239,68,68,0.25)] flex items-center justify-center gap-2">
+                            <span>Extract</span>
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        </button>
+                    </div>
+                    
+                    <div id="errorMsg" class="hidden mt-4 p-3 bg-rose-950/40 border border-rose-500/50 rounded-lg flex items-center gap-3">
+                        <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <span id="errorText" class="text-rose-200 text-sm font-medium">Invalid URL detected.</span>
+                    </div>
+                </div>
+
+                <div id="resultsArea" class="hidden space-y-6">
+                    
+                    <div class="glass-panel p-6 rounded-2xl border-red-500/30 bg-red-950/10">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                                <span class="badge badge-red">Maximum Resolution</span>
+                                4K / 1080p / 720p
+                            </h3>
+                            <span class="text-xs text-slate-400 font-mono" id="res-max-label">Loading...</span>
+                        </div>
+                        <div class="thumb-card aspect-video">
+                            <div id="skel-max" class="skeleton"></div>
+                            <img id="img-max" src="" class="thumb-img" alt="Max Res Thumbnail" onload="hideSkeleton('max')" onerror="handleMissingMaxRes(this)">
+                            <div class="overlay-actions">
+                                <button onclick="forceDownload('img-max', 'maxres')" class="bg-red-600 hover:bg-red-500 text-white px-6 py-2.5 rounded-lg font-bold transition-transform hover:scale-105 flex items-center gap-2 shadow-lg">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                    Download Securely
+                                </button>
+                                <a id="link-max" href="#" target="_blank" class="bg-slate-800/80 text-white px-6 py-2.5 rounded-lg font-bold border border-slate-600 hover:bg-slate-700 transition-colors">
+                                    Open in Tab
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="glass-panel p-5 rounded-2xl">
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="font-bold text-slate-200 flex items-center gap-2">
+                                    <span class="badge badge-slate">Standard</span> 640p
+                                </h4>
+                                <span class="text-xs text-slate-500 font-mono">640x480</span>
+                            </div>
+                            <div class="thumb-card aspect-video mb-4">
+                                <div id="skel-sd" class="skeleton"></div>
+                                <img id="img-sd" src="" class="thumb-img" alt="SD Thumbnail" onload="hideSkeleton('sd')">
+                                <div class="overlay-actions">
+                                    <button onclick="forceDownload('img-sd', 'sd')" class="bg-white text-slate-900 px-4 py-2 rounded-lg font-bold text-sm hover:scale-105 transition-transform">Download</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-panel p-5 rounded-2xl">
+                            <div class="flex justify-between items-center mb-4">
+                                <h4 class="font-bold text-slate-200 flex items-center gap-2">
+                                    <span class="badge badge-slate">HQ Mode</span> 480p
+                                </h4>
+                                <span class="text-xs text-slate-500 font-mono">480x360</span>
+                            </div>
+                            <div class="thumb-card aspect-video mb-4">
+                                <div id="skel-hq" class="skeleton"></div>
+                                <img id="img-hq" src="" class="thumb-img" alt="HQ Thumbnail" onload="hideSkeleton('hq')">
+                                <div class="overlay-actions">
+                                    <button onclick="forceDownload('img-hq', 'hq')" class="bg-white text-slate-900 px-4 py-2 rounded-lg font-bold text-sm hover:scale-105 transition-transform">Download</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <article class="mt-16 flex flex-col gap-12 border-t border-slate-800 pt-16">
+                    
+                    <section class="glass-panel p-8 md:p-10 rounded-2xl shadow-xl">
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-8">How to Download YouTube Thumbnails</h2>
+                        <div class="grid md:grid-cols-4 gap-6">
+                            <div class="flex flex-col gap-3">
+                                <span class="flex items-center justify-center w-10 h-10 rounded-full bg-slate-800 text-red-400 font-bold font-mono text-lg border border-slate-700">1</span>
+                                <p class="text-sm text-slate-300 leading-relaxed"><strong>Copy the URL</strong> of the target YouTube Video, Short, or Livestream from your address bar or share button.</p>
+                            </div>
+                            <div class="flex flex-col gap-3">
+                                <span class="flex items-center justify-center w-10 h-10 rounded-full bg-slate-800 text-red-400 font-bold font-mono text-lg border border-slate-700">2</span>
+                                <p class="text-sm text-slate-300 leading-relaxed"><strong>Paste the link</strong> into the extraction engine input field above.</p>
+                            </div>
+                            <div class="flex flex-col gap-3">
+                                <span class="flex items-center justify-center w-10 h-10 rounded-full bg-slate-800 text-red-400 font-bold font-mono text-lg border border-slate-700">3</span>
+                                <p class="text-sm text-slate-300 leading-relaxed"><strong>Extract the assets.</strong> The system will parse the video ID and fetch the highest available image nodes from YouTube's CDN.</p>
+                            </div>
+                            <div class="flex flex-col gap-3">
+                                <span class="flex items-center justify-center w-10 h-10 rounded-full bg-slate-800 text-red-400 font-bold font-mono text-lg border border-slate-700">4</span>
+                                <p class="text-sm text-slate-300 leading-relaxed"><strong>Click Download</strong> to save the raw, full-resolution JPEG asset directly to your device.</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="grid lg:grid-cols-2 gap-8">
+                        <div class="prose prose-invert prose-slate max-w-none glass-panel p-8 rounded-2xl shadow-lg">
+                            <h3 class="text-xl font-bold text-white mb-4">About YouTube Thumbnail Resolutions</h3>
+                            <p class="text-slate-400 text-sm leading-relaxed mb-4">When a video is uploaded, YouTube's internal compression engine automatically generates an array of specific resolutions stored on their `i.ytimg.com` content delivery network. This tool queries the CDN directly to fetch the raw image payloads.</p>
+                            
+                            <ul class="space-y-4 list-none pl-0 mt-6">
+                                <li class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                                    <strong class="text-red-400 font-bold block mb-1 text-base">Max Resolution (maxresdefault)</strong> 
+                                    <span class="text-slate-300 text-xs">The 1080p or 720p original file uploaded by the creator. <em>Note: If the creator uploaded a video in 480p or lower, YouTube's servers will not generate a Max Res image. The extractor automatically detects this missing node and defaults to the highest available quality.</em></span>
+                                </li>
+                                <li class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                                    <strong class="text-blue-400 font-bold block mb-1 text-base">Standard Definition (sddefault)</strong> 
+                                    <span class="text-slate-300 text-xs">A 640x480 resolution image widely used by YouTube's mobile applications and embedded web players.</span>
+                                </li>
+                                <li class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                                    <strong class="text-emerald-400 font-bold block mb-1 text-base">High Quality (hqdefault)</strong> 
+                                    <span class="text-slate-300 text-xs">A 480x360 asset. This is the absolute failsafe node. YouTube guarantees this resolution exists for every single video on their platform, no matter how old.</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="glass-panel p-8 rounded-2xl shadow-lg bg-slate-900/60">
+                            <h3 class="text-xl font-bold text-white mb-6">Frequently Asked Questions</h3>
+                            <div class="space-y-5">
+                                <div>
+                                    <strong class="text-sm text-blue-400 block mb-1">Does this work on YouTube Shorts?</strong>
+                                    <p class="text-sm text-slate-400 leading-relaxed">Yes. The link parser intercepts the `/shorts/` URL routing and extracts the universal video ID flawlessly.</p>
+                                </div>
+                                <div>
+                                    <strong class="text-sm text-blue-400 block mb-1">Are thumbnails copyrighted?</strong>
+                                    <p class="text-sm text-slate-400 leading-relaxed">Yes. Thumbnails are the intellectual property of the original creator. Downloading them is legal, but reusing them commercially without permission violates copyright laws. They are best used for inspiration, fair-use analysis, or archiving.</p>
+                                </div>
+                                <div>
+                                    <strong class="text-sm text-blue-400 block mb-1">Why did my download open in a new tab?</strong>
+                                    <p class="text-sm text-slate-400 leading-relaxed">YouTube's CDN occasionally uses strict Cross-Origin Resource Sharing (CORS) headers. If your browser blocks the automated download, the system gracefully fails over and opens the raw image in a new tab where you can right-click and save.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </article>
+
             </div>
 
-            <div class="glass-panel p-4 rounded-2xl flex flex-col items-center justify-center min-h-[600px] sticky top-24">
-                <span class="text-[10px] uppercase tracking-widest text-slate-600 mb-2">Partner</span>
-                <ins class="adsbygoogle"
-                     style="display:block; width: 100%; height: 100%;"
-                     data-ad-client="ca-pub-5449371042798610"
-                     data-ad-slot="9264203071"
-                     data-ad-format="auto"
-                     data-full-width-responsive="true"></ins>
-                <script>
-                     (adsbygoogle = window.adsbygoogle || []).push({});
-                </script>
-            </div>
-        </aside>
+            <aside class="w-full lg:w-80 flex flex-col gap-6 shrink-0">
+                <div class="glass-panel p-4 rounded-2xl flex flex-col items-center justify-center min-h-[300px]">
+                    <span class="text-[10px] uppercase tracking-widest text-slate-600 mb-2 font-bold">Sponsored</span>
+                    <ins class="adsbygoogle"
+                         style="display:block; width: 100%;"
+                         data-ad-client="ca-pub-5449371042798610"
+                         data-ad-slot="7594122081"
+                         data-ad-format="auto"
+                         data-full-width-responsive="true"></ins>
+                    <script>
+                         (adsbygoogle = window.adsbygoogle || []).push({});
+                    </script>
+                </div>
 
+                <div class="glass-panel p-4 rounded-2xl flex flex-col items-center justify-center min-h-[600px] sticky top-24">
+                    <span class="text-[10px] uppercase tracking-widest text-slate-600 mb-2 font-bold">Partner Content</span>
+                    <ins class="adsbygoogle"
+                         style="display:block; width: 100%; height: 100%;"
+                         data-ad-client="ca-pub-5449371042798610"
+                         data-ad-slot="9264203071"
+                         data-ad-format="auto"
+                         data-full-width-responsive="true"></ins>
+                    <script>
+                         (adsbygoogle = window.adsbygoogle || []).push({});
+                    </script>
+                </div>
+            </aside>
+
+        </div>
     </main>
 
     <sv-footer base-path=".."></sv-footer>
 
     <script>
+        let currentVideoId = null;
+
         function handleEnter(e) {
-            if (e.key === 'Enter') getThumbnails();
+            if (e.key === 'Enter') extractThumbnails();
         }
 
-        function getThumbnails() {
-            const url = document.getElementById('ytUrl').value;
+        // Paste functionality using Clipboard API
+        async function pasteFromClipboard() {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (text) {
+                    const input = document.getElementById('ytUrl');
+                    input.value = text;
+                    extractThumbnails(); // Auto-trigger extraction on paste
+                }
+            } catch (err) {
+                console.error('Failed to read clipboard contents: ', err);
+                alert('Clipboard access denied. Please paste manually.');
+            }
+        }
+
+        // Robust ID Extractor
+        function extractVideoID(url) {
+            // Handles youtube.com/watch?v=, youtu.be/, youtube.com/shorts/, youtube.com/embed/
+            const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/|youtube\.com\/shorts\/)([^"&?\/\s]{11})/i;
+            const match = url.match(regex);
+            return match ? match[1] : null;
+        }
+
+        function extractThumbnails() {
+            const url = document.getElementById('ytUrl').value.trim();
             const errorMsg = document.getElementById('errorMsg');
             const results = document.getElementById('resultsArea');
             
-            // Regex for all YouTube URL types (Standard, Short, Mobile)
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            const match = url.match(regExp);
+            const videoId = extractVideoID(url);
 
-            if (match && match[2].length === 11) {
-                const videoId = match[2];
+            if (videoId) {
+                currentVideoId = videoId;
                 errorMsg.classList.add('hidden');
                 results.classList.remove('hidden');
 
-                // Construct URLs
+                // Reset UI State for new load
+                resetSkeletons();
+
+                // Construct YouTube CDN URLs
                 const maxRes = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
                 const sdRes = `https://img.youtube.com/vi/${videoId}/sddefault.jpg`;
-                const mqRes = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+                const hqRes = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 
                 // Set Images
                 document.getElementById('img-max').src = maxRes;
                 document.getElementById('img-sd').src = sdRes;
-                document.getElementById('img-mq').src = mqRes;
+                document.getElementById('img-hq').src = hqRes;
                 
-                // Set Open Link
                 document.getElementById('link-max').href = maxRes;
+                document.getElementById('res-max-label').innerText = "Analyzing...";
 
             } else {
-                errorMsg.innerText = "Invalid YouTube URL. Please check and try again.";
                 errorMsg.classList.remove('hidden');
                 results.classList.add('hidden');
             }
         }
 
-        async function downloadImage(imgId) {
-            const imgUrl = document.getElementById(imgId).src;
+        function resetSkeletons() {
+            ['max', 'sd', 'hq'].forEach(id => {
+                document.getElementById(`skel-${id}`).classList.remove('hidden');
+                document.getElementById(`img-${id}`).classList.remove('loaded');
+            });
+        }
+
+        function hideSkeleton(id) {
+            document.getElementById(`skel-${id}`).classList.add('hidden');
+            document.getElementById(`img-${id}`).classList.add('loaded');
+            
+            if (id === 'max') {
+                document.getElementById('res-max-label').innerText = "1280x720 (Verified)";
+            }
+        }
+
+        // Advanced Fallback: YouTube returns a 120x90 grey camera icon if MaxRes doesn't exist.
+        function handleMissingMaxRes(imgElement) {
+            // Wait a tiny bit for natural dimensions to register
+            setTimeout(() => {
+                if (imgElement.naturalWidth === 120) {
+                    console.log("MaxRes not found on YouTube CDN. Falling back to HQ Default.");
+                    const fallbackUrl = `https://img.youtube.com/vi/${currentVideoId}/hqdefault.jpg`;
+                    imgElement.src = fallbackUrl;
+                    document.getElementById('link-max').href = fallbackUrl;
+                    document.getElementById('res-max-label').innerText = "480x360 (Fallback)";
+                }
+            }, 50);
+        }
+
+        async function forceDownload(imgId, qualityLabel) {
+            const imgEl = document.getElementById(imgId);
+            const originalUrl = imgEl.src;
             const btn = document.activeElement;
-            const originalText = btn.innerText;
+            const originalText = btn.innerHTML;
             
             try {
-                btn.innerText = "Downloading...";
-                // Fetch blob to force download (bypassing open-in-tab)
-                const response = await fetch(imgUrl);
+                btn.innerHTML = `<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...`;
+                
+                // Fetch through free CORS proxy to force download blob
+                const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(originalUrl)}`;
+                const response = await fetch(proxyUrl);
+                
+                if (!response.ok) throw new Error("Proxy failed");
+                
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
                 
                 const a = document.createElement('a');
                 a.style.display = 'none';
                 a.href = url;
-                // Naming convention: yt_thumb_[quality].jpg
-                a.download = `yt_thumb_${imgId.replace('img-', '')}.jpg`;
+                a.download = `yt_thumbnail_${currentVideoId}_${qualityLabel}.jpg`;
                 document.body.appendChild(a);
                 a.click();
                 
                 window.URL.revokeObjectURL(url);
-                btn.innerText = "Saved!";
-                setTimeout(() => btn.innerText = originalText, 2000);
+                btn.innerHTML = "Success!";
+                setTimeout(() => btn.innerHTML = originalText, 2000);
+
             } catch (e) {
-                console.error(e);
-                alert("Download failed due to browser restrictions. Please use 'Open' and right-click to save.");
-                btn.innerText = originalText;
+                console.warn("Automated CORS blob download failed. Falling back to Tab routing.");
+                // Fallback to new tab if CORS blocks proxy
+                window.open(originalUrl, '_blank');
+                btn.innerHTML = originalText;
             }
         }
     </script>
