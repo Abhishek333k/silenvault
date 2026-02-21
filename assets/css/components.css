@@ -1,0 +1,54 @@
+/* =====================================================================
+   SILENVAULT GLOBAL COMPONENT STYLES 
+   Mounted dynamically via layout.js
+   ===================================================================== */
+
+/* Shared Window Header Controls (MacOS Style) */
+.sv-window-header { display: flex; align-items: center; padding: 0.75rem 1rem; border-bottom: 1px solid rgba(51, 65, 85, 0.5); margin-bottom: 0.5rem; }
+.sv-window-dots { display: flex; gap: 6px; margin-right: 1rem; }
+.sv-dot { width: 12px; height: 12px; border-radius: 50%; opacity: 0.8; }
+.sv-dot-r { background: #f43f5e; border: 1px solid #e11d48; }
+.sv-dot-y { background: #f59e0b; border: 1px solid #d97706; }
+.sv-dot-g { background: #10b981; border: 1px solid #059669; }
+.sv-window-title { font-size: 10px; font-family: 'Fira Code', monospace; font-weight: bold; color: #64748b; letter-spacing: 0.1em; text-transform: uppercase; }
+
+/* Image Display Logic (Fixes the Curved Edge Cropping Issue) */
+.sv-img-contain { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; z-index: 10; filter: drop-shadow(0 10px 25px rgba(0,0,0,0.5)); padding: 1rem; } /* Padding prevents corner clipping */
+.sv-img-cover { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; z-index: 10; opacity: 0.95; } /* Intentionally clips to corners */
+
+/* ==========================================
+   THEME 1: HYBRID (Mac Frame + Blueprint Grid)
+   ID: sv-frame-hybrid
+   ========================================== */
+.sv-frame-hybrid { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(16px); border: 1px solid #334155; border-radius: 1.5rem; padding: 0.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+.sv-viewport-hybrid { position: relative; width: 100%; overflow: hidden; border-radius: 1rem; background-color: #020617; box-shadow: inset 0 2px 25px rgba(0,0,0,0.8); border: 1px solid #1e293b; }
+.sv-bg-blueprint { position: absolute; inset: 0; background-image: linear-gradient(rgba(59, 130, 246, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.08) 1px, transparent 1px); background-size: 20px 20px; z-index: 0; }
+
+/* ==========================================
+   THEME 2: FILLED COVER (Mac Frame + Edge-to-Edge Image)
+   ID: sv-frame-filled
+   ========================================== */
+.sv-frame-filled { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(16px); border: 1px solid #334155; border-radius: 1.5rem; padding: 0.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+.sv-viewport-filled { position: relative; width: 100%; overflow: hidden; border-radius: 1rem; background-color: #020617; box-shadow: inset 0 2px 25px rgba(0,0,0,0.8); border: 1px solid #1e293b; }
+.sv-bg-dots { position: absolute; inset: 0; background-image: radial-gradient(#334155 1px, transparent 1px); background-size: 16px 16px; opacity: 0.3; }
+
+/* ==========================================
+   THEME 3: SOFT GLASS (Heavy Blur, Low Contrast)
+   ID: sv-frame-glass
+   ========================================== */
+.sv-frame-glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border-radius: 1.5rem; border: 1px solid rgba(255,255,255,0.05); padding: 1rem; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+.sv-viewport-glass { position: relative; width: 100%; overflow: hidden; border-radius: 1rem; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.02); }
+
+/* ==========================================
+   SHARED UI ELEMENTS (Sliders, Loaders, Labels)
+   ========================================== */
+.sv-slider { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; background: rgba(255, 255, 255, 0.9); cursor: ew-resize; z-index: 30; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+.sv-slider-handle { position: absolute; width: 32px; height: 32px; background: #ffffff; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; gap: 3px; transition: transform 0.1s ease; border: 1px solid #e2e8f0; }
+.sv-slider:active .sv-slider-handle { transform: scale(1.1); }
+.sv-slider-handle::before, .sv-slider-handle::after { content: ''; width: 2px; height: 10px; background: #94a3b8; border-radius: 2px; }
+
+.sv-label-left { position: absolute; top: 16px; left: 16px; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); color: #cbd5e1; padding: 6px 14px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; z-index: 20; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+.sv-label-right { position: absolute; top: 16px; right: 16px; background: rgba(16, 185, 129, 0.95); backdrop-filter: blur(8px); color: #022c22; padding: 6px 14px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; z-index: 20; border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 4px 15px rgba(16,185,129,0.3); }
+
+.sv-overlay { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.2s ease; opacity: 0; pointer-events: none; border-radius: inherit; }
+.sv-overlay.active { opacity: 1; pointer-events: all; }
