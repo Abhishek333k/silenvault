@@ -13,7 +13,7 @@ export class WebpProcessor {
         // 1. The Standard Scout (Reads compliant metadata)
         let exifData = await window.exifr.parse(buffer, {tiff: true, exif: true, gps: true, xmp: true}) || {};
 
-        // 2. The Rogue Chunk Scout (Hunts down dirty injections that bypass VP8X rules)
+        // 2. The Forensic Rogue Scout (Hunts down dirty injections)
         const view = new DataView(buffer);
         const uint8 = new Uint8Array(buffer);
         
@@ -26,17 +26,29 @@ export class WebpProcessor {
                 
                 // Read 4-letter chunk ID
                 const chunkId = String.fromCharCode(uint8[offset], uint8[offset+1], uint8[offset+2], uint8[offset+3]);
-                const chunkSize = view.getUint32(offset + 4, true); // WebP uses Little Endian
-                const paddedSize = chunkSize + (chunkSize % 2); // Chunks are even-byte aligned
+                const chunkSize = view.getUint32(offset + 4, true); 
+                const paddedSize = chunkSize + (chunkSize % 2); 
                 
                 // If we manually spot an EXIF chunk...
                 if (chunkId === 'EXIF' || chunkId === 'exif') {
                     try {
-                        // Slice out the exact raw payload
                         const payload = buffer.slice(offset + 8, offset + 8 + chunkSize);
+                        const payload8 = new Uint8Array(payload);
                         
-                        // Force-feed it directly into exifr, bypassing WebP container logic
-                        const smuggledData = await window.exifr.parse(payload, {tiff: true, exif: true, gps: true}) || {};
+                        // CRITICAL FIX: Find the exact start of the TIFF header ('II' for Intel or 'MM' for Motorola)
+                        // This strips away the "Exif\x00\x00" garbage padding that chokes standard parsers.
+                        let tiffOffset = 0;
+                        for(let i = 0; i < payload8.length - 1; i++) {
+                            if ((payload8[i] === 0x49 && payload8[i+1] === 0x49) || (payload8[i] === 0x4D && payload8[i+1] === 0x4D)) {
+                                tiffOffset = i;
+                                break;
+                            }
+                        }
+                        
+                        const cleanPayload = payload.slice(tiffOffset);
+                        
+                        // Force-feed the perfectly clean TIFF binary into the parser
+                        const smuggledData = await window.exifr.parse(cleanPayload, {tiff: true, exif: true, gps: true}) || {};
                         
                         let recoveredCount = 0;
                         for (let key in smuggledData) {
@@ -47,7 +59,7 @@ export class WebpProcessor {
                         }
                         
                         if (recoveredCount > 0) {
-                            exifData['Forensic_Alert'] = `Recovered ${recoveredCount} hidden tags from rogue EXIF chunk.`;
+                            exifData['FORENSIC_ALERT'] = `Recovered ${recoveredCount} hidden tracking tags from smuggled EXIF chunk.`;
                         }
                     } catch (e) {
                         console.warn("[WebpProcessor] Failed to force-parse rogue chunk.", e);
@@ -96,7 +108,6 @@ export class WebpProcessor {
             offset += 8 + paddedSize;
         }
 
-        // Stitch the safe chunks back together
         const totalLength = chunksToKeep.reduce((acc, chunk) => acc + chunk.length, 0);
         const cleanBuffer = new Uint8Array(totalLength);
         let writeOffset = 0;
@@ -106,7 +117,6 @@ export class WebpProcessor {
             writeOffset += chunk.length;
         }
 
-        // Fix master file size
         const cleanView = new DataView(cleanBuffer.buffer);
         cleanView.setUint32(4, totalLength - 8, true); 
 
