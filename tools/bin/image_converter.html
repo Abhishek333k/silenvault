@@ -214,7 +214,7 @@
             <p class="text-xs text-slate-300 mt-1">Due to algorithm shifts, this file is quite large. You can easily shrink it without losing visual quality.</p>
         </div>
         <div class="flex flex-col gap-2 shrink-0">
-            <a href="image_compressor.html" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-colors text-center shadow-lg">Compress It</a>
+            <a href="https://www.silenvault.com/tools/image_compressor.html" target="_blank" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-colors text-center shadow-lg">Compress It</a>
             <button onclick="document.getElementById('compressor-toaster').classList.add('translate-y-[150%]'); document.getElementById('compressor-toaster').classList.remove('translate-y-0');" class="text-[10px] text-slate-500 hover:text-white uppercase font-bold tracking-wider text-center w-full">Dismiss</button>
         </div>
     </div>
@@ -352,17 +352,11 @@
                     previewImage.classList.remove('opacity-30');
                     previewImage.classList.remove('hidden');
 
-                    // Intelligent Cross-Sell Toaster: If the file is 90% the size of the original or larger
+                    // Intelligent Cross-Sell Toaster (Persistent): If the file is 90% the size of the original or larger
                     if (originalFile && blob.size > (originalFile.size * 0.90)) {
                         const toaster = document.getElementById('compressor-toaster');
                         toaster.classList.remove('translate-y-[150%]');
                         toaster.classList.add('translate-y-0');
-                        
-                        // Auto-hide toaster after 10 seconds
-                        setTimeout(() => {
-                            toaster.classList.add('translate-y-[150%]');
-                            toaster.classList.remove('translate-y-0');
-                        }, 10000);
                     }
 
                 }, currentTargetMime, 0.95);
@@ -388,6 +382,8 @@
             previewImage.classList.add('hidden');
             loader.classList.add('hidden');
             mattingColor.value = "#FFFFFF";
+            
+            // Hide toaster on reset
             document.getElementById('compressor-toaster').classList.add('translate-y-[150%]');
             document.getElementById('compressor-toaster').classList.remove('translate-y-0');
         };
