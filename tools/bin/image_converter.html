@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <title>High-Speed Image Converter | RAW, HEIC, WebP to JPG | SilenVault</title>
-    <meta name="description" content="Secure, local-first image converter. Convert RAW (CR2, DNG), HEIC, WebP, and PNG to high-quality JPEG or PNG instantly. No uploads, 100% private.">
+    <meta name="description" content="Secure, local-first image converter. Convert RAW (CR2, DNG), HEIC, WebP, and PNG to high-quality JPEG or PNG instantly. Features dynamic matting for transparency. No uploads, 100% private.">
     <meta name="keywords" content="image converter, convert cr2 to jpg, heic to jpg converter, webp to png, raw image converter, dng to jpeg, local image tool, bulk image converter">
     <meta name="author" content="SilenVault">
     <link rel="canonical" href="https://silenvault.com/tools/image_converter.html">
@@ -33,88 +33,126 @@
 
         body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--primary-text); overflow-x: hidden; }
         .glass-panel { background: var(--panel-bg); backdrop-filter: blur(16px); border: 1px solid var(--border-color); transition: all 0.5s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        
-        .drop-zone { border: 2px dashed var(--border-color); border-radius: 1rem; background: rgba(0,0,0,0.2); min-height: 250px; transition: all 0.4s ease; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-        .drop-zone:hover, .drop-zone.dragover { border-color: #60a5fa; background: var(--accent-glow); }
+        .mono { font-family: 'Fira Code', monospace; }
+
+        .drop-zone { border: 2px dashed var(--border-color); border-radius: 1.5rem; background: rgba(0,0,0,0.2); min-height: 350px; transition: all 0.3s ease; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        .drop-zone:hover, .drop-zone.dragover { border-color: #3b82f6; background: var(--accent-glow); }
         .drop-zone input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
 
-        .preview-card { background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); border-radius: 1rem; overflow: hidden; transition: transform 0.3s ease; }
-        .preview-card:hover { transform: translateY(-4px); border-color: #60a5fa; }
+        .format-card { background: #0b1120; border: 1px solid #1e293b; border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.2s ease; text-align: center; display: flex; flex-direction: column; gap: 8px; }
+        .format-card:hover { border-color: #3b82f6; background: rgba(59, 130, 246, 0.05); transform: translateY(-2px); }
+        .format-card.active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
 
-        .loading-spinner { border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid #60a5fa; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .preview-img { max-width: 100%; max-height: 500px; border-radius: 12px; object-fit: contain; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         
-        .badge { font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
-        .badge-pending { background: rgba(100, 116, 139, 0.2); color: #94a3b8; }
-        .badge-success { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        input[type="color"] { -webkit-appearance: none; border: none; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; padding: 0; background: transparent; }
+        input[type="color"]::-webkit-color-swatch { border: 2px solid #334155; border-radius: 8px; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="flex flex-col min-h-screen">
 
     <sv-header base-path=".."></sv-header>
 
-    <main class="flex-1 max-w-[1400px] mx-auto w-full px-4 py-8 flex flex-col gap-8">
+    <main class="flex-1 max-w-[1400px] mx-auto w-full px-4 py-8 flex flex-col gap-6">
         
-        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-2">
             <div>
                 <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
-                    Image <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Converter</span>
+                    Image <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">Converter</span>
                 </h1>
                 <p class="text-base text-slate-300 mt-2 font-medium">Professional-grade, local-first conversion for RAW, HEIC, and WebP assets.</p>
             </div>
         </div>
 
-        <div class="grid lg:grid-cols-12 gap-8">
-            
-            <div class="lg:col-span-4 space-y-6">
-                <div class="glass-panel p-6 rounded-2xl shadow-xl">
-                    <h3 class="text-lg font-bold text-white mb-4">1. Select Images</h3>
-                    <div class="drop-zone relative" id="drop-zone">
-                        <svg class="w-12 h-12 text-slate-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        <p class="text-sm text-slate-400 text-center px-4">Drop files here or click to browse</p>
-                        <input type="file" id="file-input" multiple accept="image/*, .heic, .heif, .dng, .cr2, .nef, .arw, .webp">
-                    </div>
+        <div id="upload-stage" class="glass-panel p-2 rounded-[2rem]">
+            <div id="drop-zone" class="drop-zone">
+                <div class="bg-blue-500/20 p-6 rounded-full mb-4 pointer-events-none">
+                    <svg class="w-12 h-12 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                 </div>
+                <h3 class="text-xl font-bold text-white mb-2 pointer-events-none">Select Image or RAW file</h3>
+                <p class="text-sm text-slate-400 pointer-events-none mb-6">Supports JPEG, PNG, WebP, HEIC, CR2, DNG, NEF</p>
+                <button class="bg-blue-600 px-8 py-3 rounded-xl font-bold text-white shadow-lg pointer-events-none">Browse Files</button>
+                <input type="file" id="file-input" accept="image/*, .heic, .heif, .dng, .cr2, .nef, .arw">
+            </div>
+        </div>
 
-                <div class="glass-panel p-6 rounded-2xl shadow-xl">
-                    <h3 class="text-lg font-bold text-white mb-4">2. Configuration</h3>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Target Format</label>
-                            <select id="target-format" class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-4 py-3 focus:border-blue-500 outline-none transition-all">
-                                <option value="image/jpeg">JPEG (Universal)</option>
-                                <option value="image/png">PNG (Lossless)</option>
-                                <option value="image/webp">WebP (Optimized)</option>
-                            </select>
+        <div id="workspace-stage" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <div class="lg:col-span-5 flex flex-col gap-6">
+                <div class="glass-panel p-6 rounded-3xl border-slate-700">
+                    <div class="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+                        <div class="flex flex-col">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Original Format</span>
+                            <span id="orig-type-badge" class="text-lg font-bold text-slate-300">UNKNOWN</span>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Quality</label>
-                            <input type="range" id="quality-range" min="1" max="100" value="92" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500">
-                            <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-mono">
-                                <span>Fast/Small</span>
-                                <span id="quality-val" class="text-blue-400 font-bold">92%</span>
-                                <span>High Fidelity</span>
+                        <div class="text-right flex flex-col">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Input Size</span>
+                            <span id="size-original" class="text-lg font-bold text-slate-300 mono">0 KB</span>
+                        </div>
+                    </div>
+
+                    <h2 class="text-sm font-bold text-white uppercase tracking-widest mb-4">Select Target Format</h2>
+                    <div class="grid grid-cols-3 gap-3 mb-6">
+                        <div id="btn-webp" class="format-card active" onclick="setFormat('image/webp')">
+                            <span class="text-lg font-black text-blue-400">WebP</span>
+                            <span class="text-[10px] text-slate-500 font-bold uppercase">Optimized</span>
+                        </div>
+                        <div id="btn-jpeg" class="format-card" onclick="setFormat('image/jpeg')">
+                            <span class="text-lg font-black text-white">JPEG</span>
+                            <span class="text-[10px] text-slate-500 font-bold uppercase">Universal</span>
+                        </div>
+                        <div id="btn-png" class="format-card" onclick="setFormat('image/png')">
+                            <span class="text-lg font-black text-white">PNG</span>
+                            <span class="text-[10px] text-slate-500 font-bold uppercase">Lossless</span>
+                        </div>
+                    </div>
+
+                    <div id="options-panel" class="mb-6">
+                        <div id="option-matting" class="hidden bg-[#0b1120] border border-slate-800 rounded-xl p-5">
+                            <label class="text-xs font-bold text-slate-400 block mb-2">Transparency Matting Color</label>
+                            <div class="flex items-center gap-3">
+                                <input type="color" id="matting-color" value="#FFFFFF" oninput="executeConversion()">
+                                <span class="text-[10px] text-slate-500 leading-tight">JPEGs don't support transparency. Pick a color to fill transparent areas.</span>
                             </div>
                         </div>
-                        <button id="btn-convert-all" disabled class="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-30 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 mt-4">
-                            <span>Process Queue</span>
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        <div id="option-png-info" class="hidden">
+                            <span class="flex items-center gap-2 text-xs font-bold text-emerald-500 bg-emerald-500/10 p-3 rounded-xl border border-emerald-500/20">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Converting to PNG is lossless. File size will increase.
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center px-2 mb-6">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Output File Size</span>
+                        <span id="size-new" class="text-xl font-bold text-emerald-400 mono">Calculating...</span>
+                    </div>
+
+                    <div class="flex flex-col gap-3">
+                        <button onclick="downloadImage()" id="btn-download" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-6 py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(59,130,246,0.4)] flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            Download Converted Image
+                        </button>
+                        <button onclick="resetApp()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-bold px-6 py-3 rounded-xl transition-all border border-slate-700 flex items-center justify-center gap-2">
+                            Convert Another
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div class="lg:col-span-8">
-                <div id="empty-state" class="glass-panel rounded-3xl p-12 flex flex-col items-center justify-center text-center border-dashed">
-                    <div class="p-4 bg-slate-800 rounded-full mb-4">
-                        <svg class="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                    </div>
-                    <p class="text-slate-400 font-medium">Queue is currently empty.<br>Upload images to begin processing.</p>
+            <div class="lg:col-span-7 glass-panel p-6 rounded-3xl border-slate-700 flex flex-col items-center justify-center min-h-[500px] relative bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAACVJREFUKFNjZCASMDKgAnv37v3PBEWQQRTFMAkMmAwwKTIBAJ2cAxVqFpY7AAAAAElFTkSuQmCC')]">
+                <div class="absolute top-4 left-4 bg-slate-900/80 backdrop-blur text-white text-[10px] font-mono px-3 py-1 rounded-lg border border-slate-700 z-10">
+                    Real-time Preview
                 </div>
-
-                <div id="file-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                <div id="conversion-loader" class="hidden flex flex-col items-center gap-4">
+                    <div class="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+                    <p class="text-xs font-bold text-slate-400 animate-pulse">DEVELOPING IMAGE...</p>
+                </div>
+                <img id="preview-image" class="preview-img" alt="Image Preview">
             </div>
         </div>
+
+        <canvas id="convert-canvas" class="hidden"></canvas>
 
         <article class="mt-20 flex flex-col gap-12 border-t border-slate-800 pt-16">
             
@@ -123,19 +161,19 @@
                 <div class="grid md:grid-cols-4 gap-6">
                     <div class="flex flex-col gap-3">
                         <span class="flex items-center justify-center w-10 h-10 rounded-full bg-slate-800 text-blue-400 font-bold font-mono text-lg border border-slate-700 shadow-inner">1</span>
-                        <p class="text-sm text-slate-300 leading-relaxed"><strong>Drag or Paste:</strong> Add your images or DSLR RAW files to the converter. Batch processing is supported.</p>
+                        <p class="text-sm text-slate-300 leading-relaxed"><strong>Drag or Select:</strong> Add your image, iPhone HEIC, or DSLR RAW files to the converter.</p>
                     </div>
                     <div class="flex flex-col gap-3">
                         <span class="flex items-center justify-center w-10 h-10 rounded-full bg-slate-800 text-blue-400 font-bold font-mono text-lg border border-slate-700 shadow-inner">2</span>
-                        <p class="text-sm text-slate-300 leading-relaxed"><strong>Set Target:</strong> Choose your output format (JPG, PNG, WebP) and fidelity level.</p>
+                        <p class="text-sm text-slate-300 leading-relaxed"><strong>Configure Output:</strong> Select WebP, JPEG, or PNG and adjust the matting color for transparency.</p>
                     </div>
                     <div class="flex flex-col gap-3">
                         <span class="flex items-center justify-center w-10 h-10 rounded-full bg-slate-800 text-blue-400 font-bold font-mono text-lg border border-slate-700 shadow-inner">3</span>
-                        <p class="text-sm text-slate-300 leading-relaxed"><strong>Convert:</strong> Click "Process Queue". All logic executes in your local RAM for maximum security.</p>
+                        <p class="text-sm text-slate-300 leading-relaxed"><strong>Wait for Render:</strong> The system repaints the pixel matrix locally in your browser's RAM.</p>
                     </div>
                     <div class="flex flex-col gap-3">
                         <span class="flex items-center justify-center w-10 h-10 rounded-full bg-slate-800 text-blue-400 font-bold font-mono text-lg border border-slate-700 shadow-inner">4</span>
-                        <p class="text-sm text-slate-300 leading-relaxed"><strong>Save:</strong> Download your optimized files individually once the status indicator turns green.</p>
+                        <p class="text-sm text-slate-300 leading-relaxed"><strong>Download:</strong> Save your converted, privacy-scrubbed file instantly to your device.</p>
                     </div>
                 </div>
             </section>
@@ -143,13 +181,13 @@
             <section class="grid lg:grid-cols-2 gap-8">
                 <div class="prose prose-invert prose-slate max-w-none glass-panel p-8 rounded-2xl shadow-lg">
                     <h3 class="text-xl font-bold text-white mb-4">Architecture & Privacy</h3>
-                    <p class="text-slate-400 text-sm leading-relaxed mb-4">This system utilizes a <strong>Zero-Knowledge Workflow</strong>. Your files are never transmitted to a remote server. Instead, the system uses:</p>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-4">This system utilizes a <strong>Zero-Trust Workflow</strong>. Unlike traditional converters, your files are never transmitted to a remote server. Instead, the system uses:</p>
                     <ul class="space-y-4 list-none pl-0 mt-6 text-sm">
                         <li class="bg-slate-800/50 p-4 rounded-lg border border-slate-700 text-slate-300">
                             <strong class="text-blue-400 block mb-1">Canvas API Rendering:</strong> For web formats, the browser repaints the pixel matrix directly into the new format buffer.
                         </li>
                         <li class="bg-slate-800/50 p-4 rounded-lg border border-slate-700 text-slate-300">
-                            <strong class="text-rose-400 block mb-1">WASM RAW Engine:</strong> For CR2 and DNG files, a high-performance WebAssembly module extracts high-fidelity data locally.
+                            <strong class="text-rose-400 block mb-1">HEIC/RAW Bridge:</strong> We use specialized logic to convert proprietary Apple and DSLR formats into renderable web assets locally.
                         </li>
                     </ul>
                 </div>
@@ -157,12 +195,12 @@
                     <h3 class="text-xl font-bold text-white mb-6">Frequently Asked Questions</h3>
                     <div class="space-y-5 text-sm">
                         <div>
-                            <strong class="text-blue-400 block mb-1">Is there a limit on file size?</strong>
-                            <p class="text-slate-400">The limit is determined by your system's available RAM. Most modern devices handle up to 100MB per file flawlessly.</p>
+                            <strong class="text-blue-400 block mb-1">Is there a file size limit?</strong>
+                            <p class="text-slate-400">The limit is determined by your system's available RAM. Most devices handle up to 100MB flawlessly.</p>
                         </div>
                         <div>
                             <strong class="text-blue-400 block mb-1">Are my photos stored?</strong>
-                            <p class="text-slate-400">No. Once you close this tab, all processed data is cleared from your browser's temporary memory.</p>
+                            <p class="text-slate-400">No. Processing is 100% ephemeral. Once you close this tab, all data is purged from memory.</p>
                         </div>
                     </div>
                 </div>
@@ -173,162 +211,131 @@
     <sv-footer base-path=".."></sv-footer>
 
     <script type="module">
-        import { ProcessorFactory } from '../assets/js/exif_processors/Dispatcher.js?v=13.0';
+        import { ProcessorFactory } from '../assets/js/exif_processors/Dispatcher.js?v=14.0';
+
+        let originalImageObj = new Image();
+        let originalFile = null;
+        let convertedBlob = null;
+        let currentTargetMime = 'image/webp';
 
         const fileInput = document.getElementById('file-input');
-        const fileList = document.getElementById('file-list');
-        const emptyState = document.getElementById('empty-state');
-        const qRange = document.getElementById('quality-range');
-        const qVal = document.getElementById('quality-val');
-        const btnAll = document.getElementById('btn-convert-all');
+        const dropZone = document.getElementById('drop-zone');
+        const stageUpload = document.getElementById('upload-stage');
+        const stageWorkspace = document.getElementById('workspace-stage');
+        const canvas = document.getElementById('convert-canvas');
+        const ctx = canvas.getContext('2d');
+        const previewImage = document.getElementById('preview-image');
+        const loader = document.getElementById('conversion-loader');
+        
+        const origTypeBadge = document.getElementById('orig-type-badge');
+        const elSizeOrig = document.getElementById('size-original');
+        const elSizeNew = document.getElementById('size-new');
+        const mattingColor = document.getElementById('matting-color');
 
-        let queue = [];
+        // Drag & Drop Listeners
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, (ev) => { ev.preventDefault(); ev.stopPropagation(); }));
+        dropZone.addEventListener('dragover', () => dropZone.classList.add('dragover'));
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => { dropZone.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
+        fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
 
-        qRange.oninput = () => qVal.innerText = `${qRange.value}%`;
-
-        // Handle File Selection
-        fileInput.onchange = (e) => {
-            const files = Array.from(e.target.files);
-            if (files.length > 0) {
-                emptyState.classList.add('hidden');
-                btnAll.disabled = false;
-                files.forEach(f => addToFileList(f));
-            }
-        };
-
-        // Handle Drag & Drop
-        const dz = document.getElementById('drop-zone');
-        dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
-        dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
-        dz.addEventListener('drop', e => {
-            e.preventDefault();
-            dz.classList.remove('dragover');
-            const files = Array.from(e.dataTransfer.files);
-            if (files.length > 0) {
-                emptyState.classList.add('hidden');
-                btnAll.disabled = false;
-                files.forEach(f => addToFileList(f));
-            }
-        });
-
-        async function addToFileList(file) {
-            const ext = file.name.split('.').pop().toUpperCase();
-            const processor = ProcessorFactory.create(file, ext);
-            const id = Math.random().toString(36).substr(2, 9);
+        async function handleFile(file) {
+            if (!file) return;
+            originalFile = file;
             
-            const item = { id, file, processor, status: 'pending', outputBlob: null };
+            stageUpload.classList.add('hidden');
+            stageWorkspace.classList.remove('hidden');
+            previewImage.classList.add('hidden');
+            loader.classList.remove('hidden');
 
-            const card = document.createElement('div');
-            card.id = `card-${id}`;
-            card.className = 'preview-card p-4 flex items-center gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300';
-            card.innerHTML = `
-                <div class="w-16 h-16 rounded-lg bg-slate-900 flex-shrink-0 flex items-center justify-center overflow-hidden border border-slate-700 relative">
-                    <img id="thumb-${id}" class="w-full h-full object-cover hidden">
-                    <span id="icon-${id}" class="text-[10px] font-bold text-slate-500">${ext}</span>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-bold text-white truncate">${file.name}</p>
-                    <p class="text-[10px] text-slate-500 font-mono">${(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                </div>
-                <div id="status-${id}">
-                    <span class="badge badge-pending">Pending</span>
-                </div>
-                <button class="remove-btn text-slate-600 hover:text-rose-500 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            `;
-
-            card.querySelector('.remove-btn').onclick = () => {
-                card.remove();
-                queue = queue.filter(q => q.id !== id);
-                if(queue.length === 0) {
-                    emptyState.classList.remove('hidden');
-                    btnAll.disabled = true;
-                }
-            };
-
-            fileList.appendChild(card);
-            queue.push(item);
+            const ext = file.name.split('.').pop().toUpperCase();
+            origTypeBadge.innerText = ext;
+            elSizeOrig.innerText = formatBytes(file.size);
 
             try {
+                // Use the Engine Dispatcher to get a renderable preview
+                const processor = ProcessorFactory.create(file, ext);
                 const url = await processor.getPreviewUrl();
-                if (url) {
-                    const img = document.getElementById(`thumb-${id}`);
-                    img.src = url;
-                    img.classList.remove('hidden');
-                    document.getElementById(`icon-${id}`).classList.add('hidden');
-                }
-            } catch(e) { console.warn("Preview failed", e); }
+                
+                originalImageObj.onload = () => {
+                    loader.classList.add('hidden');
+                    previewImage.classList.remove('hidden');
+                    executeConversion();
+                };
+                originalImageObj.src = url;
+            } catch (e) {
+                alert("Could not load file. Please try a standard image format.");
+                resetApp();
+            }
         }
 
-        btnAll.onclick = async () => {
-            const targetMime = document.getElementById('target-format').value;
-            const quality = parseInt(qRange.value) / 100;
+        window.setFormat = (mimeType) => {
+            currentTargetMime = mimeType;
             
-            btnAll.disabled = true;
-            btnAll.innerHTML = `<div class="loading-spinner scale-50"></div> Processing...`;
-
-            for (let item of queue) {
-                if (item.status === 'done') continue;
-                const statusEl = document.getElementById(`status-${item.id}`);
-                statusEl.innerHTML = `<div class="loading-spinner scale-50"></div>`;
-
-                try {
-                    // Logic to utilize the specialized processor engines
-                    const canvas = document.createElement('canvas');
-                    const img = new Image();
-                    const previewUrl = await item.processor.getPreviewUrl();
-
-                    const blob = await new Promise((resolve, reject) => {
-                        img.onload = () => {
-                            canvas.width = img.naturalWidth;
-                            canvas.height = img.naturalHeight;
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(img, 0, 0);
-                            canvas.toBlob(b => resolve(b), targetMime, quality);
-                        };
-                        img.onerror = reject;
-                        img.src = previewUrl;
-                    });
-
-                    item.outputBlob = blob;
-                    item.status = 'done';
-                    
-                    statusEl.innerHTML = `
-                        <button onclick="window.downloadFile('${item.id}')" class="p-2 bg-emerald-600/20 text-emerald-400 rounded-lg hover:bg-emerald-600 hover:text-white transition-all">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                        </button>
-                    `;
-                } catch (e) {
-                    console.error(e);
-                    statusEl.innerHTML = `<span class="badge bg-rose-500/20 text-rose-500">Error</span>`;
+            // UI Toggle
+            ['webp', 'jpeg', 'png'].forEach(f => {
+                const btn = document.getElementById(`btn-${f}`);
+                if (mimeType.includes(f)) {
+                    btn.classList.add('active');
+                    btn.querySelector('span').classList.replace('text-white', 'text-blue-400');
+                } else {
+                    btn.classList.remove('active');
+                    btn.querySelector('span').classList.replace('text-blue-400', 'text-white');
                 }
+            });
+
+            document.getElementById('option-matting').classList.toggle('hidden', mimeType !== 'image/jpeg');
+            document.getElementById('option-png-info').classList.toggle('hidden', mimeType !== 'image/png');
+
+            executeConversion();
+        };
+
+        window.executeConversion = () => {
+            if (!originalImageObj.src) return;
+
+            canvas.width = originalImageObj.width;
+            canvas.height = originalImageObj.height;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (currentTargetMime === 'image/jpeg') {
+                ctx.fillStyle = mattingColor.value;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
+            
+            ctx.drawImage(originalImageObj, 0, 0);
 
-            btnAll.innerHTML = `Done!`;
-            setTimeout(() => {
-                btnAll.innerHTML = `Process Queue`;
-                btnAll.disabled = false;
-            }, 3000);
+            canvas.toBlob((blob) => {
+                convertedBlob = blob;
+                elSizeNew.innerText = formatBytes(blob.size);
+                
+                const url = URL.createObjectURL(blob);
+                previewImage.src = url;
+            }, currentTargetMime, 0.95);
         };
 
-        window.downloadFile = (id) => {
-            const item = queue.find(i => i.id === id);
-            if (!item || !item.outputBlob) return;
-            
-            const targetMime = document.getElementById('target-format').value;
-            const ext = targetMime.split('/')[1].replace('jpeg', 'jpg');
-            const nameBase = item.file.name.substring(0, item.file.name.lastIndexOf('.'));
-            
-            const url = URL.createObjectURL(item.outputBlob);
+        window.downloadImage = () => {
+            if (!convertedBlob) return;
+            const ext = currentTargetMime.split('/')[1].replace('jpeg', 'jpg');
+            const name = originalFile.name.substring(0, originalFile.name.lastIndexOf('.'));
             const a = document.createElement('a');
-            a.href = url;
-            a.download = `${nameBase}_converted.${ext}`;
-            document.body.appendChild(a);
+            a.href = URL.createObjectURL(convertedBlob);
+            a.download = `${name}_converted.${ext}`;
             a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
         };
+
+        window.resetApp = () => {
+            stageWorkspace.classList.add('hidden');
+            stageUpload.classList.remove('hidden');
+            fileInput.value = '';
+            originalImageObj = new Image();
+            previewImage.src = '';
+        };
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024, i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + ['Bytes', 'KB', 'MB', 'GB'][i];
+        }
     </script>
 </body>
 </html>
