@@ -16,6 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <script src="../assets/js/layout.js" defer></script>
+    <link rel="stylesheet" href="../assets/css/components.css">
     
     <style>
         :root {
@@ -29,7 +30,6 @@
         .glass-panel { background: var(--panel-bg); backdrop-filter: blur(16px); border: 1px solid var(--border-color); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         .mono { font-family: 'Fira Code', monospace; }
         
-        /* Custom Scrollbar for code blocks */
         textarea::-webkit-scrollbar { width: 8px; height: 8px; }
         textarea::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); border-radius: 4px; }
         textarea::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
@@ -38,8 +38,8 @@
         #ui-alert { position: fixed; top: 0; left: 50%; transform: translateX(-50%) translateY(-100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 9999; }
         #ui-alert.show { transform: translateX(-50%) translateY(1rem); }
 
-        /* Drag over visual feedback */
-        .dragover { border-color: #8b5cf6 !important; box-shadow: inset 0 0 30px rgba(139, 92, 246, 0.2) !important; }
+        .drop-zone { border: 2px dashed var(--border-color); transition: all 0.3s ease; }
+        .drop-zone.dragover { border-color: #8b5cf6 !important; box-shadow: inset 0 0 30px rgba(139, 92, 246, 0.2) !important; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -91,14 +91,14 @@
                             </div>
                             <span class="sv-window-title">Input Canvas</span>
                         </div>
-                        <div id="dropZone" class="sv-viewport-hybrid h-48 flex flex-col items-center justify-center cursor-pointer relative" onclick="document.getElementById('fileInput').click()" tabindex="0">
+                        <div id="dropZone" class="sv-viewport-hybrid aspect-square w-full flex flex-col items-center justify-center cursor-pointer relative drop-zone" onclick="document.getElementById('fileInput').click()" tabindex="0">
                             <div class="sv-bg-blueprint"></div>
                             <input type="file" id="fileInput" accept="image/*, .svg, .webp, .heic, .cr2" class="hidden">
                             
                             <div id="encoder-placeholder" class="flex flex-col items-center pointer-events-none text-center px-4 z-20">
-                                <svg class="w-8 h-8 text-slate-500 mb-2 drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                                <span class="text-sm text-slate-400 font-bold tracking-wide">Drag & Drop Image File</span>
-                                <span class="text-[10px] text-slate-500 mt-1 uppercase tracking-widest">Supports PNG, JPG, WebP, SVG</span>
+                                <svg class="w-12 h-12 text-slate-500 mb-3 drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                                <span class="text-base text-slate-400 font-bold tracking-wide">Drag & Drop Image File</span>
+                                <span class="text-xs text-slate-500 mt-2 uppercase tracking-widest">Supports PNG, JPG, WebP, SVG</span>
                             </div>
                             
                             <img id="encoder-preview" class="sv-img-contain hidden" alt="Preview">
@@ -140,11 +140,32 @@
 
                 <div class="flex flex-col gap-4">
                     
-                    <div class="relative flex flex-col">
-                        <textarea id="inputBase64" class="w-full h-60 bg-[#0b1120] border border-slate-700 rounded-xl p-4 text-xs text-slate-300 mono focus:outline-none focus:border-fuchsia-500 resize-none shadow-inner" placeholder="Paste Base64 string here...&#10;&#10;e.g. data:image/png;base64,iVBORw0KGgo..." oninput="handleDecoderInput()"></textarea>
+                    <div class="sv-frame-hybrid">
+                        <div class="sv-window-header">
+                            <div class="sv-window-dots">
+                                <div class="sv-dot sv-dot-r"></div>
+                                <div class="sv-dot sv-dot-y"></div>
+                                <div class="sv-dot sv-dot-g"></div>
+                            </div>
+                            <span class="sv-window-title">Output Render</span>
+                        </div>
                         
-                        <div class="absolute bottom-4 right-4 flex gap-2">
-                            <button onclick="clearDecoder()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-4 py-2 rounded-lg border border-slate-600 transition-colors shadow-lg">Clear Input</button>
+                        <div class="sv-viewport-hybrid aspect-square w-full flex flex-col items-center justify-center relative group">
+                            <div class="sv-bg-blueprint"></div>
+                            
+                            <img id="previewImg" class="sv-img-contain hidden" alt="Decoded Preview">
+                            
+                            <div id="previewPlaceholder" class="flex flex-col items-center pointer-events-none text-center z-20">
+                                <svg class="w-12 h-12 text-slate-600 mb-3 drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                <span class="text-base text-slate-500 font-bold tracking-wide">No Image Data</span>
+                            </div>
+                            
+                            <div id="downloadOverlay" class="absolute inset-0 bg-slate-900/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm z-30 hidden">
+                                <a id="downloadBtn" href="#" class="bg-fuchsia-600 hover:bg-fuchsia-500 text-white px-8 py-4 rounded-xl font-bold text-base flex items-center gap-2 shadow-lg transition-transform hover:scale-105">
+                                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                                    Download Asset
+                                </a>
+                            </div>
                         </div>
                     </div>
 
@@ -156,32 +177,11 @@
                         </div>
                     </div>
 
-                    <div class="sv-frame-hybrid">
-                        <div class="sv-window-header">
-                            <div class="sv-window-dots">
-                                <div class="sv-dot sv-dot-r"></div>
-                                <div class="sv-dot sv-dot-y"></div>
-                                <div class="sv-dot sv-dot-g"></div>
-                            </div>
-                            <span class="sv-window-title">Output Render</span>
-                        </div>
+                    <div class="relative flex flex-col">
+                        <textarea id="inputBase64" class="w-full h-60 bg-[#0b1120] border border-slate-700 rounded-xl p-4 text-xs text-slate-300 mono focus:outline-none focus:border-fuchsia-500 resize-none shadow-inner" placeholder="Paste Base64 string here...&#10;&#10;e.g. data:image/png;base64,iVBORw0KGgo..." oninput="handleDecoderInput()"></textarea>
                         
-                        <div class="sv-viewport-hybrid h-48 flex flex-col items-center justify-center relative group">
-                            <div class="sv-bg-blueprint"></div>
-                            
-                            <img id="previewImg" class="sv-img-contain hidden" alt="Decoded Preview">
-                            
-                            <div id="previewPlaceholder" class="flex flex-col items-center pointer-events-none text-center z-20">
-                                <svg class="w-8 h-8 text-slate-600 mb-2 drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                <span class="text-sm text-slate-500 font-bold tracking-wide">No Image Data</span>
-                            </div>
-                            
-                            <div id="downloadOverlay" class="absolute inset-0 bg-slate-900/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm z-30 hidden">
-                                <a id="downloadBtn" href="#" class="bg-fuchsia-600 hover:bg-fuchsia-500 text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg transition-transform hover:scale-105">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                    Download Asset
-                                </a>
-                            </div>
+                        <div class="absolute bottom-4 right-4 flex gap-2">
+                            <button onclick="clearDecoder()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold px-4 py-2 rounded-lg border border-slate-600 transition-colors shadow-lg">Clear Input</button>
                         </div>
                     </div>
 
@@ -395,9 +395,9 @@
             encoderPlaceholder.classList.remove('hidden');
             
             encoderPlaceholder.innerHTML = `
-                <svg class="w-8 h-8 text-slate-500 mb-2 drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                <span class="text-sm text-slate-400 font-bold tracking-wide">Drag & Drop Image File</span>
-                <span class="text-[10px] text-slate-500 mt-1 uppercase tracking-widest">Supports PNG, JPG, WebP, SVG</span>
+                <svg class="w-12 h-12 text-slate-500 mb-3 drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                <span class="text-base text-slate-400 font-bold tracking-wide">Drag & Drop Image File</span>
+                <span class="text-xs text-slate-500 mt-2 uppercase tracking-widest">Supports PNG, JPG, WebP, SVG</span>
             `;
 
             document.getElementById('encoder-filename').innerText = 'No file selected';
@@ -495,8 +495,8 @@
             previewImg.classList.add('hidden');
             previewPlaceholder.classList.remove('hidden');
             previewPlaceholder.innerHTML = `
-                <svg class="w-8 h-8 text-slate-600 mb-2 drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                <span class="text-sm text-slate-500 font-bold tracking-wide">No Image Data</span>
+                <svg class="w-12 h-12 text-slate-600 mb-3 drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span class="text-base text-slate-500 font-bold tracking-wide">No Image Data</span>
             `;
             downloadOverlay.classList.add('hidden');
             
