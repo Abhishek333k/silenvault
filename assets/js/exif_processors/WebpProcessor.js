@@ -2,81 +2,28 @@ export class WebpProcessor {
     constructor(file, ext) {
         this.file = file;
         this.ext = ext || '.webp';
-        this.engineName = 'WASM Scout + Native Splicer';
-        this.engineClass = 'text-indigo-400 font-mono text-sm';
-        this.buttonText = 'Execute WASM/RIFF Purge';
-    }
-
-    // THE WASM SCOUT: Downloads the 5MB payload secretly during the "Scanning..." phase
-    async loadWasm() {
-        if (window.exiv2Api) return;
-        try {
-            const module = await import('../../wasm/exiv2.esm.js');
-            const exiv2Factory = module.default || module;
-            window.exiv2Api = await exiv2Factory({
-                locateFile: (path) => {
-                    if (path.endsWith('.wasm')) return '../assets/wasm/exiv2.esm.wasm';
-                    return path;
-                }
-            });
-            console.log("[WebpProcessor] WASM Scout successfully deployed behind enemy lines.");
-        } catch (err) {
-            console.warn("WASM Engine failed to load. Will rely on standard JS parsing.");
-        }
+        this.engineName = 'Native RIFF Splicer';
+        this.engineClass = 'text-blue-400 font-mono text-sm';
+        this.buttonText = 'Execute RIFF Purge';
     }
 
     async parse() {
         const buffer = await this.file.arrayBuffer();
         let exifData = {};
-
-        // 1. The Standard JS Scout (Catches normal, compliant metadata instantly)
         try {
-            const standardData = await window.exifr.parse(buffer, {tiff: true, exif: true, gps: true, xmp: true});
-            if (standardData) Object.assign(exifData, standardData);
-        } catch(e) {}
-
-        // 2. THE WASM SCOUT (Boots C++ to hunt down smuggled/dirty injections)
-        await this.loadWasm();
-        
-        if (window.exiv2Api) {
-            try {
-                const uint8Array = new Uint8Array(buffer);
-                const img = new window.exiv2Api.Image(uint8Array);
-                
-                // Exiv2 C++ Extraction
-                const wasmExif = img.exif();
-                let recoveredCount = 0;
-                
-                if (wasmExif) {
-                    for (let key in wasmExif) {
-                        // Exiv2 returns ugly C++ keys like "Exif.Photo.DateTimeOriginal". We clean them up.
-                        const simpleKey = key.split('.').pop();
-                        
-                        // If standard JS missed it, but C++ found it, we expose it!
-                        if (exifData[simpleKey] === undefined) {
-                            exifData[simpleKey] = wasmExif[key];
-                            recoveredCount++;
-                        }
-                    }
-
-                    // Explicitly hunt for smuggled GPS coordinates
-                    if (wasmExif['Exif.GPSInfo.GPSLatitude'] || wasmExif['Exif.Image.GPSTag']) {
-                        exifData['GPSLatitude'] = wasmExif['Exif.GPSInfo.GPSLatitude'] || "SMUGGLED_LAT_FOUND";
-                        exifData['GPSLongitude'] = wasmExif['Exif.GPSInfo.GPSLongitude'] || "SMUGGLED_LNG_FOUND";
-                        recoveredCount++;
-                    }
-                }
-                
-                if (recoveredCount > 0) {
-                    exifData['WASM_FORENSIC_ALERT'] = `Recovered ${recoveredCount} hidden tracking tags using Deep C++ Scan.`;
-                }
-
-                img.delete(); // Free RAM
-            } catch (e) {
-                console.warn("[WebpProcessor] WASM read failed.", e);
+            // ExifReader aggressively scans chunks and ignores lying VP8X flags
+            const tags = await window.ExifReader.load(buffer, {includeUnknown: true});
+            for (let key in tags) {
+                if (key === 'Thumbnail' || key === 'base64') continue;
+                exifData[key] = tags[key].description || tags[key].value;
             }
-        }
-
+            // Map GPS specifically for our map UI
+            if (tags['GPSLatitude'] && tags['GPSLongitude']) {
+                exifData.latitude = tags['GPSLatitude'].description;
+                exifData.longitude = tags['GPSLongitude'].description;
+            }
+        } catch(e) { console.warn("ExifReader failed:", e); }
+        
         return Object.keys(exifData).length > 0 ? exifData : null;
     }
 
@@ -86,15 +33,6 @@ export class WebpProcessor {
 
     async scrub() {
         const buffer = await this.file.arrayBuffer();
-        const terminalOut = document.getElementById('terminal-out');
-        
-        if(terminalOut) {
-            terminalOut.innerHTML += `<div class="log-line"><span class="val-sys">> INITIATING NATIVE RIFF SPLICER (THE MISSILE)...</span></div>`;
-            terminalOut.scrollTop = terminalOut.scrollHeight;
-        }
-
-        // THE MISSILE: We use our native JS RIFF Splicer instead of WASM to delete it, 
-        // because we MUST mathematically fix the WebP VP8X bit-flags, which C++ Exiv2 sometimes fails to do.
         const view = new DataView(buffer);
         const uint8 = new Uint8Array(buffer);
         
@@ -115,12 +53,8 @@ export class WebpProcessor {
             
             if (!threatChunks.includes(chunkId)) {
                 let chunkData = uint8.slice(offset, offset + 8 + paddedSize);
-                
-                // CRITICAL MISSILE PAYLOAD: Mathematically flip EXIF and XMP flags to 0 in the master VP8X header.
-                // This ensures the container structurally validates after we nuke the data.
-                if (chunkId === 'VP8X') { 
-                    chunkData[8] &= ~0x0C; 
-                }
+                // Flip flags to 0 in the master VP8X header so the output is perfectly valid
+                if (chunkId === 'VP8X') chunkData[8] &= ~0x0C; 
                 chunksToKeep.push(chunkData);
             }
             offset += 8 + paddedSize;
