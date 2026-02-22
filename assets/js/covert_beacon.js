@@ -1,68 +1,85 @@
 // ==========================================
-// SILENVAULT: ULTRASONIC DUAL-TONE BEACON
+// SILENVAULT: COVERT MICRO-AMPLITUDE BEACON
 // ==========================================
 
 (function initGhostBeacon() {
-    const PAYLOAD = "JESUS IS OUR SAVIOR "; // The trailing space separates the loop
-    const BASE_FREQ = 18000;
-    const FREQ_STEP = 100; // 100Hz separation between hexadecimal nibbles
-    const CHAR_DUR = 0.2; // 200ms per character
-    const PAUSE_DUR = 0.05; // 50ms silence between characters
+    const PAYLOAD = "PRAISE THE LORD "; 
     
+    // FSK Protocol Frequencies
+    const FREQ_SYNC = 18000;
+    const FREQ_0 = 18200;
+    const FREQ_1 = 18400;
+    
+    const BAUD_MS = 100; // 100ms per bit (Slow, but guarantees perfect parsing)
+    const BAUD_SEC = BAUD_MS / 1000;
+    const GAIN_LEVEL = 0.03; // 3% Volume. Prevents cheap speakers from screeching/aliasing.
+
     let audioCtx = null;
     let isPlaying = false;
 
-    // Converts a character into two distinct ultrasonic frequencies
-    function getFrequencies(char) {
-        const hex = char.charCodeAt(0).toString(16).padStart(2, '0');
-        const highNibble = parseInt(hex[0], 16);
-        const lowNibble = parseInt(hex[1], 16);
-        return [BASE_FREQ + (highNibble * FREQ_STEP), BASE_FREQ + (lowNibble * FREQ_STEP)];
+    function stringToBinary(str) {
+        let bits = '';
+        for (let i = 0; i < str.length; i++) {
+            bits += str.charCodeAt(i).toString(2).padStart(8, '0');
+        }
+        return bits;
     }
 
     function startBeacon() {
         if (isPlaying) return;
         isPlaying = true;
+        
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
-        function scheduleLoop() {
-            let time = audioCtx.currentTime + 0.1;
-            
-            for (let i = 0; i < PAYLOAD.length; i++) {
-                const freqs = getFrequencies(PAYLOAD[i]);
-                
-                const osc1 = audioCtx.createOscillator();
-                const osc2 = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                
-                osc1.frequency.value = freqs[0];
-                osc2.frequency.value = freqs[1];
-                
-                osc1.connect(gain);
-                osc2.connect(gain);
-                gain.connect(audioCtx.destination);
-                
-                // Smooth envelope creates a "Clear Sound" with no harsh clicking
-                gain.gain.setValueAtTime(0, time);
-                gain.gain.setTargetAtTime(0.5, time, 0.01);
-                gain.gain.setTargetAtTime(0, time + CHAR_DUR - 0.02, 0.01);
-                
-                osc1.start(time);
-                osc2.start(time);
-                osc1.stop(time + CHAR_DUR);
-                osc2.stop(time + CHAR_DUR);
-                
-                time += CHAR_DUR + PAUSE_DUR;
-            }
-            
-            // Loop the beacon forever
-            setTimeout(scheduleLoop, (time - audioCtx.currentTime) * 1000);
+        // Hardware Check: If sample rate is too low, it will screech. Abort covert transmission.
+        if (audioCtx.sampleRate < 44100) {
+            console.warn("SV-Beacon: Hardware incapable of clean ultrasonic transmission. Aborting to preserve stealth.");
+            return;
         }
-        scheduleLoop();
+
+        function playLoop() {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.type = 'sine';
+            gain.gain.value = 0;
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            let time = audioCtx.currentTime + 0.1;
+            osc.start(time);
+
+            for (let c = 0; c < PAYLOAD.length; c++) {
+                const charBits = PAYLOAD.charCodeAt(c).toString(2).padStart(8, '0');
+                
+                // 1. Start Bit (SYNC)
+                osc.frequency.setValueAtTime(FREQ_SYNC, time);
+                gain.gain.setValueAtTime(GAIN_LEVEL, time);
+                time += BAUD_SEC;
+
+                // 2. Data Bits (8 bits)
+                for (let b = 0; b < 8; b++) {
+                    const freq = charBits[b] === '1' ? FREQ_1 : FREQ_0;
+                    osc.frequency.setValueAtTime(freq, time);
+                    time += BAUD_SEC;
+                }
+
+                // 3. Stop Bit (Silence)
+                gain.gain.setValueAtTime(0, time);
+                time += BAUD_SEC; // Pause between characters
+            }
+
+            osc.stop(time);
+
+            // Reschedule the entire loop to run again after it finishes
+            setTimeout(playLoop, (time - audioCtx.currentTime) * 1000);
+        }
+
+        playLoop();
     }
 
-    // BROWSER BYPASS: Audio cannot play until the user interacts with the page.
-    // We wait for their very first click anywhere on the website to ignite the beacon.
+    // Await first interaction to bypass browser Autoplay policies
     document.addEventListener('click', () => {
         if (audioCtx && audioCtx.state === 'suspended') {
             audioCtx.resume();
