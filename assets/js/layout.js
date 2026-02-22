@@ -30,7 +30,7 @@ class SVHeader extends HTMLElement {
             favicon.rel = 'icon';
             document.head.appendChild(favicon);
         }
-        favicon.href = `${basePath}/assets/img/SILENVAULT_CREST.webp`;
+        favicon.href = `${basePath}/assets/img/SILENVAULT_CREST.png`;
 
         if (!document.getElementById('sv-adsense')) {
             const adScript = document.createElement('script');
