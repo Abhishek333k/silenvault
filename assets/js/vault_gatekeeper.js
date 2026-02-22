@@ -5,8 +5,6 @@
 (function enforceGatekeeper() {
     // 1. THE BRAIN: Add the file names of any tools that are broken or under construction.
     const lockedVaults = [
-        'budget_planner',
-        'loan_calculator',
         'test_page_example' // Note: You don't need the .html extension here
     ];
 
