@@ -3,17 +3,18 @@
 // ==========================================
 
 (function enforceGatekeeper() {
-    // THE BRAIN: Include the folder path to prevent locking your /bin/ prototypes!
     const lockedVaults = [
-         
-       // '/tools/bin/loan_calculator',  
-        '/tools/bin/test_page_example'             
+        '/tools/bin/' // MASTER LOCK
     ];
 
     const currentPath = window.location.pathname.toLowerCase();
     const isLocked = lockedVaults.some(lockedPath => currentPath.includes(lockedPath));
 
-    if (isLocked) {
+    // THE BYPASS: Automatically unlock for localhost, OR if the secret URL parameter is used
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const isDevOverride = window.location.search.includes('dev=true');
+
+    if (isLocked && !isLocalhost && !isDevOverride) {
         const renderLockScreen = () => {
             document.documentElement.style.display = '';
             document.body.style.overflow = 'hidden';
@@ -22,7 +23,6 @@
             document.body.innerHTML = '';
             document.body.className = 'bg-slate-950 flex items-center justify-center h-screen w-screen m-0 p-0 overflow-hidden';
             
-            // Cyberpunk HUD Shape + Enterprise Minimalist Colors
             document.body.innerHTML = `
                 <div class="fixed inset-0 z-[999999] flex items-center justify-center bg-slate-950/95 backdrop-blur-md p-4" style="background-image: radial-gradient(circle at center, transparent 0%, #020617 100%), linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px); background-size: 100% 100%, 30px 30px, 30px 30px;">
                     <div class="relative p-10 md:p-12 max-w-lg w-full bg-slate-900/80 border border-slate-700 shadow-2xl backdrop-blur-xl">
