@@ -1,3 +1,25 @@
+// ARCHITECT: Mount the external Gatekeeper Brain
+(function mountGatekeeper() {
+    if (document.getElementById('sv-gatekeeper')) return;
+    
+    let jsPath = '../assets/js/vault_gatekeeper.js'; // Fallback
+    const scripts = document.getElementsByTagName('script');
+    
+    // Intelligently find the base path by looking at where layout.js was loaded from
+    for (let i = 0; i < scripts.length; i++) {
+        if (scripts[i].src && scripts[i].src.includes('layout.js')) {
+            jsPath = scripts[i].src.replace('layout.js', 'vault_gatekeeper.js');
+            break;
+        }
+    }
+
+    const script = document.createElement('script');
+    script.id = 'sv-gatekeeper';
+    script.src = jsPath;
+    script.async = false; // Forces it to execute immediately to block the page render
+    document.head.appendChild(script);
+})();
+
 // ARCHITECT: Universal Google Analytics Injection
 function injectAnalytics() {
     if (document.getElementById('ga-script')) return;
