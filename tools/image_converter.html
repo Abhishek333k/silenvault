@@ -14,7 +14,9 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <script src="../assets/js/layout.js" defer></script>
+    <link rel="stylesheet" href="../assets/css/components.css">
     
     <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
 
@@ -38,13 +40,10 @@
         .format-card { background: #0b1120; border: 1px solid #1e293b; border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.2s ease; text-align: center; display: flex; flex-direction: column; gap: 8px; }
         .format-card:hover { border-color: #3b82f6; background: rgba(59, 130, 246, 0.05); transform: translateY(-2px); }
         .format-card.active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
-
-        .preview-img { max-width: 100%; max-height: 500px; border-radius: 12px; object-fit: contain; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: opacity 0.3s ease; }
         
         input[type="color"] { -webkit-appearance: none; border: none; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; padding: 0; background: transparent; }
         input[type="color"]::-webkit-color-swatch { border: 2px solid #334155; border-radius: 8px; }
 
-        /* Professional UI Banner */
         #ui-alert { position: fixed; top: 0; left: 50%; transform: translateX(-50%) translateY(-100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 9999; }
         #ui-alert.show { transform: translateX(-50%) translateY(1rem); }
     </style>
@@ -140,16 +139,30 @@
                 </div>
             </div>
 
-            <div class="lg:col-span-7 glass-panel p-6 rounded-3xl border-slate-700 flex flex-col items-center justify-center min-h-[500px] relative bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAACVJREFUKFNjZCASMDKgAnv37v3PBEWQQRTFMAkMmAwwKTIBAJ2cAxVqFpY7AAAAAElFTkSuQmCC')]">
-                <div class="absolute top-4 left-4 bg-slate-900/80 backdrop-blur text-white text-[10px] font-mono px-3 py-1 rounded-lg border border-slate-700 z-10">
-                    Live Preview
+            <div class="lg:col-span-7 flex flex-col h-full">
+                <div class="sv-frame-hybrid flex-1 flex flex-col">
+                    <div class="sv-window-header">
+                        <div class="sv-window-dots">
+                            <div class="sv-dot sv-dot-r"></div>
+                            <div class="sv-dot sv-dot-y"></div>
+                            <div class="sv-dot sv-dot-g"></div>
+                        </div>
+                        <span class="sv-window-title">Live Preview</span>
+                    </div>
+                    
+                    <div class="sv-viewport-hybrid flex-1 min-h-[500px] flex flex-col items-center justify-center relative">
+                        <div class="sv-bg-blueprint"></div>
+                        
+                        <img id="preview-image" class="sv-img-contain hidden" alt="Image Preview">
+                        
+                        <div id="conversion-loader" class="sv-overlay">
+                            <div class="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin shadow-[0_0_15px_rgba(59,130,246,0.5)]"></div>
+                            <p id="loader-text" class="text-xs font-bold text-blue-400 tracking-widest uppercase mt-4 animate-pulse">Encoding new format...</p>
+                        </div>
+                    </div>
                 </div>
-                <div id="conversion-loader" class="hidden flex flex-col items-center gap-4 z-20 absolute inset-0 justify-center bg-slate-900/40 backdrop-blur-sm rounded-3xl">
-                    <div class="w-10 h-10 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
-                    <p id="loader-text" class="text-xs font-bold text-white tracking-widest uppercase">Encoding new format...</p>
-                </div>
-                <img id="preview-image" class="preview-img hidden" alt="Image Preview">
             </div>
+
         </div>
 
         <canvas id="convert-canvas" class="hidden"></canvas>
@@ -298,8 +311,7 @@
             stageUpload.classList.add('hidden');
             stageWorkspace.classList.remove('hidden');
             previewImage.classList.add('hidden');
-            loader.classList.remove('hidden');
-            // Changed wording from "Processing..."
+            loader.classList.add('active'); // Switched to active for sv-overlay
             loaderText.innerText = "Reading file data...";
 
             const ext = file.name.split('.').pop().toUpperCase();
@@ -348,8 +360,7 @@
             clearTimeout(conversionTimeout);
             hideToaster();
 
-            loader.classList.remove('hidden');
-            // Changed wording from "Compressing/Processing"
+            loader.classList.add('active');
             loaderText.innerText = "Encoding new format...";
             previewImage.classList.add('opacity-40');
             elSizeNew.innerText = "Calculating...";
@@ -376,10 +387,9 @@
                     previewImage.onload = () => URL.revokeObjectURL(url);
                     previewImage.src = url;
                     
-                    loader.classList.add('hidden');
+                    loader.classList.remove('active');
                     previewImage.classList.remove('opacity-40', 'hidden');
 
-                    // Intelligent Cross-Sell Trigger stays on screen until dismissed/reset
                     if (originalFile && blob.size > (originalFile.size * 0.90)) {
                         document.getElementById('toaster-dynamic-text').innerText = `Output size is ${formatBytes(blob.size)}. Compress it further securely.`;
                         document.getElementById('compressor-toaster').classList.replace('translate-y-[150%]', 'translate-y-0');
@@ -406,7 +416,7 @@
             originalImageObj = new Image();
             previewImage.src = '';
             previewImage.classList.add('hidden');
-            loader.classList.add('hidden');
+            loader.classList.remove('active');
             mattingColor.value = "#FFFFFF";
             hideToaster();
         };
