@@ -16,7 +16,6 @@
     const script = document.createElement('script');
     script.id = 'sv-gatekeeper';
     script.src = jsPath;
-    script.async = false; // Forces it to execute immediately to block the page render
     document.head.appendChild(script);
 })();
 
