@@ -16,6 +16,15 @@
     <link rel="stylesheet" href="../assets/css/components.css">
 
     <script type="text/javascript" src="../assets/wasm/quiet/quiet.js"></script>
+    
+    <script type="text/javascript">
+        Quiet.init({
+            profilesPrefix: "../assets/wasm/quiet/",
+            memoryInitializerPrefix: "../assets/wasm/quiet/",
+            libfecPrefix: "../assets/wasm/quiet/"
+        });
+    </script>
+    
     <script async type="text/javascript" src="../assets/wasm/quiet/quiet-emscripten.js"></script>
 
     <style>
@@ -179,17 +188,6 @@
 
         </div>
 
-        <article class="mt-16 flex flex-col gap-8 border-t border-slate-800 pt-16">
-            <section class="glass-panel p-8 md:p-12 rounded-2xl shadow-xl prose prose-invert max-w-none border-l-4 border-l-emerald-500">
-                <h2 class="text-white text-3xl font-extrabold mb-4">WASM Digital Signal Processing</h2>
-                <p class="text-slate-300">Standard JavaScript is incapable of accurately transmitting data through the air due to strict browser clock limitations. To bypass this, SilenVault deploys a compiled <strong>C++ WebAssembly (WASM) Engine</strong> directly into your browser's memory.</p>
-                <p class="text-slate-300">This engine acts as a localized <strong>Acoustic Modem</strong>. It parses your raw text into a binary data stream, wraps it in highly complex <strong>Reed-Solomon Error Correction</strong> blocks, and uses Frequency-Shift Keying (FSK) to blast the cryptographically hardened audio through your device's physical speakers.</p>
-                
-                <h3 class="text-emerald-400 text-xl font-bold mt-8 mb-4">Defeating The Environment</h3>
-                <p class="text-slate-300">When sound travels through a room, it bounces off walls (Multipath Echo) and battles ambient noise (Laptop fans, air conditioning). Because the WASM engine automatically injects "Parity Bytes" into the transmission, the receiver's microphone can mathematically reconstruct the payload perfectly, even if 30% of the audio was scrambled by environmental interference.</p>
-            </section>
-        </article>
-
     </main>
 
     <sv-footer base-path=".."></sv-footer>
@@ -229,44 +227,31 @@
             rxPlaceholder.classList.remove('hidden');
         }
 
-        // Wait for DOM so Quiet.js has time to register, then trigger initialization
-        window.addEventListener('load', () => {
-            try {
-                // Point Quiet to your local /assets/wasm/quiet/ folder
-                Quiet.init({
-                    profilesPrefix: "../assets/wasm/quiet/",
-                    memoryInitializerPrefix: "../assets/wasm/quiet/"
-                });
+        // When WASM successfully mounts the memory and JSON files, it fires this callback
+        Quiet.addReadyCallback(() => {
+            isEngineReady = true;
+            
+            document.getElementById('engine-status').innerText = 'DSP: ONLINE';
+            document.getElementById('engine-status').classList.replace('text-emerald-300', 'text-white');
+            document.getElementById('engine-status').classList.replace('border-emerald-500/30', 'border-emerald-500');
+            document.getElementById('engine-status').classList.replace('bg-emerald-900/30', 'bg-emerald-600');
 
-                // When WASM successfully mounts the memory files, it fires this callback
-                Quiet.addReadyCallback(() => {
-                    isEngineReady = true;
-                    
-                    document.getElementById('engine-status').innerText = 'DSP: ONLINE';
-                    document.getElementById('engine-status').classList.replace('text-emerald-300', 'text-white');
-                    document.getElementById('engine-status').classList.replace('border-emerald-500/30', 'border-emerald-500');
-                    document.getElementById('engine-status').classList.replace('bg-emerald-900/30', 'bg-emerald-600');
+            // Unlock Transmitter
+            btnTransmit.disabled = false;
+            btnTransmit.className = "w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all border border-blue-500 uppercase tracking-widest text-sm flex justify-center items-center gap-2";
+            document.getElementById('btn-transmit-text').innerText = "Broadcast Payload";
 
-                    // Unlock Transmitter
-                    btnTransmit.disabled = false;
-                    btnTransmit.className = "w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all border border-blue-500 uppercase tracking-widest text-sm flex justify-center items-center gap-2";
-                    document.getElementById('btn-transmit-text').innerText = "Broadcast Payload";
-
-                    // Unlock Receiver
-                    btnListen.disabled = false;
-                    btnListen.className = "w-full bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold py-4 rounded-xl shadow-lg transition-all border border-slate-600 uppercase tracking-widest text-sm flex justify-center items-center gap-2";
-                    document.getElementById('btn-listen-text').innerText = "Engage Microphone";
-                    
-                    rxPlaceholder.innerText = "> Engine ready. Waiting for engagement...";
-                }, (err) => {
-                    console.error("DSP Boot Error: ", err);
-                    rxPlaceholder.innerText = "> FATAL: Failed to parse quiet-profiles.json or .mem files. Check console.";
-                });
-
-            } catch (e) {
-                console.error("Quiet Init Exception: ", e);
-            }
+            // Unlock Receiver
+            btnListen.disabled = false;
+            btnListen.className = "w-full bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold py-4 rounded-xl shadow-lg transition-all border border-slate-600 uppercase tracking-widest text-sm flex justify-center items-center gap-2";
+            document.getElementById('btn-listen-text').innerText = "Engage Microphone";
+            
+            rxPlaceholder.innerText = "> Engine ready. Waiting for engagement...";
+        }, (err) => {
+            console.error("DSP Boot Error: ", err);
+            rxPlaceholder.innerText = "> FATAL: Failed to boot DSP. Ensure all 5 files are in /assets/wasm/quiet/ and run via a Local Server.";
         });
+
 
         // ==========================================
         // TRANSMITTER LOGIC
@@ -411,6 +396,7 @@
             const buffer = new Uint8Array(visualizerAnalyser.frequencyBinCount);
             visualizerAnalyser.getByteFrequencyData(buffer);
 
+            // Shift canvas left
             if (sliceX >= specCanvas.width) {
                 const imgData = specCtx.getImageData(1, 0, specCanvas.width - 1, specCanvas.height);
                 specCtx.putImageData(imgData, 0, 0);
