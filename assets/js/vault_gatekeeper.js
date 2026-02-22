@@ -38,7 +38,7 @@
                         <h2 class="text-3xl font-black text-white tracking-tight mb-4 uppercase" style="font-family: 'Inter', sans-serif;">Sector Locked</h2>
                         <p class="text-rose-200/70 text-sm leading-relaxed mb-10" style="font-family: 'Inter', sans-serif;">This tool is currently undergoing cryptographic maintenance and architectural upgrades. Access to this vault is temporarily restricted.</p>
                         
-                        <a href="../index.html" class="inline-flex items-center justify-center gap-3 w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-4 rounded-xl border border-slate-600 transition-all hover:border-slate-400 shadow-lg" style="font-family: 'Inter', sans-serif;">
+                        <a href="/index" class="inline-flex items-center justify-center gap-3 w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-4 rounded-xl border border-slate-600 transition-all hover:border-slate-400 shadow-lg" style="font-family: 'Inter', sans-serif;">
                             <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                             Return to Main Hub
                         </a>
