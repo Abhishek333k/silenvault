@@ -8,12 +8,12 @@
     <meta name="description" content="Free, local-first forensic tool to permanently remove hidden EXIF data, GPS coordinates, and XMP trackers from images. Lossless support for JPEG, PNG, WebP, and RAW (CR2, DNG) formats.">
     <meta name="keywords" content="exif remover, metadata scrubber, remove gps from photo, clear cr2 metadata, raw image metadata cleaner, local exif tool, privacy image editor">
     <meta name="author" content="SilenVault">
-    <link rel="canonical" href="https://silenvault.com/tools/exif_remover.html">
+    <link rel="canonical" href="https://silenvault.com/tools/exif_remover">
     
     <meta property="og:title" content="EXIF Remover & Metadata Scrubber | SilenVault">
     <meta property="og:description" content="Securely purge hidden tracking data from your images completely offline. Enterprise-grade RAW sensor support via WebAssembly.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://silenvault.com/tools/exif_remover.html">
+    <meta property="og:url" content="https://silenvault.com/tools/exif_remover">
     <meta property="og:site_name" content="SilenVault">
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
@@ -21,6 +21,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="../assets/js/layout.js" defer></script>
+    
     <link rel="stylesheet" href="../assets/css/components.css">
     
     <script src="https://cdn.jsdelivr.net/npm/exifr/dist/full.umd.js"></script>
@@ -57,10 +58,6 @@
         }
         .forge-mode .status-scan { background: rgba(244, 63, 94, 0.15) !important; color: #fda4af !important; border-color: rgba(244, 63, 94, 0.5) !important; }
         .forge-mode .scanner-line { background: #f43f5e !important; box-shadow: 0 0 15px #f43f5e, 0 0 30px #f43f5e !important; }
-        
-        /* Overrides for Forge Mode Blueprint Grids */
-        .forge-mode .sv-viewport-hybrid { border-color: #9f1239; box-shadow: inset 0 2px 25px rgba(225, 29, 72, 0.2); }
-        .forge-mode .sv-bg-blueprint { background-image: linear-gradient(rgba(244, 63, 94, 0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(244, 63, 94, 0.15) 1px, transparent 1px); }
 
         /* BLUR EFFECT FOR MAIN CONTENT WHEN MODAL IS OPEN */
         #main-content-wrapper { transition: filter 0.5s ease, transform 0.5s ease; }
@@ -72,14 +69,13 @@
         .forge-mode .drop-zone:hover { border-color: #fb7185; }
         .drop-zone input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
 
-        /* SCANNER ANIMATION */
+        /* PREVIEW ANIMATIONS */
+        .preview-img { opacity: 0.7; transition: opacity 0.5s ease; }
+        .preview-img.scanned { opacity: 1; }
+
         .scanner-line { position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: #60a5fa; box-shadow: 0 0 15px #60a5fa; animation: scan 2s cubic-bezier(0.4, 0, 0.2, 1) infinite; z-index: 20; display: none; }
         .scanning .scanner-line { display: block; }
         @keyframes scan { 0% { top: 0%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
-
-        /* IMAGE OPACITY HANDLING */
-        .sv-img-cover { opacity: 0.7; transition: opacity 0.5s ease; }
-        .scanned { opacity: 1 !important; }
 
         /* BUTTERY TERMINAL LOGS */
         .terminal { background: rgba(2, 6, 23, 0.9); border: 1px solid var(--border-color); border-radius: 8px; font-family: 'Fira Code', monospace; font-size: 13px; height: 300px; display: flex; flex-direction: column; transition: all 0.5s ease; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5); }
@@ -88,7 +84,6 @@
         .terminal-body::-webkit-scrollbar { width: 6px; }
         .terminal-body::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
         
-        /* Smooth typing entry animation */
         .log-line { margin-bottom: 6px; display: flex; align-items: flex-start; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px; opacity: 0; transform: translateX(-10px); animation: butteryFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
         @keyframes butteryFadeIn { to { opacity: 1; transform: translateX(0); } }
         
@@ -104,7 +99,11 @@
         /* MAP FIX: Sleek Cryptographic Slate Filter */
         #location-map-container { transition: max-height 0.8s ease, opacity 0.5s ease; overflow: hidden; max-height: 0; opacity: 0; border-radius: 8px; }
         #location-map-container.active { max-height: 250px; opacity: 1; border: 1px solid rgba(244,63,94,0.4); margin-top: 1rem; }
-        #leaflet-map { height: 200px; width: 100%; z-index: 1; border-radius: 8px; filter: brightness(0.8) contrast(1.1) opacity(0.9); }
+        #leaflet-map { 
+            height: 200px; width: 100%; z-index: 1; 
+            border-radius: 8px;
+            filter: brightness(0.8) contrast(1.1) opacity(0.9);
+        }
 
         .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
         .status-warn { background: rgba(251, 191, 36, 0.15); color: #fde047; border: 1px solid rgba(251, 191, 36, 0.4); }
@@ -168,61 +167,71 @@
                 </div>
             </div>
 
-            <div id="workspace-stage" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start transition-all duration-500">
-                <div class="lg:col-span-5 flex flex-col gap-4">
-                    <div class="glass-panel p-5 rounded-2xl flex flex-col gap-5 shadow-xl">
-                        
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="sv-frame-hybrid flex flex-col w-full aspect-square select-none touch-none">
-                                <div class="sv-window-header border-b border-slate-700 pb-2 mb-0">
-                                    <div class="sv-window-dots">
-                                        <div class="sv-dot sv-dot-r"></div>
-                                        <div class="sv-dot sv-dot-y"></div>
-                                        <div class="sv-dot sv-dot-g"></div>
-                                    </div>
-                                    <span class="sv-window-title text-[9px]">Target Input</span>
+            <div id="workspace-stage" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-start transition-all duration-500">
+                
+                <div class="lg:col-span-5 flex flex-col gap-6">
+                    
+                    <div class="glass-panel p-4 rounded-2xl flex flex-col gap-4 shadow-xl">
+                        <div class="flex justify-between items-center px-2">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Audit Target</span>
+                            <span id="label-filename-input" class="truncate text-[10px] text-slate-500 font-mono max-w-[50%]">...</span>
+                        </div>
+                        <div class="sv-frame-hybrid flex flex-col w-full h-64 select-none touch-none p-1">
+                            <div class="sv-window-header border-b border-slate-700 pb-2 mb-0">
+                                <div class="sv-window-dots">
+                                    <div class="sv-dot sv-dot-r"></div>
+                                    <div class="sv-dot sv-dot-y"></div>
+                                    <div class="sv-dot sv-dot-g"></div>
                                 </div>
-                                <div id="input-box" class="sv-viewport-hybrid flex-1 w-full flex flex-col items-center justify-center relative scanning">
-                                    <div class="sv-bg-blueprint"></div>
-                                    <div class="scanner-line"></div>
-                                    <img id="img-input" class="sv-img-cover z-20 hidden" alt="Input Preview">
-                                </div>
+                                <span class="sv-window-title text-[9px]">Input Canvas</span>
                             </div>
-                            
-                            <div class="sv-frame-hybrid flex flex-col w-full aspect-square border-emerald-600/30 select-none touch-none">
-                                <div class="sv-window-header border-b border-emerald-900 pb-2 mb-0">
-                                    <div class="sv-window-dots">
-                                        <div class="sv-dot sv-dot-r"></div>
-                                        <div class="sv-dot sv-dot-y"></div>
-                                        <div class="sv-dot sv-dot-g"></div>
-                                    </div>
-                                    <span class="sv-window-title text-[9px] text-emerald-500">Scrubbed Output</span>
-                                </div>
-                                <div class="sv-viewport-hybrid flex-1 w-full flex flex-col items-center justify-center relative">
-                                    <div class="sv-bg-blueprint opacity-50"></div>
-                                    <div id="output-placeholder" class="text-[10px] text-slate-500 font-mono text-center flex flex-col items-center gap-2 z-20">
-                                        <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                                        Pending Purge
-                                    </div>
-                                    <img id="img-output" class="sv-img-cover hidden z-20" alt="Output Preview">
-                                </div>
+                            <div id="input-box" class="sv-viewport-hybrid flex-1 w-full flex flex-col items-center justify-center relative scanning">
+                                <div class="sv-bg-blueprint"></div>
+                                <div class="scanner-line"></div>
+                                <img id="img-input" class="sv-img-cover z-20 hidden preview-img" alt="Input Preview">
                             </div>
                         </div>
-
-                        <div class="grid grid-cols-2 gap-3 text-xs text-center px-2">
-                            <span id="label-filename-input" class="truncate text-[10px] text-slate-400 font-mono block">...</span>
-                            <span id="label-filename-output" class="truncate text-[10px] text-emerald-400 font-mono font-bold block opacity-0 transition-opacity duration-500">...</span>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3 text-xs">
-                            <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 shadow-inner"><span class="block text-[10px] text-slate-500 uppercase tracking-widest mb-1 font-bold">Input Size</span><span id="file-size" class="text-white font-mono text-sm">0 KB</span></div>
-                            <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 shadow-inner text-right"><span class="block text-[10px] text-slate-500 uppercase tracking-widest mb-1 font-bold">Engine Path</span><span id="badge-engine" class="text-white font-mono text-sm">Determining...</span></div>
-                        </div>
-                        <button id="btn-reset-app" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-bold px-4 py-4 rounded-xl transition-all duration-300 border border-slate-700 shadow-lg">Abort & Load New Target</button>
                     </div>
+
+                    <div class="glass-panel p-4 rounded-2xl flex flex-col gap-4 shadow-xl border border-emerald-900/30 bg-emerald-950/10">
+                        <div class="flex justify-between items-center px-2">
+                            <span class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Secure Export</span>
+                            <span id="label-filename-output" class="truncate text-[10px] text-emerald-400 font-mono max-w-[50%] opacity-0 transition-opacity duration-500">...</span>
+                        </div>
+                        <div class="sv-frame-hybrid flex flex-col w-full h-64 border-emerald-600/30 select-none touch-none p-1">
+                            <div class="sv-window-header border-b border-emerald-900 pb-2 mb-0">
+                                <div class="sv-window-dots">
+                                    <div class="sv-dot sv-dot-r"></div>
+                                    <div class="sv-dot sv-dot-y"></div>
+                                    <div class="sv-dot sv-dot-g"></div>
+                                </div>
+                                <span class="sv-window-title text-[9px] text-emerald-500">Output Render</span>
+                            </div>
+                            <div class="sv-viewport-hybrid flex-1 w-full flex flex-col items-center justify-center relative">
+                                <div class="sv-bg-blueprint opacity-50"></div>
+                                <div id="output-placeholder" class="text-[10px] text-slate-500 font-mono text-center flex flex-col items-center gap-2 z-20">
+                                    <svg class="w-6 h-6 text-slate-600 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                    Pending Purge
+                                </div>
+                                <img id="img-output" class="sv-img-cover hidden z-20 preview-img" alt="Output Preview">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 text-xs">
+                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 shadow-inner flex flex-col justify-center">
+                            <span class="block text-[10px] text-slate-500 uppercase tracking-widest mb-1 font-bold">Input Size</span>
+                            <span id="file-size" class="text-white font-mono text-sm">0 KB</span>
+                        </div>
+                        <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 shadow-inner flex flex-col justify-center text-right">
+                            <span class="block text-[10px] text-slate-500 uppercase tracking-widest mb-1 font-bold">Engine Path</span>
+                            <span id="badge-engine" class="text-white font-mono text-sm truncate">Determining...</span>
+                        </div>
+                    </div>
+                    <button id="btn-reset-app" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-bold px-4 py-4 rounded-xl transition-all duration-300 border border-slate-700 shadow-lg">Abort & Load New Target</button>
                 </div>
 
-                <div class="lg:col-span-7 flex flex-col gap-4">
+                <div class="lg:col-span-7 flex flex-col gap-6">
                     <div class="terminal shadow-2xl" id="main-terminal">
                         <div class="terminal-header">
                             <span class="text-white font-bold text-xs uppercase tracking-widest flex items-center gap-2">
@@ -689,7 +698,6 @@
                         sourceImageObj.src = urlToLoad;
                     });
                     document.getElementById('img-input').src = urlToLoad;
-                    // For the cover effect we use hidden class logic via standard css
                     document.getElementById('img-input').classList.remove('hidden');
                 }
             } catch(e) {}
@@ -700,7 +708,6 @@
             try {
                 let exifData = null;
                 
-                // Routes logic properly into the specific processor classes
                 if (processorInstance && typeof processorInstance.parse === 'function') {
                     exifData = await processorInstance.parse();
                 } else {
@@ -768,7 +775,6 @@
         }
 
         function triggerMap(lat, lng) {
-            // Handle array formats if returned by ExifReader
             let finalLat = Array.isArray(lat) ? lat[0] : lat;
             let finalLng = Array.isArray(lng) ? lng[0] : lng;
 
@@ -843,7 +849,6 @@
                 let checkData = {};
 
                 if (processorInstance && typeof processorInstance.parse === 'function') {
-                    // Temporarily mock 'this.file' to re-read the scrubbed blob for verification
                     const oldFile = processorInstance.file;
                     processorInstance.file = blob;
                     checkData = await processorInstance.parse() || {};
@@ -1020,7 +1025,7 @@
             document.getElementById('terminal-out').innerHTML = '';
             document.getElementById('img-input').src = ''; document.getElementById('img-output').src = '';
             document.getElementById('input-box').classList.add('scanning'); 
-            document.getElementById('img-input').classList.remove('scanned');
+            document.getElementById('img-input').classList.remove('scanned', 'hidden');
             document.getElementById('output-placeholder').classList.remove('hidden'); 
             document.getElementById('img-output').classList.add('hidden');
             document.getElementById('label-filename-input').innerText = '...'; 
