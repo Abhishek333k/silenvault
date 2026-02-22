@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spectral Decoder | Acoustic Steganography | SilenVault</title>
-    <meta name="description" content="Forensic utility to intercept, demodulate, and transmit covert micro-amplitude ultrasonic data streams.">
+    <title>Visual Morse Decoder | Acoustic Forensics | SilenVault</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -12,169 +11,65 @@
     <link rel="stylesheet" href="../assets/css/components.css">
 
     <style>
-        :root { --bg-color: #0f172a; --panel-bg: rgba(30, 41, 59, 0.85); --primary-text: #f8fafc; }
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--primary-text); }
-        .glass-panel { background: var(--panel-bg); backdrop-filter: blur(16px); border: 1px solid #334155; }
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .glass-panel { background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(16px); border: 1px solid #334155; }
         .mono { font-family: 'Fira Code', monospace; }
-        .terminal-scroll { overflow-y: auto; scroll-behavior: smooth; }
-        .terminal-scroll::-webkit-scrollbar { width: 4px; }
-        .terminal-scroll::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
         canvas { image-rendering: pixelated; }
-        
-        .cursor-blink { animation: blink 1s step-end infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
     <sv-header base-path=".."></sv-header>
 
-    <main class="flex-1 max-w-[1200px] mx-auto w-full px-4 py-8 flex flex-col gap-6">
-        <div class="mb-2">
-            <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Spectral <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">Decoder</span></h1>
-            <p class="text-sm text-slate-400 mt-2">Intercept covert micro-amplitude data streams embedded in the room's acoustics.</p>
+    <main class="flex-1 max-w-[800px] mx-auto w-full px-4 py-8 flex flex-col gap-6">
+        <div class="mb-2 text-center">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Visual <span class="text-emerald-400">Forensics</span></h1>
+            <p class="text-sm text-slate-400 mt-2">Point microphone at target device to visually intercept On-Off Keying (Morse) signals.</p>
         </div>
 
         <div id="mic-alert" class="hidden glass-panel border-rose-500/50 bg-rose-950/20 p-4 rounded-xl flex items-center gap-3">
-            <svg class="w-6 h-6 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-            <span class="text-rose-200 font-medium text-sm">Microphone Access Denied. Must be run on localhost or HTTPS to intercept signals.</span>
+            <span class="text-rose-200 font-medium text-sm">Microphone Access Denied. You must run this on localhost or HTTPS.</span>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div class="glass-panel p-6 rounded-2xl shadow-xl flex flex-col gap-4">
             
-            <div class="lg:col-span-5 glass-panel p-6 rounded-2xl shadow-xl flex flex-col gap-4">
-                <div class="border-b border-slate-700 pb-3 flex justify-between items-center">
-                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                        <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
-                        Acoustic Injector
-                    </h2>
-                    <span id="tx-status" class="text-[10px] font-mono font-bold uppercase text-slate-500">Idle</span>
-                </div>
-                
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Payload (Micro-Amplitude)</label>
-                    <textarea id="tx-input" class="w-full h-32 bg-[#020617] border border-slate-700 rounded-xl p-3 text-sm text-blue-400 mono focus:outline-none focus:border-blue-500 resize-none shadow-inner" placeholder="Enter custom covert message..."></textarea>
-                </div>
-
-                <button id="btn-transmit" onclick="transmitPayload()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg border border-blue-500 uppercase tracking-widest text-xs mt-2">
-                    Broadcast Payload
-                </button>
-                <p class="text-[10px] text-slate-500 text-center">Transmission is capped at 3% volume to bypass hardware limiters.</p>
+            <div class="flex justify-between items-center border-b border-slate-700 pb-4">
+                <h2 class="text-lg font-bold text-white">Target Frequency: 17.5 kHz</h2>
+                <span id="rx-status" class="text-[10px] font-mono font-bold uppercase text-rose-500">Offline</span>
             </div>
 
-            <div class="lg:col-span-7 glass-panel p-6 rounded-2xl shadow-xl flex flex-col gap-4 min-h-[420px]">
-                <div class="border-b border-slate-700 pb-3 flex justify-between items-center">
-                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
-                        <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
-                        Spectral Scanner
-                    </h2>
-                    <span id="rx-status" class="text-[10px] font-mono font-bold uppercase text-rose-500">Offline</span>
-                </div>
-
-                <div class="w-full h-24 bg-[#020617] rounded-xl border border-slate-700 overflow-hidden relative shadow-inner">
-                    <div class="absolute top-2 left-2 text-[9px] text-slate-500 font-mono z-10 font-bold uppercase tracking-widest">18kHz - 19kHz Band</div>
-                    <canvas id="spectrogram" class="w-full h-full absolute inset-0"></canvas>
-                </div>
-
-                <div class="flex-1 flex flex-col gap-2">
-                    <div class="flex justify-between items-center">
-                        <label class="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Intercepted Data Stream</label>
-                        <button onclick="document.getElementById('rx-out').innerText=''" class="text-[10px] text-slate-500 hover:text-white font-mono uppercase tracking-widest bg-slate-800 px-2 py-1 rounded border border-slate-700">Clear</button>
-                    </div>
-                    <div class="flex-1 min-h-[120px] bg-[#020617] border border-slate-700 rounded-xl p-4 terminal-scroll shadow-inner">
-                        <span id="rx-out" class="text-emerald-400 mono text-sm font-bold tracking-wide break-words"></span>
-                        <span id="cursor" class="inline-block w-2 h-4 bg-emerald-500 align-middle hidden cursor-blink ml-1"></span>
-                    </div>
-                </div>
-
-                <button id="btn-listen" onclick="toggleScanner()" class="w-full bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold py-3 rounded-xl transition-all shadow-lg border border-slate-600 uppercase tracking-widest text-xs mt-2">
-                    Engage Microphone Scanner
-                </button>
+            <div class="w-full h-64 bg-[#020617] rounded-xl border border-slate-700 overflow-hidden relative shadow-inner">
+                <div class="absolute top-2 left-2 text-[9px] text-slate-500 font-mono z-10 font-bold uppercase tracking-widest">Live Spectrum Waterfall (Scrolls Right)</div>
+                <canvas id="spectrogram" class="w-full h-full absolute inset-0"></canvas>
             </div>
+
+            <button id="btn-listen" onclick="toggleScanner()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg border border-emerald-500 uppercase tracking-widest text-sm mt-4">
+                Engage Microphone
+            </button>
+        </div>
+        
+        <div class="glass-panel p-6 rounded-2xl border-l-4 border-emerald-500 text-sm text-slate-300">
+            <strong>How to read the radar:</strong> When the beacon is active, you will see bright green blocks appear in the radar above. Short blocks are "Dots", long blocks are "Dashes". They will paint the Morse Code message directly onto your screen.
         </div>
     </main>
+    
     <sv-footer base-path=".."></sv-footer>
 
     <script>
         let audioCtx = null;
-        let isTransmitting = false;
-        
         let isListening = false;
         let micStream = null;
         let analyser = null;
-        let scanRaf = null;
         let drawRaf = null;
 
-        // Micro-Amplitude FSK Protocol
-        const FREQ_SYNC = 18000;
-        const FREQ_0 = 18200;
-        const FREQ_1 = 18400;
-        const BAUD_MS = 100; 
-        const BAUD_SEC = BAUD_MS / 1000;
-        const GAIN_LEVEL = 0.03; // 3% Volume
-
-        // ==========================================
-        // TRANSMITTER (Micro-Amplitude Injector)
-        // ==========================================
-        function transmitPayload() {
-            if (isTransmitting) return;
-            const text = document.getElementById('tx-input').value.trim();
-            if (!text) return;
-
-            isTransmitting = true;
-            document.getElementById('btn-transmit').classList.add('opacity-50', 'cursor-not-allowed');
-            document.getElementById('tx-status').innerText = 'Broadcasting...';
-            document.getElementById('tx-status').className = 'text-[10px] font-mono font-bold uppercase text-blue-400';
-
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            gain.gain.value = 0;
-            
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            
-            let time = audioCtx.currentTime + 0.1;
-            osc.start(time);
-
-            for (let c = 0; c < text.length; c++) {
-                const charBits = text.charCodeAt(c).toString(2).padStart(8, '0');
-                
-                // Sync Bit
-                osc.frequency.setValueAtTime(FREQ_SYNC, time);
-                gain.gain.setValueAtTime(GAIN_LEVEL, time);
-                time += BAUD_SEC;
-
-                // 8 Data Bits
-                for (let b = 0; b < 8; b++) {
-                    const freq = charBits[b] === '1' ? FREQ_1 : FREQ_0;
-                    osc.frequency.setValueAtTime(freq, time);
-                    time += BAUD_SEC;
-                }
-
-                // Stop/Pause
-                gain.gain.setValueAtTime(0, time);
-                time += BAUD_SEC;
-            }
-
-            osc.stop(time);
-
-            setTimeout(() => {
-                isTransmitting = false;
-                document.getElementById('btn-transmit').classList.remove('opacity-50', 'cursor-not-allowed');
-                document.getElementById('tx-status').innerText = 'Idle';
-                document.getElementById('tx-status').className = 'text-[10px] font-mono font-bold uppercase text-slate-500';
-            }, (time - audioCtx.currentTime) * 1000);
-        }
-
-        // ==========================================
-        // RECEIVER (Binary FSK Scanner)
-        // ==========================================
         async function toggleScanner() {
             if (isListening) {
-                stopScanner();
+                isListening = false;
+                if (micStream) micStream.getTracks().forEach(t => t.stop());
+                cancelAnimationFrame(drawRaf);
+                document.getElementById('btn-listen').innerText = "Engage Microphone";
+                document.getElementById('btn-listen').className = "w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg border border-emerald-500 uppercase tracking-widest text-sm mt-4";
+                document.getElementById('rx-status').innerText = "Offline";
+                document.getElementById('rx-status').className = 'text-[10px] font-mono font-bold uppercase text-rose-500';
                 return;
             }
 
@@ -182,24 +77,20 @@
                 micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false } });
                 document.getElementById('mic-alert').classList.add('hidden');
                 
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') await audioCtx.resume();
-
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const source = audioCtx.createMediaStreamSource(micStream);
                 analyser = audioCtx.createAnalyser();
-                analyser.fftSize = 4096; // High resolution for separating 200Hz steps
-                analyser.smoothingTimeConstant = 0.0; // Needs to be fast to catch 100ms bits
+                analyser.fftSize = 2048; 
+                analyser.smoothingTimeConstant = 0.0;
                 source.connect(analyser);
 
                 isListening = true;
                 document.getElementById('btn-listen').innerText = "Stop Scanner";
-                document.getElementById('btn-listen').classList.replace('text-emerald-400', 'text-rose-400');
-                document.getElementById('rx-status').innerText = "Intercepting...";
+                document.getElementById('btn-listen').className = "w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg border border-rose-500 uppercase tracking-widest text-sm mt-4";
+                document.getElementById('rx-status').innerText = "Scanning...";
                 document.getElementById('rx-status').className = 'text-[10px] font-mono font-bold uppercase text-emerald-400';
-                document.getElementById('cursor').classList.remove('hidden');
 
                 resizeCanvas();
-                startDemodulator();
                 drawWaterfall();
 
             } catch (err) {
@@ -207,103 +98,21 @@
             }
         }
 
-        function stopScanner() {
-            isListening = false;
-            if (micStream) micStream.getTracks().forEach(t => t.stop());
-            cancelAnimationFrame(scanRaf);
-            cancelAnimationFrame(drawRaf);
-            
-            document.getElementById('btn-listen').innerText = "Engage Microphone Scanner";
-            document.getElementById('btn-listen').classList.replace('text-rose-400', 'text-emerald-400');
-            document.getElementById('rx-status').innerText = "Offline";
-            document.getElementById('rx-status').className = 'text-[10px] font-mono font-bold uppercase text-rose-500';
-            document.getElementById('cursor').classList.add('hidden');
-        }
-
-        function getFreqIndex(freq, sampleRate, fftSize) {
-            return Math.round(freq / (sampleRate / fftSize));
-        }
-
-        function startDemodulator() {
-            const buffer = new Float32Array(analyser.frequencyBinCount);
-            
-            let state = 'WAIT_SYNC';
-            let syncStart = 0;
-            let currentBits = '';
-
-            function decodeLoop() {
-                if (!isListening) return;
-                scanRaf = requestAnimationFrame(decodeLoop);
-
-                analyser.getFloatFrequencyData(buffer);
-                const now = audioCtx.currentTime;
-
-                const iS = getFreqIndex(FREQ_SYNC, audioCtx.sampleRate, analyser.fftSize);
-                const i0 = getFreqIndex(FREQ_0, audioCtx.sampleRate, analyser.fftSize);
-                const i1 = getFreqIndex(FREQ_1, audioCtx.sampleRate, analyser.fftSize);
-
-                // Math.max around the target to handle slight frequency bleed
-                const magS = Math.max(buffer[iS-1], buffer[iS], buffer[iS+1]);
-                const mag0 = Math.max(buffer[i0-1], buffer[i0], buffer[i0+1]);
-                const mag1 = Math.max(buffer[i1-1], buffer[i1], buffer[i1+1]);
-
-                // We are looking for very quiet signals. -85dB is standard room noise floor.
-                const THRESHOLD = -75; 
-
-                if (state === 'WAIT_SYNC') {
-                    if (magS > THRESHOLD && magS > mag0 && magS > mag1) {
-                        state = 'READ_DATA';
-                        syncStart = now;
-                        currentBits = '';
-                    }
-                } 
-                else if (state === 'READ_DATA') {
-                    const elapsed = now - syncStart;
-                    const bitIndex = Math.floor(elapsed / BAUD_SEC) - 1; // -1 because first baud was the sync
-
-                    if (bitIndex >= 0 && bitIndex < 8) {
-                        // Sample directly in the center of the 100ms bit window (between 40% and 60%)
-                        const windowOffset = (elapsed % BAUD_SEC) / BAUD_SEC;
-                        
-                        if (windowOffset > 0.4 && windowOffset < 0.6 && currentBits.length === bitIndex) {
-                            if (mag1 > mag0) currentBits += '1';
-                            else currentBits += '0';
-                        }
-                    } 
-                    else if (bitIndex >= 8) {
-                        // All 8 bits read. Convert to character and print.
-                        if (currentBits.length === 8) {
-                            const charCode = parseInt(currentBits, 2);
-                            if (charCode >= 32 && charCode <= 126) { // Printable ASCII only
-                                document.getElementById('rx-out').innerText += String.fromCharCode(charCode);
-                            }
-                        }
-                        state = 'WAIT_SYNC';
-                    }
-                }
-            }
-            decodeLoop();
-        }
-
         // ==========================================
-        // UI WATERFALL RADAR (Throttled for CPU)
+        // UI WATERFALL RADAR
         // ==========================================
         const specCanvas = document.getElementById('spectrogram');
         const specCtx = specCanvas.getContext('2d');
         let sliceX = 0;
-        let lastDraw = 0;
 
         function resizeCanvas() {
             specCanvas.width = specCanvas.parentElement.clientWidth;
             specCanvas.height = specCanvas.parentElement.clientHeight;
         }
 
-        function drawWaterfall(timestamp) {
+        function drawWaterfall() {
             if (!isListening) return;
             drawRaf = requestAnimationFrame(drawWaterfall);
-
-            if (timestamp - lastDraw < 50) return; // Limit to 20 FPS
-            lastDraw = timestamp;
 
             const buffer = new Uint8Array(analyser.frequencyBinCount);
             analyser.getByteFrequencyData(buffer);
@@ -313,27 +122,28 @@
 
             if (sliceX >= w) sliceX = 0;
 
+            // Radar sweep clear
             specCtx.fillStyle = '#020617';
-            specCtx.fillRect(sliceX + 1, 0, 5, h); // Radar sweep clear
+            specCtx.fillRect(sliceX + 1, 0, 5, h); 
 
-            // Focus purely on 17.5kHz - 19kHz
+            // Focus purely on 17kHz - 18kHz
             const binWidth = audioCtx.sampleRate / analyser.fftSize;
-            const startIdx = Math.floor(17500 / binWidth);
-            const range = Math.floor(1500 / binWidth);
+            const startIdx = Math.floor(17000 / binWidth);
+            const range = Math.floor(1000 / binWidth);
 
             for (let y = 0; y < h; y++) {
                 const index = startIdx + Math.floor((y / h) * range); 
                 const value = buffer[index];
                 
                 let r=2, g=6, b=23; 
-                if (value > 200) { r=255; g=255; b=255; }
-                else if (value > 150) { r=16; g=185; b=129; } 
-                else if (value > 90) { r=30; g=58; b=138; }
+                if (value > 200) { r=255; g=255; b=255; } // White Peak
+                else if (value > 120) { r=16; g=185; b=129; } // Emerald Hit
+                else if (value > 70) { r=30; g=58; b=138; } // Blue Noise
 
                 specCtx.fillStyle = `rgb(${r},${g},${b})`;
                 specCtx.fillRect(sliceX, h - y, 1, 1);
             }
-            sliceX++;
+            sliceX += 2; // Move faster so Morse dots are visibly long
         }
     </script>
 </body>
