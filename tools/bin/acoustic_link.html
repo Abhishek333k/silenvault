@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <title>Acoustic Data Link | Covert Ultrasonic Comms | SilenVault</title>
-    <meta name="description" content="Transmit and receive encrypted text strings over the air using ultrasonic frequency-shift keying. Bridge air-gapped devices with sound.">
-    <meta name="keywords" content="acoustic modem, ultrasonic communication, air gap bridge, frequency shift keying, sound walkie talkie, covert data transfer">
+    <title>Acoustic Data Link | Air-Gap DSP Modem | SilenVault</title>
+    <meta name="description" content="Transmit encrypted text payloads across air-gapped devices using WebAssembly Digital Signal Processing and Ultrasonic Frequency-Shift Keying.">
+    <meta name="keywords" content="acoustic modem, ultrasonic communication, air gap bridge, ggwave, quiet.js, dsp engine, sound walkie talkie">
     <meta name="author" content="SilenVault">
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,6 +14,9 @@
     
     <script src="../assets/js/layout.js" defer></script>
     <link rel="stylesheet" href="../assets/css/components.css">
+
+    <script type="text/javascript" src="https://quiet.github.io/quiet-js/javascripts/quiet.js"></script>
+    <script async type="text/javascript" src="https://quiet.github.io/quiet-js/javascripts/quiet-emscripten.js"></script>
 
     <style>
         :root {
@@ -48,6 +51,13 @@
 
         .cursor-blink { animation: blink 1s step-end infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* The Signal Processor Loading Bar */
+        .signal-bar-container { width: 100%; height: 4px; background: #0f172a; overflow: hidden; border-radius: 2px; position: relative; border: 1px solid #1e293b; }
+        .signal-bar-active { position: absolute; top: 0; left: 0; height: 100%; width: 30%; background: #10b981; box-shadow: 0 0 10px #10b981; animation: scan-bar 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate; display: none; }
+        .signal-bar-tx { background: #3b82f6; box-shadow: 0 0 10px #3b82f6; }
+        .active .signal-bar-active { display: block; }
+        @keyframes scan-bar { 0% { left: 0; width: 10%; } 50% { width: 30%; } 100% { left: 100%; transform: translateX(-100%); width: 10%; } }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
@@ -61,37 +71,28 @@
                 <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
                     Acoustic <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500">Data Link</span>
                 </h1>
-                <p class="text-base text-slate-300 mt-2 font-medium">Transmit text payloads through the air using Frequency-Shift Keying (FSK).</p>
+                <p class="text-base text-slate-300 mt-2 font-medium">Bridge air-gapped devices using WebAssembly Digital Signal Processing.</p>
             </div>
-            <span class="bg-emerald-900/30 border border-emerald-500/30 text-emerald-300 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-widest hidden md:block">Experimental</span>
+            <span class="bg-emerald-900/30 border border-emerald-500/30 text-emerald-300 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-widest hidden md:block" id="engine-status">DSP: INITIALIZING...</span>
         </div>
 
         <div class="glass-panel p-5 rounded-2xl border border-slate-700 shadow-xl flex flex-col md:flex-row gap-6 items-center justify-between bg-slate-900/50">
             <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-slate-800 border border-slate-600 rounded-full flex items-center justify-center shrink-0 shadow-inner">
-                    <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                <div class="w-12 h-12 bg-slate-800 border border-slate-600 rounded-full flex items-center justify-center shrink-0 shadow-inner relative overflow-hidden">
+                    <svg class="w-6 h-6 text-slate-400 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                 </div>
                 <div>
-                    <h3 class="text-white font-bold tracking-wide uppercase text-sm">Transceiver Tuning</h3>
-                    <p class="text-slate-400 text-xs mt-0.5">Both devices must be set to the exact same frequency band and channel.</p>
+                    <h3 class="text-white font-bold tracking-wide uppercase text-sm">Transceiver Band</h3>
+                    <p class="text-slate-400 text-xs mt-0.5">Reed-Solomon FEC applied automatically to correct room echo.</p>
                 </div>
             </div>
             
-            <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-                <div class="flex flex-col gap-1 w-full md:w-48">
-                    <label class="text-[10px] text-slate-500 font-bold uppercase tracking-widest pl-1">Frequency Band</label>
-                    <select id="config-band" class="bg-[#020617] border border-slate-700 text-slate-300 text-xs font-bold rounded-lg px-3 py-2 outline-none shadow-inner focus:border-emerald-500 transition-colors cursor-pointer">
-                        <option value="covert">Covert (Ultrasonic ~18kHz)</option>
-                        <option value="audible" selected>Audible (Modem ~2kHz)</option>
-                    </select>
-                </div>
-                <div class="flex flex-col gap-1 w-full md:w-32">
-                    <label class="text-[10px] text-slate-500 font-bold uppercase tracking-widest pl-1">Channel Selector</label>
-                    <select id="config-channel" class="bg-[#020617] border border-slate-700 text-slate-300 text-xs font-bold rounded-lg px-3 py-2 outline-none shadow-inner focus:border-emerald-500 transition-colors cursor-pointer">
-                        <option value="1">Channel 01</option>
-                        <option value="2">Channel 02</option>
-                        <option value="3">Channel 03</option>
-                        <option value="4">Channel 04</option>
+            <div class="flex w-full md:w-auto">
+                <div class="flex flex-col gap-1 w-full md:w-64">
+                    <label class="text-[10px] text-slate-500 font-bold uppercase tracking-widest pl-1">Frequency Standard</label>
+                    <select id="config-band" class="bg-[#020617] border border-slate-700 text-slate-300 text-xs font-bold rounded-lg px-3 py-3 outline-none shadow-inner focus:border-emerald-500 transition-colors cursor-pointer w-full">
+                        <option value="ultrasonic-experimental">Covert (Ultrasonic ~19kHz)</option>
+                        <option value="audible" selected>Audible (VHF Modem ~3kHz)</option>
                     </select>
                 </div>
             </div>
@@ -99,13 +100,13 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
             
-            <div class="glass-panel p-6 rounded-3xl border border-slate-700 shadow-2xl relative">
+            <div class="glass-panel p-6 rounded-3xl border border-slate-700 shadow-2xl relative flex flex-col h-full">
                 <div class="hud-corner hud-tl border-slate-500"></div>
                 <div class="hud-corner hud-tr border-slate-500"></div>
                 <div class="hud-corner hud-bl border-slate-500"></div>
                 <div class="hud-corner hud-br border-slate-500"></div>
 
-                <div class="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+                <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-4">
                     <h2 class="text-xl font-bold text-white flex items-center gap-3">
                         <span class="bg-blue-500/20 text-blue-400 p-2 rounded-lg shadow-inner">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
@@ -115,26 +116,30 @@
                     <span id="tx-status" class="bg-slate-800 text-slate-400 px-3 py-1 rounded-md text-[10px] font-mono font-bold border border-slate-700 uppercase tracking-widest shadow-inner">Idle</span>
                 </div>
 
-                <div class="space-y-4">
-                    <div>
-                        <label class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block">Payload to Transmit</label>
-                        <textarea id="tx-input" class="w-full h-40 bg-[#020617] border border-slate-700 rounded-xl p-4 text-sm text-emerald-400 mono focus:outline-none focus:border-blue-500 resize-none shadow-inner" placeholder="Enter secret message here..."></textarea>
+                <div class="flex flex-col gap-4 flex-1">
+                    <div class="signal-bar-container" id="tx-signal-bar">
+                        <div class="signal-bar-active signal-bar-tx"></div>
                     </div>
 
-                    <button id="btn-transmit" onclick="initiateTransmission()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-lg transition-all border border-blue-500 uppercase tracking-widest text-sm flex justify-center items-center gap-2">
+                    <div class="flex-1 flex flex-col">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block">Payload to Transmit</label>
+                        <textarea id="tx-input" class="w-full flex-1 min-h-[200px] bg-[#020617] border border-slate-700 rounded-xl p-4 text-sm text-blue-400 mono focus:outline-none focus:border-blue-500 resize-none shadow-inner" placeholder="Enter encrypted or raw text here..."></textarea>
+                    </div>
+
+                    <button id="btn-transmit" onclick="initiateTransmission()" disabled class="w-full bg-slate-800 text-slate-500 font-bold py-4 rounded-xl shadow-lg transition-all border border-slate-700 uppercase tracking-widest text-sm flex justify-center items-center gap-2 cursor-not-allowed">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        Broadcast Payload
+                        <span id="btn-transmit-text">Loading DSP Engine...</span>
                     </button>
                 </div>
             </div>
 
-            <div class="glass-panel p-6 rounded-3xl border border-slate-700 shadow-2xl relative">
+            <div class="glass-panel p-6 rounded-3xl border border-slate-700 shadow-2xl relative flex flex-col h-full">
                 <div class="hud-corner hud-tl border-emerald-500"></div>
                 <div class="hud-corner hud-tr border-emerald-500"></div>
                 <div class="hud-corner hud-bl border-emerald-500"></div>
                 <div class="hud-corner hud-br border-emerald-500"></div>
 
-                <div class="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+                <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-4">
                     <h2 class="text-xl font-bold text-white flex items-center gap-3">
                         <span id="rx-icon-wrapper" class="bg-slate-800 text-slate-400 p-2 rounded-lg transition-all duration-300 shadow-inner">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
@@ -144,31 +149,47 @@
                     <span id="rx-status" class="bg-slate-800 text-slate-400 px-3 py-1 rounded-md text-[10px] font-mono font-bold border border-slate-700 uppercase tracking-widest shadow-inner">Offline</span>
                 </div>
 
-                <div class="space-y-4">
-                    <div class="w-full h-24 bg-[#020617] rounded-xl border border-slate-700 overflow-hidden relative shadow-inner">
-                        <div class="absolute top-2 left-2 text-[9px] text-slate-500 font-mono z-10 font-bold uppercase tracking-widest">Live FFT Array</div>
+                <div class="flex flex-col gap-4 flex-1">
+                    
+                    <div class="signal-bar-container" id="rx-signal-bar">
+                        <div class="signal-bar-active"></div>
+                    </div>
+
+                    <div class="w-full h-24 bg-[#020617] rounded-xl border border-slate-700 overflow-hidden relative shadow-inner shrink-0">
+                        <div class="absolute top-2 left-2 text-[9px] text-slate-500 font-mono z-10 font-bold uppercase tracking-widest">Live Audio FFT</div>
                         <canvas id="spectrogram" class="w-full h-full absolute inset-0"></canvas>
                     </div>
 
-                    <div class="flex justify-between items-center">
-                        <label class="text-xs font-bold text-slate-400 uppercase tracking-widest block">Decoded Output</label>
-                        <button onclick="clearLog()" class="text-[10px] text-slate-500 hover:text-white font-mono uppercase tracking-widest bg-slate-800 px-2 py-1 rounded border border-slate-700 transition-colors">Clear Output</button>
+                    <div class="flex justify-between items-center mt-2">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-widest block">Demodulated Output</label>
+                        <button onclick="clearLog()" class="text-[10px] text-slate-500 hover:text-white font-mono uppercase tracking-widest bg-slate-800 px-3 py-1 rounded border border-slate-700 transition-colors">Clear</button>
                     </div>
 
-                    <div id="rx-terminal" class="w-full h-32 bg-[#020617] border border-slate-700 rounded-xl p-4 terminal-scroll text-sm mono text-emerald-400 shadow-inner break-words leading-relaxed flex flex-col">
-                        <span class="text-slate-600 text-xs" id="rx-placeholder">> Awaiting microphone engagement...</span>
-                        <div id="rx-content" class="inline"></div>
+                    <div id="rx-terminal" class="w-full flex-1 min-h-[140px] bg-[#020617] border border-slate-700 rounded-xl p-4 terminal-scroll text-sm mono text-emerald-400 shadow-inner break-words leading-relaxed flex flex-col relative">
+                        <span class="text-slate-600 text-xs" id="rx-placeholder">> Awaiting WebAssembly boot sequence...</span>
+                        <div id="rx-content" class="inline whitespace-pre-wrap"></div>
                         <span id="rx-cursor" class="w-2 h-4 bg-emerald-500 inline-block align-middle cursor-blink hidden ml-1"></span>
                     </div>
 
-                    <button id="btn-listen" onclick="toggleListening()" class="w-full bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold py-4 rounded-xl shadow-lg transition-all border border-slate-600 uppercase tracking-widest text-sm flex justify-center items-center gap-2">
+                    <button id="btn-listen" onclick="toggleListening()" disabled class="w-full bg-slate-800 text-slate-500 font-bold py-4 rounded-xl shadow-lg transition-all border border-slate-700 uppercase tracking-widest text-sm flex justify-center items-center gap-2 cursor-not-allowed">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        Engage Microphone
+                        <span id="btn-listen-text">Engine Offline</span>
                     </button>
                 </div>
             </div>
 
         </div>
+
+        <article class="mt-16 flex flex-col gap-8 border-t border-slate-800 pt-16">
+            <section class="glass-panel p-8 md:p-12 rounded-2xl shadow-xl prose prose-invert max-w-none border-l-4 border-l-emerald-500">
+                <h2 class="text-white text-3xl font-extrabold mb-4">WASM Digital Signal Processing</h2>
+                <p class="text-slate-300">Standard JavaScript is incapable of accurately transmitting data through the air due to strict browser clock limitations. To bypass this, SilenVault deploys a compiled <strong>C++ WebAssembly (WASM) Engine</strong> directly into your browser's memory.</p>
+                <p class="text-slate-300">This engine acts as a localized <strong>Acoustic Modem</strong>. It parses your raw text into a binary data stream, wraps it in highly complex <strong>Reed-Solomon Error Correction</strong> blocks, and uses Frequency-Shift Keying (FSK) to blast the cryptographically hardened audio through your device's physical speakers.</p>
+                
+                <h3 class="text-emerald-400 text-xl font-bold mt-8 mb-4">Defeating The Environment</h3>
+                <p class="text-slate-300">When sound travels through a room, it bounces off walls (Multipath Echo) and battles ambient noise (Laptop fans, air conditioning). Because the WASM engine automatically injects "Parity Bytes" into the transmission, the receiver's microphone can mathematically reconstruct the payload perfectly, even if 30% of the audio was scrambled by environmental interference.</p>
+            </section>
+        </article>
 
     </main>
 
@@ -176,37 +197,20 @@
 
     <script>
         // ==========================================
-        // ACOUSTIC UART-FSK ENGINE
+        // WASM DSP ENGINE CONTROL (libquiet)
         // ==========================================
         
-        let audioCtx = null;
+        let isEngineReady = false;
         let isTransmitting = false;
-        
-        // Receiver Vars
         let isListening = false;
-        let mediaStream = null;
-        let analyser = null;
-        let rxRaf = null;
+        let activeReceiver = null;
+        let activeTransmitter = null;
+
+        // Visualizer Auth
+        let visualizerAudioCtx = null;
+        let visualizerStream = null;
+        let visualizerAnalyser = null;
         let drawRaf = null;
-
-        // Channel Frequency Map
-        const CHANNELS = {
-            audible: {
-                1: { sync: 2000, zero: 2200, one: 2400 },
-                2: { sync: 2600, zero: 2800, one: 3000 },
-                3: { sync: 3200, zero: 3400, one: 3600 },
-                4: { sync: 3800, zero: 4000, one: 4200 }
-            },
-            covert: {
-                1: { sync: 18000, zero: 18200, one: 18400 },
-                2: { sync: 18600, zero: 18800, one: 19000 },
-                3: { sync: 19200, zero: 19400, one: 19600 },
-                4: { sync: 19800, zero: 20000, one: 20200 }
-            }
-        };
-
-        const BAUD_MS = 100; // 100ms per bit = 10 baud. Highly reliable in JS.
-        const BAUD_SEC = BAUD_MS / 1000;
 
         // DOM Binds
         const rxContent = document.getElementById('rx-content');
@@ -216,119 +220,124 @@
         const specCtx = specCanvas.getContext('2d');
         const statusRx = document.getElementById('rx-status');
         const iconRx = document.getElementById('rx-icon-wrapper');
+        const btnListen = document.getElementById('btn-listen');
+        const btnTransmit = document.getElementById('btn-transmit');
+        
+        const txSignalBar = document.getElementById('tx-signal-bar');
+        const rxSignalBar = document.getElementById('rx-signal-bar');
 
         function clearLog() {
-            rxContent.innerHTML = '';
+            rxContent.innerText = '';
             rxPlaceholder.classList.remove('hidden');
         }
 
-        // Convert string to 8-bit binary array
-        function stringToBinaryBytes(str) {
-            const bytes = [];
-            for (let i = 0; i < str.length; i++) {
-                bytes.push(str.charCodeAt(i).toString(2).padStart(8, '0'));
+        // 1. Initialize Quiet.js WebAssembly
+        function bootDSPEngine() {
+            try {
+                Quiet.init({
+                    profilesPrefix: "https://quiet.github.io/quiet-js/",
+                    memoryInitializerPrefix: "https://quiet.github.io/quiet-js/javascripts/",
+                    libfecPrefix: "https://quiet.github.io/quiet-js/javascripts/"
+                });
+
+                Quiet.addReadyCallback(() => {
+                    isEngineReady = true;
+                    
+                    document.getElementById('engine-status').innerText = 'DSP: ONLINE';
+                    document.getElementById('engine-status').classList.replace('text-emerald-300', 'text-white');
+                    document.getElementById('engine-status').classList.replace('border-emerald-500/30', 'border-emerald-500');
+                    document.getElementById('engine-status').classList.replace('bg-emerald-900/30', 'bg-emerald-600');
+
+                    // Unlock Transmitter
+                    btnTransmit.disabled = false;
+                    btnTransmit.className = "w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all border border-blue-500 uppercase tracking-widest text-sm flex justify-center items-center gap-2";
+                    document.getElementById('btn-transmit-text').innerText = "Broadcast Payload";
+
+                    // Unlock Receiver
+                    btnListen.disabled = false;
+                    btnListen.className = "w-full bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold py-4 rounded-xl shadow-lg transition-all border border-slate-600 uppercase tracking-widest text-sm flex justify-center items-center gap-2";
+                    document.getElementById('btn-listen-text').innerText = "Engage Microphone";
+                    
+                    rxPlaceholder.innerText = "> Engine ready. Waiting for engagement...";
+                });
+            } catch (e) {
+                console.error("DSP Engine Boot Failure:", e);
+                rxPlaceholder.innerText = "> FATAL: Failed to load WebAssembly DSP.";
             }
-            return bytes;
         }
+
+        // Fire boot on load
+        window.addEventListener('load', bootDSPEngine);
 
         // ==========================================
         // TRANSMITTER LOGIC
         // ==========================================
-        async function initiateTransmission() {
-            if (isTransmitting) return;
-            const payload = document.getElementById('tx-input').value.trim();
+        function initiateTransmission() {
+            if (!isEngineReady || isTransmitting) return;
+            const payload = document.getElementById('tx-input').value;
             if (!payload) return;
 
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') await audioCtx.resume();
+            const profile = document.getElementById('config-band').value;
 
-            const band = document.getElementById('config-band').value;
-            const channel = document.getElementById('config-channel').value;
-            const freqs = CHANNELS[band][channel];
-
-            const bytes = stringToBinaryBytes(payload);
-            
             isTransmitting = true;
+            txSignalBar.classList.add('active');
+            
             document.getElementById('tx-status').innerText = 'BROADCASTING';
             document.getElementById('tx-status').classList.replace('text-slate-400', 'text-blue-400');
             document.getElementById('tx-status').classList.replace('border-slate-700', 'border-blue-500');
-            document.getElementById('btn-transmit').classList.add('opacity-50', 'cursor-not-allowed');
+            btnTransmit.classList.add('opacity-50', 'cursor-not-allowed');
 
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sine';
-            
-            // Soft envelope to prevent clicking sounds on audible band
-            gain.gain.setValueAtTime(0, audioCtx.currentTime);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            let time = audioCtx.currentTime + 0.1;
-            gain.gain.setTargetAtTime(1, time, 0.01);
-
-            // UART Protocol: For each character -> Sync (Start), 8 Data Bits
-            for (let b = 0; b < bytes.length; b++) {
-                const byteStr = bytes[b];
-                
-                // Transmit Sync (Start) Bit
-                osc.frequency.setValueAtTime(freqs.sync, time);
-                time += BAUD_SEC;
-
-                // Transmit Data Bits
-                for (let i = 0; i < 8; i++) {
-                    const f = byteStr[i] === '1' ? freqs.one : freqs.zero;
-                    osc.frequency.setValueAtTime(f, time);
-                    time += BAUD_SEC;
+            activeTransmitter = Quiet.transmitter({
+                profile: profile,
+                onFinish: () => {
+                    isTransmitting = false;
+                    txSignalBar.classList.remove('active');
+                    document.getElementById('tx-status').innerText = 'IDLE';
+                    document.getElementById('tx-status').classList.replace('text-blue-400', 'text-slate-400');
+                    document.getElementById('tx-status').classList.replace('border-blue-500', 'border-slate-700');
+                    btnTransmit.classList.remove('opacity-50', 'cursor-not-allowed');
                 }
-            }
+            });
 
-            // End with a final Sync bit to close out cleanly
-            osc.frequency.setValueAtTime(freqs.sync, time);
-            time += BAUD_SEC;
-
-            gain.gain.setTargetAtTime(0, time, 0.01);
-            osc.start(audioCtx.currentTime);
-            osc.stop(time + 0.1);
-
-            osc.onended = () => {
-                isTransmitting = false;
-                document.getElementById('tx-status').innerText = 'IDLE';
-                document.getElementById('tx-status').classList.replace('text-blue-400', 'text-slate-400');
-                document.getElementById('tx-status').classList.replace('border-blue-500', 'border-slate-700');
-                document.getElementById('btn-transmit').classList.remove('opacity-50', 'cursor-not-allowed');
-            };
+            // Convert string to array buffer and feed to WASM
+            activeTransmitter.transmit(Quiet.str2ab(payload));
         }
 
         // ==========================================
         // RECEIVER LOGIC
         // ==========================================
         async function toggleListening() {
+            if (!isEngineReady) return;
+            
             if (isListening) {
                 stopListening();
                 return;
             }
 
+            const profile = document.getElementById('config-band').value;
+
             try {
-                mediaStream = await navigator.mediaDevices.getUserMedia({ 
+                // We ask for mic access manually to feed the visualizer, 
+                // Quiet.js will inherit the permission.
+                visualizerStream = await navigator.mediaDevices.getUserMedia({ 
                     audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false } 
                 });
                 
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') await audioCtx.resume();
-
-                const source = audioCtx.createMediaStreamSource(mediaStream);
-                analyser = audioCtx.createAnalyser();
-                analyser.fftSize = 4096; // High resolution needed for close frequencies
-                analyser.smoothingTimeConstant = 0.0;
-                source.connect(analyser);
+                visualizerAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const source = visualizerAudioCtx.createMediaStreamSource(visualizerStream);
+                visualizerAnalyser = visualizerAudioCtx.createAnalyser();
+                visualizerAnalyser.fftSize = 2048;
+                source.connect(visualizerAnalyser);
 
                 isListening = true;
+                rxPlaceholder.classList.add('hidden');
+                rxCursor.classList.remove('hidden');
+
+                // UI Updates
+                btnListen.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg> <span id="btn-listen-text">Stop Listening</span>`;
+                btnListen.classList.replace('text-emerald-400', 'text-rose-400');
                 
-                const btn = document.getElementById('btn-listen');
-                btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg> Stop Listening`;
-                btn.classList.replace('text-emerald-400', 'text-rose-400');
-                
-                statusRx.innerText = 'TUNED';
+                statusRx.innerText = 'ONLINE';
                 statusRx.classList.replace('text-slate-400', 'text-emerald-400');
                 statusRx.classList.replace('border-slate-700', 'border-emerald-500');
                 
@@ -336,29 +345,51 @@
                 iconRx.classList.replace('text-slate-400', 'text-emerald-400');
                 iconRx.classList.add('pulse-active');
 
-                rxPlaceholder.classList.add('hidden');
-                rxCursor.classList.remove('hidden');
-                
+                // Initialize WASM Receiver
+                activeReceiver = Quiet.receiver({
+                    profile: profile,
+                    onReceive: (payload) => {
+                        // Data packet perfectly reconstructed by Reed-Solomon!
+                        const text = Quiet.ab2str(payload);
+                        rxContent.innerText += text;
+                        rxContent.parentElement.scrollTop = rxContent.parentElement.scrollHeight;
+                        
+                        // Flash the signal bar to show successful chunk processing
+                        rxSignalBar.classList.add('active');
+                        setTimeout(() => rxSignalBar.classList.remove('active'), 500);
+                    },
+                    onCreateFail: (reason) => {
+                        console.error("Failed to create receiver", reason);
+                        stopListening();
+                        alert("Microphone hardware failed to bind to DSP engine.");
+                    },
+                    onReceiveFail: (num_fails) => {
+                        // Background noise caused a packet drop that FEC couldn't fix.
+                        // We intentionally ignore this to keep the console clean.
+                    }
+                });
+
                 resizeCanvas();
                 window.addEventListener('resize', resizeCanvas);
-                
-                startUARTDecoder();
                 drawSpectrogram();
 
             } catch (err) {
-                alert(`Microphone Access Denied: ${err.message}`);
+                alert(`Microphone Access Denied: Please allow microphone access to read data.`);
             }
         }
 
         function stopListening() {
             isListening = false;
-            if (mediaStream) mediaStream.getTracks().forEach(track => track.stop());
-            if (rxRaf) cancelAnimationFrame(rxRaf);
+            if (activeReceiver) {
+                // Quiet.js doesn't have a formal "destroy" method, so we force it to forget the callbacks.
+                activeReceiver = null;
+            }
+            if (visualizerStream) visualizerStream.getTracks().forEach(track => track.stop());
+            if (visualizerAudioCtx) visualizerAudioCtx.close();
             if (drawRaf) cancelAnimationFrame(drawRaf);
 
-            const btn = document.getElementById('btn-listen');
-            btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Engage Microphone`;
-            btn.classList.replace('text-rose-400', 'text-emerald-400');
+            btnListen.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> <span id="btn-listen-text">Engage Microphone</span>`;
+            btnListen.classList.replace('text-rose-400', 'text-emerald-400');
             
             statusRx.innerText = 'OFFLINE';
             statusRx.classList.replace('text-emerald-400', 'text-slate-400');
@@ -369,79 +400,12 @@
             iconRx.classList.remove('pulse-active');
             
             rxCursor.classList.add('hidden');
+            rxSignalBar.classList.remove('active');
             specCtx.clearRect(0, 0, specCanvas.width, specCanvas.height);
         }
 
-        function getFreqIndex(freq, sampleRate, fftSize) {
-            return Math.round(freq / (sampleRate / fftSize));
-        }
-
-        // Software UART Demodulator
-        function startUARTDecoder() {
-            const buffer = new Float32Array(analyser.frequencyBinCount);
-            let state = 'WAIT_SYNC';
-            let bitBuffer = '';
-            let syncStartTime = 0;
-
-            function decodeLoop() {
-                if (!isListening) return;
-                
-                const now = audioCtx.currentTime;
-                analyser.getFloatFrequencyData(buffer);
-                
-                const band = document.getElementById('config-band').value;
-                const channel = document.getElementById('config-channel').value;
-                const freqs = CHANNELS[band][channel];
-
-                const iS = getFreqIndex(freqs.sync, audioCtx.sampleRate, analyser.fftSize);
-                const i0 = getFreqIndex(freqs.zero, audioCtx.sampleRate, analyser.fftSize);
-                const i1 = getFreqIndex(freqs.one, audioCtx.sampleRate, analyser.fftSize);
-
-                // Get max magnitude surrounding the target bins to account for slight bleed
-                const magS = Math.max(buffer[iS-1], buffer[iS], buffer[iS+1]);
-                const mag0 = Math.max(buffer[i0-1], buffer[i0], buffer[i0+1]);
-                const mag1 = Math.max(buffer[i1-1], buffer[i1], buffer[i1+1]);
-
-                const THRESHOLD = band === 'covert' ? -65 : -55; // dB
-
-                if (state === 'WAIT_SYNC') {
-                    // Look for a dominant Sync tone
-                    if (magS > THRESHOLD && magS > mag0 && magS > mag1) {
-                        state = 'READ_DATA';
-                        syncStartTime = now;
-                        bitBuffer = '';
-                    }
-                } 
-                else if (state === 'READ_DATA') {
-                    // We expect 8 bits. We sample in the middle of each bit window.
-                    const expectedBitIndex = Math.floor((now - syncStartTime) / BAUD_SEC) - 1;
-
-                    if (expectedBitIndex >= 0 && expectedBitIndex < 8) {
-                        // Are we near the middle of this bit's window?
-                        const windowOffset = ((now - syncStartTime) % BAUD_SEC) / BAUD_SEC;
-                        if (windowOffset > 0.4 && windowOffset < 0.6 && bitBuffer.length === expectedBitIndex) {
-                            if (mag1 > mag0) bitBuffer += '1';
-                            else bitBuffer += '0';
-                        }
-                    } 
-                    else if (expectedBitIndex >= 8) {
-                        // Character finished. Print to screen and wait for next sync.
-                        if (bitBuffer.length === 8) {
-                            const char = String.fromCharCode(parseInt(bitBuffer, 2));
-                            rxContent.innerHTML += char.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                            rxContent.parentElement.scrollTop = rxContent.parentElement.scrollHeight;
-                        }
-                        state = 'WAIT_SYNC';
-                    }
-                }
-
-                rxRaf = requestAnimationFrame(decodeLoop);
-            }
-            decodeLoop();
-        }
-
         // ==========================================
-        // LIVE SPECTROGRAM
+        // LIVE SPECTROGRAM (Visualizer)
         // ==========================================
         function resizeCanvas() {
             specCanvas.width = specCanvas.parentElement.clientWidth;
@@ -452,9 +416,10 @@
         function drawSpectrogram() {
             if (!isListening) return;
             
-            const buffer = new Uint8Array(analyser.frequencyBinCount);
-            analyser.getByteFrequencyData(buffer);
+            const buffer = new Uint8Array(visualizerAnalyser.frequencyBinCount);
+            visualizerAnalyser.getByteFrequencyData(buffer);
 
+            // Shift canvas left
             if (sliceX >= specCanvas.width) {
                 const imgData = specCtx.getImageData(1, 0, specCanvas.width - 1, specCanvas.height);
                 specCtx.putImageData(imgData, 0, 0);
@@ -462,9 +427,14 @@
             }
 
             const h = specCanvas.height;
-            // Draw only the upper frequencies for visual clarity
+            const profile = document.getElementById('config-band').value;
+            
+            // Adjust visualization focus based on the selected band
+            const startIdx = profile === 'ultrasonic-experimental' ? Math.floor(buffer.length * 0.7) : 0;
+            const range = profile === 'ultrasonic-experimental' ? Math.floor(buffer.length * 0.3) : Math.floor(buffer.length * 0.4);
+
             for (let y = 0; y < h; y++) {
-                const index = Math.floor((y / h) * (buffer.length * 0.8)); // Focus on upper 80%
+                const index = startIdx + Math.floor((y / h) * range); 
                 const value = buffer[index];
                 
                 let r=2, g=6, b=23; // Background (Slate 950)
@@ -480,6 +450,13 @@
             drawRaf = requestAnimationFrame(drawSpectrogram);
         }
 
+        // Auto-restart listening if frequency band changes while active
+        document.getElementById('config-band').addEventListener('change', () => {
+            if (isListening) {
+                stopListening();
+                setTimeout(toggleListening, 200);
+            }
+        });
     </script>
 </body>
 </html>
