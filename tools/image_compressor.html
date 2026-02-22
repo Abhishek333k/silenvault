@@ -14,7 +14,9 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <script src="../assets/js/layout.js" defer></script>
+    <link rel="stylesheet" href="../assets/css/components.css">
     
     <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
@@ -43,44 +45,9 @@
         input[type="range"].custom-slider::-webkit-slider-thumb:active { transform: scale(1.1); }
         input[type="range"].custom-slider::-webkit-slider-runnable-track { width: 100%; height: 8px; cursor: pointer; background: #1e293b; border-radius: 4px; border: 1px solid #334155; }
 
-        /* Professional App Window Frame & Viewport */
-        .preview-frame { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(16px); border: 1px solid var(--border-color); border-radius: 1.5rem; padding: 0.5rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-        .preview-header { display: flex; align-items: center; padding: 0.75rem 1rem; border-bottom: 1px solid rgba(51, 65, 85, 0.5); margin-bottom: 0.5rem; }
-        .window-dots { display: flex; gap: 6px; margin-right: 1rem; }
-        .window-dot { width: 12px; height: 12px; border-radius: 50%; opacity: 0.8; }
-        .dot-red { background: #f43f5e; border: 1px solid #e11d48; }
-        .dot-yel { background: #f59e0b; border: 1px solid #d97706; }
-        .dot-grn { background: #10b981; border: 1px solid #059669; }
-
-        /* Precision Comparison Container */
-        .comparison-container { 
-            position: relative; width: 100%; height: 500px; overflow: hidden; border-radius: 1rem; 
-            background-color: #020617; 
-            box-shadow: inset 0 2px 25px rgba(0,0,0,0.8); 
-            user-select: none; border: 1px solid #1e293b; 
-        }
-        
-        .dot-matrix-bg { position: absolute; inset: 0; background-image: radial-gradient(#334155 1px, transparent 1px); background-size: 16px 16px; opacity: 0.3; z-index: 0; pointer-events: none; }
-        
-        .comparison-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; z-index: 10; filter: drop-shadow(0 10px 25px rgba(0,0,0,0.5)); }
-        
-        /* SLEEK, PROFESSIONAL SLIDER */
-        .comparison-slider { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; background: rgba(255, 255, 255, 0.9); cursor: ew-resize; z-index: 30; transform: translateX(-50%); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
-        .comparison-handle { position: absolute; width: 32px; height: 32px; background: #ffffff; border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; gap: 3px; transition: transform 0.1s ease; border: 1px solid #e2e8f0; }
-        .comparison-slider:active .comparison-handle { transform: scale(1.1); }
-        .comparison-handle::before, .comparison-handle::after { content: ''; width: 2px; height: 10px; background: #94a3b8; border-radius: 2px; }
-        
-        .label-before { position: absolute; top: 16px; left: 16px; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); color: #cbd5e1; padding: 6px 14px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; z-index: 20; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        .label-after { position: absolute; top: 16px; right: 16px; background: rgba(16, 185, 129, 0.95); backdrop-filter: blur(8px); color: #022c22; padding: 6px 14px; border-radius: 8px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; z-index: 20; border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 4px 15px rgba(16,185,129,0.3); }
-
-        #processing-overlay { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.2s ease; opacity: 0; pointer-events: none; border-radius: 1rem; }
-        #processing-overlay.active { opacity: 1; pointer-events: all; }
-
-        /* UI Alert Banner */
         #ui-alert { position: fixed; top: 0; left: 50%; transform: translateX(-50%) translateY(-100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 9999; }
         #ui-alert.show { transform: translateX(-50%) translateY(1rem); }
 
-        /* Persistent 100% Toaster */
         #original-toaster { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(150%); transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 9000; }
         #original-toaster.show { transform: translateX(-50%) translateY(0); }
     </style>
@@ -195,38 +162,36 @@
                 </div>
             </div>
 
-            <div class="lg:col-span-8 relative">
-                
-                <div class="preview-frame">
-                    <div class="preview-header">
-                        <div class="window-dots">
-                            <div class="window-dot dot-red"></div>
-                            <div class="window-dot dot-yel"></div>
-                            <div class="window-dot dot-grn"></div>
+            <div class="lg:col-span-8 relative flex flex-col h-full">
+                <div class="sv-frame-hybrid flex-1 flex flex-col">
+                    <div class="sv-window-header">
+                        <div class="sv-window-dots">
+                            <div class="sv-dot sv-dot-r"></div>
+                            <div class="sv-dot sv-dot-y"></div>
+                            <div class="sv-dot sv-dot-g"></div>
                         </div>
-                        <span class="text-[10px] font-mono font-bold text-slate-500 tracking-widest uppercase">Preview</span>
+                        <span class="sv-window-title">Comparison Viewport</span>
                     </div>
 
-                    <div class="comparison-container" id="comp-container">
-                        <div class="dot-matrix-bg"></div>
+                    <div class="sv-viewport-hybrid flex-1 min-h-[500px] relative" id="comp-container">
+                        <div class="sv-bg-blueprint"></div>
                         
-                        <img id="img-original" class="comparison-img" alt="Original Image">
-                        <div class="label-before">Original</div>
+                        <img id="img-original" class="sv-img-contain" alt="Original Image">
+                        <div class="sv-label-left">Original</div>
                         
-                        <img id="img-compressed" class="comparison-img" alt="Compressed Image" style="clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%);">
-                        <div class="label-after">Compressed</div>
+                        <img id="img-compressed" class="sv-img-contain" alt="Compressed Image" style="clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%);">
+                        <div class="sv-label-right">Compressed</div>
 
-                        <div class="comparison-slider" id="comp-slider">
-                            <div class="comparison-handle"></div>
+                        <div class="sv-slider" id="comp-slider">
+                            <div class="sv-slider-handle"></div>
                         </div>
 
-                        <div id="processing-overlay">
+                        <div id="processing-overlay" class="sv-overlay">
                             <div class="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin shadow-[0_0_15px_rgba(16,185,129,0.5)]"></div>
                             <p class="text-xs font-bold text-emerald-400 tracking-widest uppercase mt-4 animate-pulse" id="loader-text">Processing...</p>
                         </div>
                     </div>
                 </div>
-
             </div>
 
         </div>
@@ -234,7 +199,6 @@
         <canvas id="compress-canvas" class="hidden"></canvas>
 
         <article class="mt-20 flex flex-col gap-12 border-t border-slate-800 pt-16">
-            
             <section class="glass-panel p-8 md:p-10 rounded-2xl shadow-xl">
                 <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-8">How to Compress Images Locally</h2>
                 <div class="grid md:grid-cols-4 gap-6">
@@ -433,7 +397,6 @@
 
             const targetScale = parseInt(qualitySlider.value);
             
-            // THE 100% BYPASS LOCK
             if (targetScale === 100) {
                 finalDownloadBlob = originalFile;
                 elSizeOrig.innerText = formatBytes(originalSize);
@@ -537,7 +500,7 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + ['Bytes', 'KB', 'MB', 'GB'][i];
         }
 
-        // FLAWLESS COMPARISON SLIDER (Polygon Clip-Path)
+        // FLAWLESS COMPARISON SLIDER
         let isDraggingSlider = false;
         function moveSlider(clientX) {
             const rect = compContainer.getBoundingClientRect();
