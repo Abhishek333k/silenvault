@@ -58,6 +58,10 @@
         }
         .forge-mode .status-scan { background: rgba(244, 63, 94, 0.15) !important; color: #fda4af !important; border-color: rgba(244, 63, 94, 0.5) !important; }
         .forge-mode .scanner-line { background: #f43f5e !important; box-shadow: 0 0 15px #f43f5e, 0 0 30px #f43f5e !important; }
+        .forge-mode .sv-viewport-hybrid { border-color: #9f1239; box-shadow: inset 0 2px 25px rgba(225, 29, 72, 0.2); }
+        .forge-mode .sv-bg-blueprint { background-image: linear-gradient(rgba(244, 63, 94, 0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(244, 63, 94, 0.15) 1px, transparent 1px); }
+        .forge-mode .term-1 { border-color: #9f1239; }
+        .forge-mode .term-1-header { border-bottom-color: #9f1239; }
 
         /* BLUR EFFECT FOR MAIN CONTENT WHEN MODAL IS OPEN */
         #main-content-wrapper { transition: filter 0.5s ease, transform 0.5s ease; }
@@ -77,12 +81,12 @@
         .scanning .scanner-line { display: block; }
         @keyframes scan { 0% { top: 0%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
 
-        /* BUTTERY TERMINAL LOGS */
-        .terminal { background: rgba(2, 6, 23, 0.9); border: 1px solid var(--border-color); border-radius: 8px; font-family: 'Fira Code', monospace; font-size: 13px; height: 300px; display: flex; flex-direction: column; transition: all 0.5s ease; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5); }
-        .terminal-header { background: rgba(255,255,255,0.05); border-bottom: 1px solid var(--border-color); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0; }
-        .terminal-body { padding: 16px; overflow-y: auto; flex: 1; color: #e2e8f0; scroll-behavior: smooth; }
-        .terminal-body::-webkit-scrollbar { width: 6px; }
-        .terminal-body::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        /* TERMINAL STYLE 1 (UNIFIED APP FRAME) */
+        .term-1 { background: rgba(2, 6, 23, 0.9); border: 1px solid var(--border-color); border-radius: 1rem; display: flex; flex-direction: column; box-shadow: inset 0 2px 15px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.5); min-height: 350px; }
+        .term-1-header { background: rgba(15, 23, 42, 0.6); padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); border-radius: 1rem 1rem 0 0; display: flex; align-items: center; justify-content: space-between; }
+        .terminal-scroll { overflow-y: auto; padding: 16px; flex: 1; font-family: 'Fira Code', monospace; font-size: 13px; color: #e2e8f0; scroll-behavior: smooth; }
+        .terminal-scroll::-webkit-scrollbar { width: 6px; }
+        .terminal-scroll::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
         
         .log-line { margin-bottom: 6px; display: flex; align-items: flex-start; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px; opacity: 0; transform: translateX(-10px); animation: butteryFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
         @keyframes butteryFadeIn { to { opacity: 1; transform: translateX(0); } }
@@ -170,51 +174,28 @@
             <div id="workspace-stage" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-start transition-all duration-500">
                 
                 <div class="lg:col-span-5 flex flex-col gap-6">
-                    
-                    <div class="glass-panel p-4 rounded-2xl flex flex-col gap-4 shadow-xl">
-                        <div class="flex justify-between items-center px-2">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Audit Target</span>
-                            <span id="label-filename-input" class="truncate text-[10px] text-slate-500 font-mono max-w-[50%]">...</span>
-                        </div>
-                        <div class="sv-frame-hybrid flex flex-col w-full h-64 select-none touch-none p-1">
-                            <div class="sv-window-header border-b border-slate-700 pb-2 mb-0">
+                    <div class="sv-frame-hybrid flex flex-col w-full h-[500px] p-1 select-none touch-none">
+                        <div class="sv-window-header border-b border-slate-700 pb-2 mb-0 justify-between">
+                            <div class="flex items-center">
                                 <div class="sv-window-dots">
                                     <div class="sv-dot sv-dot-r"></div>
                                     <div class="sv-dot sv-dot-y"></div>
                                     <div class="sv-dot sv-dot-g"></div>
                                 </div>
-                                <span class="sv-window-title text-[9px]">Input Canvas</span>
+                                <span class="sv-window-title text-[9px] ml-2">Render Canvas</span>
                             </div>
-                            <div id="input-box" class="sv-viewport-hybrid flex-1 w-full flex flex-col items-center justify-center relative scanning">
-                                <div class="sv-bg-blueprint"></div>
-                                <div class="scanner-line"></div>
-                                <img id="img-input" class="sv-img-cover z-20 hidden preview-img" alt="Input Preview">
+                            <div id="canvas-tabs" class="hidden flex bg-slate-900 rounded p-0.5 border border-slate-700 pointer-events-auto">
+                                <div id="tab-original" class="px-3 py-1 text-[10px] text-white bg-slate-700 rounded font-bold shadow cursor-pointer transition-colors" onclick="window.switchTab('original')">Original</div>
+                                <div id="tab-scrubbed" class="px-3 py-1 text-[10px] text-slate-400 font-bold cursor-pointer transition-colors" onclick="window.switchTab('scrubbed')">Scrubbed</div>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="glass-panel p-4 rounded-2xl flex flex-col gap-4 shadow-xl border border-emerald-900/30 bg-emerald-950/10">
-                        <div class="flex justify-between items-center px-2">
-                            <span class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Secure Export</span>
-                            <span id="label-filename-output" class="truncate text-[10px] text-emerald-400 font-mono max-w-[50%] opacity-0 transition-opacity duration-500">...</span>
-                        </div>
-                        <div class="sv-frame-hybrid flex flex-col w-full h-64 border-emerald-600/30 select-none touch-none p-1">
-                            <div class="sv-window-header border-b border-emerald-900 pb-2 mb-0">
-                                <div class="sv-window-dots">
-                                    <div class="sv-dot sv-dot-r"></div>
-                                    <div class="sv-dot sv-dot-y"></div>
-                                    <div class="sv-dot sv-dot-g"></div>
-                                </div>
-                                <span class="sv-window-title text-[9px] text-emerald-500">Output Render</span>
-                            </div>
-                            <div class="sv-viewport-hybrid flex-1 w-full flex flex-col items-center justify-center relative">
-                                <div class="sv-bg-blueprint opacity-50"></div>
-                                <div id="output-placeholder" class="text-[10px] text-slate-500 font-mono text-center flex flex-col items-center gap-2 z-20">
-                                    <svg class="w-6 h-6 text-slate-600 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                                    Pending Purge
-                                </div>
-                                <img id="img-output" class="sv-img-cover hidden z-20 preview-img" alt="Output Preview">
-                            </div>
+                        
+                        <div id="input-box" class="sv-viewport-hybrid flex-1 w-full flex flex-col items-center justify-center relative scanning">
+                            <div class="sv-bg-blueprint"></div>
+                            <div class="scanner-line"></div>
+                            
+                            <img id="img-input" class="sv-img-cover z-20 hidden preview-img" alt="Input Preview">
+                            <img id="img-output" class="sv-img-cover z-30 hidden preview-img" alt="Output Preview">
                         </div>
                     </div>
 
@@ -232,22 +213,23 @@
                 </div>
 
                 <div class="lg:col-span-7 flex flex-col gap-6">
-                    <div class="terminal shadow-2xl" id="main-terminal">
-                        <div class="terminal-header">
-                            <span class="text-white font-bold text-xs uppercase tracking-widest flex items-center gap-2">
-                                <svg class="w-4 h-4 text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg> Forensic Audit Log
-                            </span>
-                            
-                            <div id="export-options" class="hidden flex items-center gap-2">
-                                <span class="text-[10px] text-slate-400 uppercase tracking-widest mr-1 font-bold">Save As:</span>
-                                <button id="btn-export-txt" class="text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded border border-slate-600 transition-colors">TXT</button>
-                                <button id="btn-export-json" class="text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded border border-slate-600 transition-colors">JSON</button>
-                                <button id="btn-export-csv" class="text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded border border-slate-600 transition-colors">CSV</button>
+                    <div class="term-1 flex-1" id="main-terminal">
+                        <div class="term-1-header">
+                            <div class="flex items-center gap-3">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                                <span class="text-[10px] text-slate-300 font-mono font-bold tracking-widest uppercase">Forensic Audit Log</span>
                             </div>
                             
-                            <span id="meta-count" class="bg-blue-900/30 text-blue-300 px-3 py-1 rounded-md text-[11px] font-mono font-bold border border-blue-800/50">0 Tags</span>
+                            <div class="flex items-center gap-4">
+                                <div id="export-options" class="hidden flex items-center gap-2">
+                                    <button id="btn-export-txt" class="text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded border border-slate-600 transition-colors">TXT</button>
+                                    <button id="btn-export-json" class="text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded border border-slate-600 transition-colors">JSON</button>
+                                    <button id="btn-export-csv" class="text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded border border-slate-600 transition-colors">CSV</button>
+                                </div>
+                                <span id="meta-count" class="bg-slate-800 px-2 py-0.5 rounded border border-slate-600 text-[10px] font-mono text-slate-300">0 Tags</span>
+                            </div>
                         </div>
-                        <div class="terminal-body" id="terminal-out"></div>
+                        <div class="terminal-scroll" id="terminal-out"></div>
                     </div>
 
                     <div id="location-map-container">
@@ -277,7 +259,6 @@
             </div>
 
             <article class="mt-20 flex flex-col gap-16 border-t border-slate-800 pt-16">
-                
                 <section class="prose prose-invert prose-slate max-w-none glass-panel p-8 md:p-12 rounded-2xl shadow-xl">
                     <h2 class="text-white text-3xl font-extrabold mb-6">Understanding EXIF and Image Metadata</h2>
                     <p class="text-lg text-slate-300 leading-relaxed mb-6">Every time you take a picture with a smartphone or digital camera, the device invisibly attaches a massive payload of text-based information directly into the image file. This umbrella of information is known as <strong>Metadata</strong> (data about data). While some metadata is structurally required to render the image on a screen, much of it poses a severe privacy risk.</p>
@@ -500,6 +481,25 @@
         });
         document.getElementById('btn-close-comparison').addEventListener('click', () => { document.getElementById('comparison-modal-wrapper').classList.remove('active'); });
 
+        window.switchTab = function(tab) {
+            const tOrig = document.getElementById('tab-original');
+            const tScrub = document.getElementById('tab-scrubbed');
+            const imgOrig = document.getElementById('img-input');
+            const imgScrub = document.getElementById('img-output');
+
+            if (tab === 'original') {
+                tOrig.className = "px-3 py-1 text-[10px] text-white bg-slate-700 rounded font-bold shadow cursor-pointer transition-colors";
+                tScrub.className = "px-3 py-1 text-[10px] text-slate-400 font-bold cursor-pointer transition-colors";
+                imgOrig.classList.remove('hidden');
+                imgScrub.classList.add('hidden');
+            } else {
+                tScrub.className = "px-3 py-1 text-[10px] text-white bg-slate-700 rounded font-bold shadow cursor-pointer transition-colors";
+                tOrig.className = "px-3 py-1 text-[10px] text-slate-400 font-bold cursor-pointer transition-colors";
+                imgOrig.classList.add('hidden');
+                imgScrub.classList.remove('hidden');
+            }
+        };
+
         function formatBytes(bytes) {
             if (!bytes || bytes === 0) return '0 Bytes';
             const k = 1024, i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -658,6 +658,8 @@
             if (threatMap) document.getElementById('location-map-container').classList.remove('active');
             document.getElementById('export-options').classList.add('hidden');
             document.getElementById('toaster-notification').classList.remove('show');
+            document.getElementById('canvas-tabs').classList.add('hidden');
+            window.switchTab('original');
             
             document.getElementById('file-size').innerText = formatBytes(originalFile.size);
             document.getElementById('upload-stage').classList.add('hidden');
@@ -671,13 +673,14 @@
             document.getElementById('btn-scrub').classList.add('opacity-50', 'cursor-not-allowed', 'hidden');
             document.getElementById('btn-download').classList.add('hidden');
 
+            document.getElementById('btn-reset-app').innerText = "Abort & Load New Target";
             document.getElementById('badge-engine').innerText = processorInstance.engineName;
             
             if(isAdvancedMode) {
-                document.getElementById('badge-engine').className = processorInstance.engineClass || 'text-rose-400 font-mono text-sm';
+                document.getElementById('badge-engine').className = processorInstance.engineClass || 'text-rose-400 font-mono text-sm truncate';
                 document.getElementById('btn-scrub').className = "hidden w-full md:w-auto bg-rose-700 hover:bg-rose-600 text-white text-sm font-bold px-8 py-4 rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(225,29,72,0.4)] flex items-center justify-center opacity-50 cursor-not-allowed";
             } else {
-                document.getElementById('badge-engine').className = processorInstance.engineClass || 'text-blue-300 font-mono text-sm';
+                document.getElementById('badge-engine').className = processorInstance.engineClass || 'text-blue-300 font-mono text-sm truncate';
                 document.getElementById('btn-scrub').className = "hidden w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-8 py-4 rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(59,130,246,0.3)] flex items-center justify-center opacity-50 cursor-not-allowed";
             }
             document.getElementById('btn-scrub-text').innerText = processorInstance.buttonText;
@@ -810,8 +813,6 @@
                 scrubbedBlob = originalFile; 
                 outputExt = `.${fileExt.toLowerCase()}`;
                 document.getElementById('img-output').src = document.getElementById('img-input').src;
-                document.getElementById('output-placeholder').classList.add('hidden');
-                document.getElementById('img-output').classList.remove('hidden');
                 
                 document.getElementById('label-filename-output').innerText = originalFile.name;
                 document.getElementById('label-filename-output').classList.remove('opacity-0');
@@ -820,6 +821,9 @@
                 document.getElementById('btn-scrub').disabled = false;
                 document.getElementById('btn-scrub').classList.remove('opacity-50', 'cursor-not-allowed', 'hidden');
                 document.getElementById('btn-download').classList.remove('hidden');
+                
+                // Allow toggling between identical files
+                document.getElementById('canvas-tabs').classList.remove('hidden');
             }, 1000);
         }
 
@@ -900,9 +904,6 @@
                     if (processorInstance.outputMime) document.getElementById('img-output').src = outputUrl;
                     else document.getElementById('img-output').src = document.getElementById('img-input').src; 
                     
-                    document.getElementById('output-placeholder').classList.add('hidden');
-                    document.getElementById('img-output').classList.remove('hidden');
-                    
                     const nameBase = originalFile.name.substring(0, originalFile.name.lastIndexOf('.'));
                     document.getElementById('label-filename-output').innerText = `${nameBase}_clean${outputExt}`;
                     document.getElementById('label-filename-output').classList.remove('opacity-0');
@@ -912,6 +913,11 @@
                     document.getElementById('btn-download').classList.remove('hidden');
 
                     document.getElementById('toaster-notification').classList.add('show');
+                    
+                    // Activate Toggle Tab & Switch text
+                    document.getElementById('canvas-tabs').classList.remove('hidden');
+                    window.switchTab('scrubbed');
+                    document.getElementById('btn-reset-app').innerText = "Scrub Another File";
                 }
             }, 200);
         }
@@ -1025,15 +1031,21 @@
             document.getElementById('terminal-out').innerHTML = '';
             document.getElementById('img-input').src = ''; document.getElementById('img-output').src = '';
             document.getElementById('input-box').classList.add('scanning'); 
-            document.getElementById('img-input').classList.remove('scanned', 'hidden');
-            document.getElementById('output-placeholder').classList.remove('hidden'); 
+            
+            document.getElementById('img-input').classList.remove('scanned');
+            document.getElementById('img-input').classList.add('hidden');
             document.getElementById('img-output').classList.add('hidden');
+            
             document.getElementById('label-filename-input').innerText = '...'; 
             document.getElementById('label-filename-output').classList.add('opacity-0');
 
             document.getElementById('btn-scrub').disabled = true;
             document.getElementById('btn-scrub').classList.add('opacity-50', 'cursor-not-allowed', 'hidden');
             document.getElementById('btn-download').classList.add('hidden');
+            
+            document.getElementById('canvas-tabs').classList.add('hidden');
+            window.switchTab('original');
+            document.getElementById('btn-reset-app').innerText = "Abort & Load New Target";
         }
     </script>
 </body>
