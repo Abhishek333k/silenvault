@@ -5,7 +5,7 @@
 (function enforceGatekeeper() {
     // THE BRAIN: Include the folder path to prevent locking your /bin/ prototypes!
     const lockedVaults = [
-        //'/tools/budget_planner',       
+        '/tools/acoustic_link',       
        // '/tools/bin/loan_calculator',  
         '/tools/bin/test_page_example'             
     ];
