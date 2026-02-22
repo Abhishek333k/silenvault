@@ -3,15 +3,18 @@
 // ==========================================
 
 (function enforceGatekeeper() {
-    // 1. THE BRAIN: Add the exact file names of the tools you want to lock
+    // THE BRAIN: Include the folder path to prevent locking your /bin/ prototypes!
     const lockedVaults = [
-        'test_page_example'
+        '/tools/budget_planner',       // This locks the LIVE production tool
+        '/tools/bin/loan_calculator',  // This locks ONLY the prototype
+        '/tools/bin/test_page_example'             
     ];
 
+    // Normalize the current browser URL
     const currentPath = window.location.pathname.toLowerCase();
     
-    // 2. Check if the current URL matches any of the locked paths
-    const isLocked = lockedVaults.some(path => currentPath.includes(path));
+    // The logic will now strictly check for the exact folder path
+    const isLocked = lockedVaults.some(lockedPath => currentPath.includes(lockedPath));
 
     if (isLocked) {
         // The function that annihilates the page and renders the lock screen
