@@ -15,8 +15,8 @@
     <script src="../assets/js/layout.js" defer></script>
     <link rel="stylesheet" href="../assets/css/components.css">
 
-    <script type="text/javascript" src="https://quiet.github.io/quiet-js/javascripts/quiet.js"></script>
-    <script async type="text/javascript" src="https://quiet.github.io/quiet-js/javascripts/quiet-emscripten.js"></script>
+    <script type="text/javascript" src="../assets/wasm/quiet/quiet.js"></script>
+    <script async type="text/javascript" src="../assets/wasm/quiet/quiet-emscripten.js"></script>
 
     <style>
         :root {
@@ -235,9 +235,9 @@
         function bootDSPEngine() {
             try {
                 Quiet.init({
-                    profilesPrefix: "https://quiet.github.io/quiet-js/",
-                    memoryInitializerPrefix: "https://quiet.github.io/quiet-js/javascripts/",
-                    libfecPrefix: "https://quiet.github.io/quiet-js/javascripts/"
+                    profilesPrefix: "../assets/wasm/quiet/",
+                    memoryInitializerPrefix: "../assets/wasm/quiet/",
+                    libfecPrefix: "../assets/wasm/quiet/"
                 });
 
                 Quiet.addReadyCallback(() => {
