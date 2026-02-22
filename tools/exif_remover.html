@@ -8,12 +8,12 @@
     <meta name="description" content="Free, local-first forensic tool to permanently remove hidden EXIF data, GPS coordinates, and XMP trackers from images. Lossless support for JPEG, PNG, WebP, and RAW (CR2, DNG) formats.">
     <meta name="keywords" content="exif remover, metadata scrubber, remove gps from photo, clear cr2 metadata, raw image metadata cleaner, local exif tool, privacy image editor">
     <meta name="author" content="SilenVault">
-    <link rel="canonical" href="https://silenvault.com/tools/exif_remover">
+    <link rel="canonical" href="https://silenvault.com/tools/exif_remover.html">
     
     <meta property="og:title" content="EXIF Remover & Metadata Scrubber | SilenVault">
     <meta property="og:description" content="Securely purge hidden tracking data from your images completely offline. Enterprise-grade RAW sensor support via WebAssembly.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://silenvault.com/tools/exif_remover">
+    <meta property="og:url" content="https://silenvault.com/tools/exif_remover.html">
     <meta property="og:site_name" content="SilenVault">
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
@@ -46,7 +46,6 @@
         .glass-panel { background: var(--panel-bg); backdrop-filter: blur(16px); border: 1px solid var(--border-color); transition: all 0.5s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         .mono { font-family: 'Fira Code', monospace; }
 
-        /* FORGE THEME OVERRIDES */
         body.forge-mode {
             --bg-color: #22050f; 
             --panel-bg: rgba(60, 10, 24, 0.85);
@@ -62,26 +61,23 @@
         .forge-mode .term-1 { border-color: #9f1239; }
         .forge-mode .term-1-header { border-bottom-color: #9f1239; }
 
-        /* BLUR EFFECT FOR MAIN CONTENT WHEN MODAL IS OPEN */
         #main-content-wrapper { transition: filter 0.5s ease, transform 0.5s ease; }
         body.modal-active #main-content-wrapper { filter: blur(8px) brightness(0.7); transform: scale(0.99); }
 
-        /* DROP ZONE */
         .drop-zone { border: 2px dashed var(--border-color); border-radius: 1rem; background: rgba(0,0,0,0.2); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 350px; transition: all 0.4s ease; cursor: pointer; position: relative; }
         .drop-zone:hover, .drop-zone.dragover { border-color: #60a5fa; background: var(--accent-glow); }
         .forge-mode .drop-zone:hover { border-color: #fb7185; }
         .drop-zone input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
 
-        /* PREVIEW ANIMATIONS */
-        .preview-img { opacity: 0.7; transition: opacity 0.5s ease; }
+        .preview-img { opacity: 0.7; transition: opacity 0.5s ease; padding: 0.5rem; }
         .preview-img.scanned { opacity: 1; }
 
         .scanner-line { position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: #60a5fa; box-shadow: 0 0 15px #60a5fa; animation: scan 2s cubic-bezier(0.4, 0, 0.2, 1) infinite; z-index: 20; display: none; }
         .scanning .scanner-line { display: block; }
         @keyframes scan { 0% { top: 0%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
 
-        /* TERMINAL STYLE 1 (UNIFIED APP FRAME) */
-        .term-1 { background: rgba(2, 6, 23, 0.9); border: 1px solid var(--border-color); border-radius: 1.5rem; display: flex; flex-direction: column; box-shadow: inset 0 2px 15px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.5); min-height: 350px; }
+        /* FIX: Terminal Height locked so internal scrollbar activates */
+        .term-1 { background: rgba(2, 6, 23, 0.9); border: 1px solid var(--border-color); border-radius: 1.5rem; display: flex; flex-direction: column; box-shadow: inset 0 2px 15px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.5); height: 400px; max-height: 400px; overflow: hidden; }
         .term-1-header { background: rgba(15, 23, 42, 0.6); padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); border-radius: 1.5rem 1.5rem 0 0; display: flex; align-items: center; justify-content: space-between; }
         .terminal-scroll { overflow-y: auto; padding: 16px; flex: 1; font-family: 'Fira Code', monospace; font-size: 13px; color: #e2e8f0; scroll-behavior: smooth; }
         .terminal-scroll::-webkit-scrollbar { width: 6px; }
@@ -99,7 +95,6 @@
         .forge-mode .val-sys { color: #fca5a5; }
         .val-safe { color: #86efac; font-weight: bold; text-shadow: 0 0 10px rgba(16,185,129,0.3);}
 
-        /* MAP FIX */
         #location-map-container { transition: max-height 0.8s ease, opacity 0.5s ease; overflow: hidden; max-height: 0; opacity: 0; border-radius: 8px; }
         #location-map-container.active { max-height: 250px; opacity: 1; border: 1px solid rgba(244,63,94,0.4); margin-top: 1rem; }
         #leaflet-map { height: 200px; width: 100%; z-index: 1; border-radius: 8px; filter: brightness(0.8) contrast(1.1) opacity(0.9); }
@@ -111,7 +106,6 @@
         .status-safe { background: rgba(16, 185, 129, 0.15); color: #86efac; border: 1px solid rgba(16, 185, 129, 0.4); }
         .status-scan { background: rgba(59, 130, 246, 0.15); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); }
         
-        /* MODALS */
         #crossroads-modal-wrapper, #comparison-modal-wrapper { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: rgba(2, 6, 23, 0.4); opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
         #crossroads-modal-wrapper.active, #comparison-modal-wrapper.active { opacity: 1; pointer-events: auto; }
         .modal-inner { transform: translateY(20px) scale(0.95); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -152,7 +146,7 @@
             <div id="upload-stage" class="glass-panel p-3 rounded-2xl transition-all duration-500 shadow-xl">
                 <div id="drop-zone" class="drop-zone">
                     <div class="bg-blue-500/10 p-6 rounded-full mb-6 border border-blue-500/20 transition-all duration-500 shadow-[0_0_20px_rgba(59,130,246,0.15)]" id="dz-icon-wrap">
-                        <svg class="w-14 h-14 text-blue-400 transition-colors duration-500" id="dz-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        <svg class="w-14 h-14 text-blue-400 transition-colors duration-500" id="dz-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2-2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     </div>
                     <h3 class="text-2xl font-bold text-white mb-2 pointer-events-none tracking-tight">Select Image to Audit</h3>
                     <div class="flex flex-wrap gap-2 justify-center pointer-events-none mb-8 mt-2">
@@ -169,7 +163,7 @@
                 
                 <div class="lg:col-span-5 flex flex-col gap-6">
                     
-                    <div class="sv-frame-hybrid flex flex-col w-full aspect-square p-1 shadow-2xl">
+                    <div class="sv-frame-hybrid flex flex-col w-full aspect-square p-1 shadow-2xl select-none touch-none">
                         <div class="sv-window-header border-b border-slate-700 pb-2 mb-0 justify-between">
                             <div class="flex items-center">
                                 <div class="sv-window-dots">
@@ -186,12 +180,12 @@
                             </div>
                         </div>
                         
-                        <div id="input-box" class="sv-viewport-hybrid flex-1 w-full flex flex-col items-center justify-center relative scanning select-none touch-none">
+                        <div id="input-box" class="sv-viewport-hybrid flex-1 w-full flex flex-col items-center justify-center relative scanning">
                             <div class="sv-bg-blueprint"></div>
                             <div class="scanner-line"></div>
                             
-                            <img id="img-input" class="sv-img-cover z-20 hidden preview-img" alt="Input Preview">
-                            <img id="img-output" class="sv-img-cover z-30 hidden preview-img" alt="Output Preview">
+                            <img id="img-input" class="sv-img-cover z-20 hidden preview-img w-full h-full object-cover" alt="Input Preview">
+                            <img id="img-output" class="sv-img-cover z-30 hidden preview-img w-full h-full object-cover" alt="Output Preview">
                         </div>
                     </div>
 
@@ -214,9 +208,9 @@
                     <button id="btn-reset-app" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-bold px-4 py-4 rounded-xl transition-all duration-300 border border-slate-700 shadow-lg">Abort & Load New Target</button>
                 </div>
 
-                <div class="lg:col-span-7 flex flex-col gap-6">
+                <div class="lg:col-span-7 flex flex-col gap-6 h-full">
                     
-                    <div class="term-1 flex-1 shadow-2xl" id="main-terminal">
+                    <div class="term-1 shadow-2xl w-full" id="main-terminal">
                         <div class="term-1-header">
                             <span class="text-white font-bold text-xs uppercase tracking-widest flex items-center gap-2">
                                 <svg class="w-4 h-4 text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg> Forensic Audit Log
@@ -411,7 +405,7 @@
                 </div>
             </div>
             <div class="mt-4 pt-4 border-t border-slate-700 text-xs text-slate-400 text-center">
-                Notice: Retained data consists entirely of non-identifying machine structure (Width, Height, Color Space) required to display the image.
+                Notice: Retained data consists entirely of non-identifying machine structure (Width, Height, Format) required to display the image.
             </div>
         </div>
     </div>
@@ -433,7 +427,6 @@
     <script type="module">
         import { ProcessorFactory } from '../assets/js/exif_processors/Dispatcher.js?v=13.0';
 
-        // STATE
         let originalFile = null;
         let scrubbedBlob = null;
         let sourceImageObj = new Image(); 
@@ -451,13 +444,11 @@
         let mapMarker = null;
         let activeUrls = []; 
 
-        // TERMINAL QUEUE
         let terminalQueue = [];
         let isPrinting = false;
 
         const STRUCTURAL_WHITELIST = ['ImageWidth', 'ImageHeight', 'ExifImageWidth', 'ExifImageHeight', 'Orientation', 'ColorSpace', 'Compression', 'XResolution', 'YResolution', 'ResolutionUnit', 'BitDepth', 'ColorType', 'Filter', 'Interlace', 'SamplesPerPixel', 'RowsPerStrip', 'StripByteCounts', 'StripOffsets', 'PlanarConfiguration', 'PhotometricInterpretation', 'SubfileType'];
 
-        // DOM BINDS
         const dz = document.getElementById('drop-zone');
         dz.addEventListener('dragenter', e => { e.preventDefault(); dz.classList.add('dragover'); });
         dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
@@ -661,6 +652,8 @@
             if (threatMap) document.getElementById('location-map-container').classList.remove('active');
             document.getElementById('export-options').classList.add('hidden');
             document.getElementById('toaster-notification').classList.remove('show');
+            document.getElementById('canvas-tabs').classList.add('hidden');
+            window.switchTab('original');
             
             document.getElementById('file-size').innerText = formatBytes(originalFile.size);
             document.getElementById('upload-stage').classList.add('hidden');
@@ -674,10 +667,7 @@
             document.getElementById('btn-scrub').classList.add('opacity-50', 'cursor-not-allowed', 'hidden');
             document.getElementById('btn-download').classList.add('hidden');
 
-            document.getElementById('canvas-tabs').classList.add('hidden');
-            window.switchTab('original');
             document.getElementById('btn-reset-app').innerText = "Abort & Load New Target";
-
             document.getElementById('badge-engine').innerText = processorInstance.engineName;
             
             if(isAdvancedMode) {
@@ -713,6 +703,12 @@
 
         async function scanMetadata(thisScanId) {
             try {
+                // FIX: Force inject structural original data directly from the image obj so it always loads in comparison
+                originalMetadataCache['ImageWidth'] = sourceImageObj.naturalWidth ? `${sourceImageObj.naturalWidth} px` : 'Unknown';
+                originalMetadataCache['ImageHeight'] = sourceImageObj.naturalHeight ? `${sourceImageObj.naturalHeight} px` : 'Unknown';
+                originalMetadataCache['MIMEType'] = originalFile.type || `image/${fileExt.toLowerCase()}`;
+                originalMetadataCache['FileSize'] = formatBytes(originalFile.size);
+
                 let exifData = null;
                 
                 if (processorInstance && typeof processorInstance.parse === 'function') {
@@ -730,7 +726,9 @@
                         let val = exifData[key];
                         if (val instanceof Date) val = val.toISOString();
                         if (typeof val !== 'object' || val === null) {
-                            originalMetadataCache[key] = val;
+                            if (!originalMetadataCache[key]) {
+                                originalMetadataCache[key] = val;
+                            }
                         }
                     }
 
@@ -853,6 +851,14 @@
 
         async function verifyAndFinalize(blob) {
             logToTerminal('', '> RUNNING POST-SCRUB VERIFICATION AUDIT...', 'sys');
+            
+            // FIX: Force inject structural data into the scrubbed table. 
+            // Ensures comparison always displays properly, even if exifr finds zero remaining tags.
+            scrubbedMetadataCache['ImageWidth'] = sourceImageObj.naturalWidth ? `${sourceImageObj.naturalWidth} px` : 'Unknown';
+            scrubbedMetadataCache['ImageHeight'] = sourceImageObj.naturalHeight ? `${sourceImageObj.naturalHeight} px` : 'Unknown';
+            scrubbedMetadataCache['MIMEType'] = blob.type || `image/${fileExt.toLowerCase()}`;
+            scrubbedMetadataCache['FileSize'] = formatBytes(blob.size);
+
             try {
                 const fileBuffer = await blob.arrayBuffer();
                 let checkData = {};
@@ -871,7 +877,9 @@
                         let val = checkData[key];
                         if (val instanceof Date) val = val.toISOString();
                         if (typeof val !== 'object' || val === null) {
-                            scrubbedMetadataCache[key] = val;
+                            if (!scrubbedMetadataCache[key]) {
+                                scrubbedMetadataCache[key] = val;
+                            }
                         }
                     }
 
@@ -918,7 +926,7 @@
                     document.getElementById('btn-download').classList.remove('hidden');
 
                     document.getElementById('toaster-notification').classList.add('show');
-
+                    
                     document.getElementById('canvas-tabs').classList.remove('hidden');
                     window.switchTab('scrubbed');
                     document.getElementById('btn-reset-app').innerText = "Scrub Another File";
