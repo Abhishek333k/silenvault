@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Acoustic Data Link | Covert Ultrasonic Comms | SilenVault</title>
+    <meta name="description" content="Transmit and receive encrypted text strings over the air using ultrasonic frequency-shift keying. Bridge air-gapped devices with sound.">
+    <meta name="keywords" content="acoustic modem, ultrasonic communication, air gap bridge, frequency shift keying, sound walkie talkie, covert data transfer">
+    <meta name="author" content="SilenVault">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="../assets/js/layout.js" defer></script>
+    <link rel="stylesheet" href="../assets/css/components.css">
+
+    <style>
+        :root {
+            --bg-color: #0f172a; 
+            --panel-bg: rgba(30, 41, 59, 0.85); 
+            --border-color: #334155;
+            --primary-text: #f8fafc;
+        }
+
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--primary-text); overflow-x: hidden; }
+        .glass-panel { background: var(--panel-bg); backdrop-filter: blur(16px); border: 1px solid var(--border-color); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .mono { font-family: 'Fira Code', monospace; }
+
+        .terminal-scroll { overflow-y: auto; scroll-behavior: smooth; }
+        .terminal-scroll::-webkit-scrollbar { width: 6px; }
+        .terminal-scroll::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
+        .hud-corner { position: absolute; width: 16px; height: 16px; }
+        .hud-tl { top: 0; left: 0; border-top: 2px solid; border-left: 2px solid; }
+        .hud-tr { top: 0; right: 0; border-top: 2px solid; border-right: 2px solid; }
+        .hud-bl { bottom: 0; left: 0; border-bottom: 2px solid; border-left: 2px solid; }
+        .hud-br { bottom: 0; right: 0; border-bottom: 2px solid; border-right: 2px solid; }
+
+        canvas { image-rendering: pixelated; }
+        
+        .pulse-active { animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .cursor-blink { animation: blink 1s step-end infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <sv-header base-path=".."></sv-header>
+
+    <main class="flex-1 max-w-[1400px] mx-auto w-full px-4 py-8 flex flex-col gap-8">
+        
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-2">
+            <div>
+                <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
+                    Acoustic <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500">Data Link</span>
+                </h1>
+                <p class="text-base text-slate-300 mt-2 font-medium">Transmit text payloads through the air using Frequency-Shift Keying (FSK).</p>
+            </div>
+            <span class="bg-emerald-900/30 border border-emerald-500/30 text-emerald-300 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-widest hidden md:block">Experimental</span>
+        </div>
+
+        <div class="glass-panel p-5 rounded-2xl border border-slate-700 shadow-xl flex flex-col md:flex-row gap-6 items-center justify-between bg-slate-900/50">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-slate-800 border border-slate-600 rounded-full flex items-center justify-center shrink-0 shadow-inner">
+                    <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-white font-bold tracking-wide uppercase text-sm">Transceiver Tuning</h3>
+                    <p class="text-slate-400 text-xs mt-0.5">Both devices must be set to the exact same frequency band and channel.</p>
+                </div>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                <div class="flex flex-col gap-1 w-full md:w-48">
+                    <label class="text-[10px] text-slate-500 font-bold uppercase tracking-widest pl-1">Frequency Band</label>
+                    <select id="config-band" class="bg-[#020617] border border-slate-700 text-slate-300 text-xs font-bold rounded-lg px-3 py-2 outline-none shadow-inner focus:border-emerald-500 transition-colors cursor-pointer">
+                        <option value="covert">Covert (Ultrasonic ~18kHz)</option>
+                        <option value="audible" selected>Audible (Modem ~2kHz)</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1 w-full md:w-32">
+                    <label class="text-[10px] text-slate-500 font-bold uppercase tracking-widest pl-1">Channel Selector</label>
+                    <select id="config-channel" class="bg-[#020617] border border-slate-700 text-slate-300 text-xs font-bold rounded-lg px-3 py-2 outline-none shadow-inner focus:border-emerald-500 transition-colors cursor-pointer">
+                        <option value="1">Channel 01</option>
+                        <option value="2">Channel 02</option>
+                        <option value="3">Channel 03</option>
+                        <option value="4">Channel 04</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            
+            <div class="glass-panel p-6 rounded-3xl border border-slate-700 shadow-2xl relative">
+                <div class="hud-corner hud-tl border-slate-500"></div>
+                <div class="hud-corner hud-tr border-slate-500"></div>
+                <div class="hud-corner hud-bl border-slate-500"></div>
+                <div class="hud-corner hud-br border-slate-500"></div>
+
+                <div class="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-3">
+                        <span class="bg-blue-500/20 text-blue-400 p-2 rounded-lg shadow-inner">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+                        </span>
+                        Transmitter (Tx)
+                    </h2>
+                    <span id="tx-status" class="bg-slate-800 text-slate-400 px-3 py-1 rounded-md text-[10px] font-mono font-bold border border-slate-700 uppercase tracking-widest shadow-inner">Idle</span>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block">Payload to Transmit</label>
+                        <textarea id="tx-input" class="w-full h-40 bg-[#020617] border border-slate-700 rounded-xl p-4 text-sm text-emerald-400 mono focus:outline-none focus:border-blue-500 resize-none shadow-inner" placeholder="Enter secret message here..."></textarea>
+                    </div>
+
+                    <button id="btn-transmit" onclick="initiateTransmission()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-lg transition-all border border-blue-500 uppercase tracking-widest text-sm flex justify-center items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        Broadcast Payload
+                    </button>
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 rounded-3xl border border-slate-700 shadow-2xl relative">
+                <div class="hud-corner hud-tl border-emerald-500"></div>
+                <div class="hud-corner hud-tr border-emerald-500"></div>
+                <div class="hud-corner hud-bl border-emerald-500"></div>
+                <div class="hud-corner hud-br border-emerald-500"></div>
+
+                <div class="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+                    <h2 class="text-xl font-bold text-white flex items-center gap-3">
+                        <span id="rx-icon-wrapper" class="bg-slate-800 text-slate-400 p-2 rounded-lg transition-all duration-300 shadow-inner">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                        </span>
+                        Receiver (Rx)
+                    </h2>
+                    <span id="rx-status" class="bg-slate-800 text-slate-400 px-3 py-1 rounded-md text-[10px] font-mono font-bold border border-slate-700 uppercase tracking-widest shadow-inner">Offline</span>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="w-full h-24 bg-[#020617] rounded-xl border border-slate-700 overflow-hidden relative shadow-inner">
+                        <div class="absolute top-2 left-2 text-[9px] text-slate-500 font-mono z-10 font-bold uppercase tracking-widest">Live FFT Array</div>
+                        <canvas id="spectrogram" class="w-full h-full absolute inset-0"></canvas>
+                    </div>
+
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs font-bold text-slate-400 uppercase tracking-widest block">Decoded Output</label>
+                        <button onclick="clearLog()" class="text-[10px] text-slate-500 hover:text-white font-mono uppercase tracking-widest bg-slate-800 px-2 py-1 rounded border border-slate-700 transition-colors">Clear Output</button>
+                    </div>
+
+                    <div id="rx-terminal" class="w-full h-32 bg-[#020617] border border-slate-700 rounded-xl p-4 terminal-scroll text-sm mono text-emerald-400 shadow-inner break-words leading-relaxed flex flex-col">
+                        <span class="text-slate-600 text-xs" id="rx-placeholder">> Awaiting microphone engagement...</span>
+                        <div id="rx-content" class="inline"></div>
+                        <span id="rx-cursor" class="w-2 h-4 bg-emerald-500 inline-block align-middle cursor-blink hidden ml-1"></span>
+                    </div>
+
+                    <button id="btn-listen" onclick="toggleListening()" class="w-full bg-slate-800 hover:bg-slate-700 text-emerald-400 font-bold py-4 rounded-xl shadow-lg transition-all border border-slate-600 uppercase tracking-widest text-sm flex justify-center items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        Engage Microphone
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <sv-footer base-path=".."></sv-footer>
+
+    <script>
+        // ==========================================
+        // ACOUSTIC UART-FSK ENGINE
+        // ==========================================
+        
+        let audioCtx = null;
+        let isTransmitting = false;
+        
+        // Receiver Vars
+        let isListening = false;
+        let mediaStream = null;
+        let analyser = null;
+        let rxRaf = null;
+        let drawRaf = null;
+
+        // Channel Frequency Map
+        const CHANNELS = {
+            audible: {
+                1: { sync: 2000, zero: 2200, one: 2400 },
+                2: { sync: 2600, zero: 2800, one: 3000 },
+                3: { sync: 3200, zero: 3400, one: 3600 },
+                4: { sync: 3800, zero: 4000, one: 4200 }
+            },
+            covert: {
+                1: { sync: 18000, zero: 18200, one: 18400 },
+                2: { sync: 18600, zero: 18800, one: 19000 },
+                3: { sync: 19200, zero: 19400, one: 19600 },
+                4: { sync: 19800, zero: 20000, one: 20200 }
+            }
+        };
+
+        const BAUD_MS = 100; // 100ms per bit = 10 baud. Highly reliable in JS.
+        const BAUD_SEC = BAUD_MS / 1000;
+
+        // DOM Binds
+        const rxContent = document.getElementById('rx-content');
+        const rxPlaceholder = document.getElementById('rx-placeholder');
+        const rxCursor = document.getElementById('rx-cursor');
+        const specCanvas = document.getElementById('spectrogram');
+        const specCtx = specCanvas.getContext('2d');
+        const statusRx = document.getElementById('rx-status');
+        const iconRx = document.getElementById('rx-icon-wrapper');
+
+        function clearLog() {
+            rxContent.innerHTML = '';
+            rxPlaceholder.classList.remove('hidden');
+        }
+
+        // Convert string to 8-bit binary array
+        function stringToBinaryBytes(str) {
+            const bytes = [];
+            for (let i = 0; i < str.length; i++) {
+                bytes.push(str.charCodeAt(i).toString(2).padStart(8, '0'));
+            }
+            return bytes;
+        }
+
+        // ==========================================
+        // TRANSMITTER LOGIC
+        // ==========================================
+        async function initiateTransmission() {
+            if (isTransmitting) return;
+            const payload = document.getElementById('tx-input').value.trim();
+            if (!payload) return;
+
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+            const band = document.getElementById('config-band').value;
+            const channel = document.getElementById('config-channel').value;
+            const freqs = CHANNELS[band][channel];
+
+            const bytes = stringToBinaryBytes(payload);
+            
+            isTransmitting = true;
+            document.getElementById('tx-status').innerText = 'BROADCASTING';
+            document.getElementById('tx-status').classList.replace('text-slate-400', 'text-blue-400');
+            document.getElementById('tx-status').classList.replace('border-slate-700', 'border-blue-500');
+            document.getElementById('btn-transmit').classList.add('opacity-50', 'cursor-not-allowed');
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            
+            // Soft envelope to prevent clicking sounds on audible band
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            let time = audioCtx.currentTime + 0.1;
+            gain.gain.setTargetAtTime(1, time, 0.01);
+
+            // UART Protocol: For each character -> Sync (Start), 8 Data Bits
+            for (let b = 0; b < bytes.length; b++) {
+                const byteStr = bytes[b];
+                
+                // Transmit Sync (Start) Bit
+                osc.frequency.setValueAtTime(freqs.sync, time);
+                time += BAUD_SEC;
+
+                // Transmit Data Bits
+                for (let i = 0; i < 8; i++) {
+                    const f = byteStr[i] === '1' ? freqs.one : freqs.zero;
+                    osc.frequency.setValueAtTime(f, time);
+                    time += BAUD_SEC;
+                }
+            }
+
+            // End with a final Sync bit to close out cleanly
+            osc.frequency.setValueAtTime(freqs.sync, time);
+            time += BAUD_SEC;
+
+            gain.gain.setTargetAtTime(0, time, 0.01);
+            osc.start(audioCtx.currentTime);
+            osc.stop(time + 0.1);
+
+            osc.onended = () => {
+                isTransmitting = false;
+                document.getElementById('tx-status').innerText = 'IDLE';
+                document.getElementById('tx-status').classList.replace('text-blue-400', 'text-slate-400');
+                document.getElementById('tx-status').classList.replace('border-blue-500', 'border-slate-700');
+                document.getElementById('btn-transmit').classList.remove('opacity-50', 'cursor-not-allowed');
+            };
+        }
+
+        // ==========================================
+        // RECEIVER LOGIC
+        // ==========================================
+        async function toggleListening() {
+            if (isListening) {
+                stopListening();
+                return;
+            }
+
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false } 
+                });
+                
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') await audioCtx.resume();
+
+                const source = audioCtx.createMediaStreamSource(mediaStream);
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 4096; // High resolution needed for close frequencies
+                analyser.smoothingTimeConstant = 0.0;
+                source.connect(analyser);
+
+                isListening = true;
+                
+                const btn = document.getElementById('btn-listen');
+                btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg> Stop Listening`;
+                btn.classList.replace('text-emerald-400', 'text-rose-400');
+                
+                statusRx.innerText = 'TUNED';
+                statusRx.classList.replace('text-slate-400', 'text-emerald-400');
+                statusRx.classList.replace('border-slate-700', 'border-emerald-500');
+                
+                iconRx.classList.replace('bg-slate-800', 'bg-emerald-500/20');
+                iconRx.classList.replace('text-slate-400', 'text-emerald-400');
+                iconRx.classList.add('pulse-active');
+
+                rxPlaceholder.classList.add('hidden');
+                rxCursor.classList.remove('hidden');
+                
+                resizeCanvas();
+                window.addEventListener('resize', resizeCanvas);
+                
+                startUARTDecoder();
+                drawSpectrogram();
+
+            } catch (err) {
+                alert(`Microphone Access Denied: ${err.message}`);
+            }
+        }
+
+        function stopListening() {
+            isListening = false;
+            if (mediaStream) mediaStream.getTracks().forEach(track => track.stop());
+            if (rxRaf) cancelAnimationFrame(rxRaf);
+            if (drawRaf) cancelAnimationFrame(drawRaf);
+
+            const btn = document.getElementById('btn-listen');
+            btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Engage Microphone`;
+            btn.classList.replace('text-rose-400', 'text-emerald-400');
+            
+            statusRx.innerText = 'OFFLINE';
+            statusRx.classList.replace('text-emerald-400', 'text-slate-400');
+            statusRx.classList.replace('border-emerald-500', 'border-slate-700');
+            
+            iconRx.classList.replace('bg-emerald-500/20', 'bg-slate-800');
+            iconRx.classList.replace('text-emerald-400', 'text-slate-400');
+            iconRx.classList.remove('pulse-active');
+            
+            rxCursor.classList.add('hidden');
+            specCtx.clearRect(0, 0, specCanvas.width, specCanvas.height);
+        }
+
+        function getFreqIndex(freq, sampleRate, fftSize) {
+            return Math.round(freq / (sampleRate / fftSize));
+        }
+
+        // Software UART Demodulator
+        function startUARTDecoder() {
+            const buffer = new Float32Array(analyser.frequencyBinCount);
+            let state = 'WAIT_SYNC';
+            let bitBuffer = '';
+            let syncStartTime = 0;
+
+            function decodeLoop() {
+                if (!isListening) return;
+                
+                const now = audioCtx.currentTime;
+                analyser.getFloatFrequencyData(buffer);
+                
+                const band = document.getElementById('config-band').value;
+                const channel = document.getElementById('config-channel').value;
+                const freqs = CHANNELS[band][channel];
+
+                const iS = getFreqIndex(freqs.sync, audioCtx.sampleRate, analyser.fftSize);
+                const i0 = getFreqIndex(freqs.zero, audioCtx.sampleRate, analyser.fftSize);
+                const i1 = getFreqIndex(freqs.one, audioCtx.sampleRate, analyser.fftSize);
+
+                // Get max magnitude surrounding the target bins to account for slight bleed
+                const magS = Math.max(buffer[iS-1], buffer[iS], buffer[iS+1]);
+                const mag0 = Math.max(buffer[i0-1], buffer[i0], buffer[i0+1]);
+                const mag1 = Math.max(buffer[i1-1], buffer[i1], buffer[i1+1]);
+
+                const THRESHOLD = band === 'covert' ? -65 : -55; // dB
+
+                if (state === 'WAIT_SYNC') {
+                    // Look for a dominant Sync tone
+                    if (magS > THRESHOLD && magS > mag0 && magS > mag1) {
+                        state = 'READ_DATA';
+                        syncStartTime = now;
+                        bitBuffer = '';
+                    }
+                } 
+                else if (state === 'READ_DATA') {
+                    // We expect 8 bits. We sample in the middle of each bit window.
+                    const expectedBitIndex = Math.floor((now - syncStartTime) / BAUD_SEC) - 1;
+
+                    if (expectedBitIndex >= 0 && expectedBitIndex < 8) {
+                        // Are we near the middle of this bit's window?
+                        const windowOffset = ((now - syncStartTime) % BAUD_SEC) / BAUD_SEC;
+                        if (windowOffset > 0.4 && windowOffset < 0.6 && bitBuffer.length === expectedBitIndex) {
+                            if (mag1 > mag0) bitBuffer += '1';
+                            else bitBuffer += '0';
+                        }
+                    } 
+                    else if (expectedBitIndex >= 8) {
+                        // Character finished. Print to screen and wait for next sync.
+                        if (bitBuffer.length === 8) {
+                            const char = String.fromCharCode(parseInt(bitBuffer, 2));
+                            rxContent.innerHTML += char.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                            rxContent.parentElement.scrollTop = rxContent.parentElement.scrollHeight;
+                        }
+                        state = 'WAIT_SYNC';
+                    }
+                }
+
+                rxRaf = requestAnimationFrame(decodeLoop);
+            }
+            decodeLoop();
+        }
+
+        // ==========================================
+        // LIVE SPECTROGRAM
+        // ==========================================
+        function resizeCanvas() {
+            specCanvas.width = specCanvas.parentElement.clientWidth;
+            specCanvas.height = specCanvas.parentElement.clientHeight;
+        }
+
+        let sliceX = 0;
+        function drawSpectrogram() {
+            if (!isListening) return;
+            
+            const buffer = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(buffer);
+
+            if (sliceX >= specCanvas.width) {
+                const imgData = specCtx.getImageData(1, 0, specCanvas.width - 1, specCanvas.height);
+                specCtx.putImageData(imgData, 0, 0);
+                sliceX = specCanvas.width - 1;
+            }
+
+            const h = specCanvas.height;
+            // Draw only the upper frequencies for visual clarity
+            for (let y = 0; y < h; y++) {
+                const index = Math.floor((y / h) * (buffer.length * 0.8)); // Focus on upper 80%
+                const value = buffer[index];
+                
+                let r=2, g=6, b=23; // Background (Slate 950)
+                if (value > 200) { r=255; g=255; b=255; }
+                else if (value > 120) { r=16; g=185; b=129; } 
+                else if (value > 60) { r=15; g=23; b=42; }
+
+                specCtx.fillStyle = `rgb(${r},${g},${b})`;
+                specCtx.fillRect(sliceX, h - y, 1, 1);
+            }
+
+            sliceX++;
+            drawRaf = requestAnimationFrame(drawSpectrogram);
+        }
+
+    </script>
+</body>
+</html>
