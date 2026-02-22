@@ -3,57 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <title>Acoustic Data Link | Air-Gap Transceiver | SilenVault</title>
-    <meta name="description" content="A full-duplex, ultrasonic acoustic modem with Auto-ACK loop for air-gapped device communication.">
-    <meta name="keywords" content="acoustic modem, ultrasonic communication, air gap bridge, ggwave, quiet.js, dsp engine, sound walkie talkie">
-    <meta name="author" content="SilenVault">
+    <title>Covert Morse Transceiver | SilenVault</title>
+    <meta name="description" content="Acoustic chat client utilizing high-frequency On-Off Keying (Morse Code) to bypass hardware distortion.">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
     <script src="../assets/js/layout.js" defer></script>
     <link rel="stylesheet" href="../assets/css/components.css">
 
-    <script type="text/javascript" src="../assets/wasm/quiet/quiet.js"></script>
-    
-    <script type="text/javascript">
-        Quiet.init({
-            profilesPrefix: "../assets/wasm/quiet/",
-            memoryInitializerPrefix: "../assets/wasm/quiet/",
-            libfecPrefix: "../assets/wasm/quiet/"
-        });
-    </script>
-    
-    <script async type="text/javascript" src="../assets/wasm/quiet/quiet-emscripten.js"></script>
-
     <style>
-        :root {
-            --bg-color: #0f172a; 
-            --panel-bg: rgba(30, 41, 59, 0.85); 
-            --border-color: #334155;
-            --primary-text: #f8fafc;
-        }
-
+        :root { --bg-color: #0f172a; --panel-bg: rgba(30, 41, 59, 0.85); --primary-text: #f8fafc; }
         body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--primary-text); overflow-x: hidden; }
-        .glass-panel { background: var(--panel-bg); backdrop-filter: blur(16px); border: 1px solid var(--border-color); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .glass-panel { background: var(--panel-bg); backdrop-filter: blur(16px); border: 1px solid #334155; }
         .mono { font-family: 'Fira Code', monospace; }
-
         .terminal-scroll { overflow-y: auto; scroll-behavior: smooth; }
-        .terminal-scroll::-webkit-scrollbar { width: 6px; }
+        .terminal-scroll::-webkit-scrollbar { width: 4px; }
         .terminal-scroll::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
-
         canvas { image-rendering: pixelated; }
 
-        /* Chat UI Styles */
         .chat-bubble { max-width: 85%; padding: 0.75rem 1rem; border-radius: 1rem; margin-bottom: 0.75rem; word-wrap: break-word; font-size: 0.875rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .chat-sent { align-self: flex-end; background: #1e3a8a; border-bottom-right-radius: 0.25rem; border: 1px solid #2563eb; }
         .chat-recv { align-self: flex-start; background: #064e3b; border-bottom-left-radius: 0.25rem; border: 1px solid #10b981; }
-        
-        .pulse-tx { animation: pulse-tx-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        @keyframes pulse-tx-ring { 0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); } 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); } }
 
-        .pulse-rx { animation: pulse-rx-ring 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .pulse-rx { animation: pulse-rx-ring 1s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
         @keyframes pulse-rx-ring { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
     </style>
 </head>
@@ -66,54 +38,56 @@
         <div class="flex flex-col md:flex-row items-center justify-between gap-4">
             <div>
                 <h1 class="text-3xl font-extrabold text-white tracking-tight">
-                    Acoustic <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500">Transceiver</span>
+                    Covert <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500">Transceiver</span>
                 </h1>
-                <p class="text-sm text-slate-400 mt-1">Full-Duplex Encrypted Chat via Air-Gapped Audio.</p>
+                <p class="text-sm text-slate-400 mt-1">Air-Gapped Communication via Automated Acoustic Morse Code.</p>
             </div>
-            <span class="bg-emerald-900/30 border border-emerald-500/30 text-emerald-300 px-3 py-1 rounded text-xs font-bold uppercase tracking-widest" id="engine-status">DSP: BOOTING...</span>
         </div>
 
         <div id="mic-alert" class="hidden glass-panel border-rose-500/50 bg-rose-950/20 p-4 rounded-xl flex items-center gap-3">
-            <svg class="w-6 h-6 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-            <span class="text-rose-200 font-medium text-sm">Microphone Access Denied! Ensure you are running this on a secure server (localhost or HTTPS), and your browser permissions allow microphone access.</span>
+            <span class="text-rose-200 font-medium text-sm">Microphone Access Denied! Please run on localhost or a secure HTTPS server.</span>
         </div>
 
-        <div class="glass-panel rounded-2xl border border-slate-700 shadow-2xl flex flex-col h-[65vh] min-h-[500px] overflow-hidden relative bg-slate-900/80">
+        <div class="glass-panel rounded-2xl border border-slate-700 shadow-2xl flex flex-col h-[70vh] min-h-[550px] overflow-hidden relative">
             
-            <div class="bg-[#020617] border-b border-slate-700 p-4 flex flex-col sm:flex-row justify-between items-center gap-4 z-10 relative shadow-md">
+            <div class="bg-[#020617] border-b border-slate-700 p-4 flex flex-col sm:flex-row justify-between items-center gap-4 z-10 shadow-md">
                 <div class="flex items-center gap-4 w-full sm:w-auto">
-                    <button id="btn-engage" onclick="toggleTransceiver()" disabled class="bg-slate-800 text-slate-500 font-bold px-6 py-2 rounded-lg border border-slate-600 uppercase tracking-widest text-xs transition-all w-full sm:w-auto flex items-center justify-center gap-2 shadow-inner">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
-                        <span id="btn-engage-text">Loading DSP...</span>
+                    <button id="btn-engage" onclick="toggleTransceiver()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-2 rounded-lg border border-emerald-500 uppercase tracking-widest text-xs transition-all w-full sm:w-auto flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                        Engage Link
                     </button>
-                    <div id="status-dot" class="w-3 h-3 rounded-full bg-slate-600 shadow-inner shrink-0"></div>
+                    <div id="status-dot" class="w-3 h-3 rounded-full bg-slate-600 shrink-0"></div>
                 </div>
 
                 <div class="flex items-center gap-3 w-full sm:w-auto">
-                    <select id="config-band" class="bg-slate-800 border border-slate-600 text-slate-300 text-xs font-bold rounded-lg px-3 py-2 outline-none shadow-inner focus:border-emerald-500 transition-colors cursor-pointer w-full sm:w-56">
-                        <option value="ultrasonic-experimental">Covert (Ultrasonic ~19kHz)</option>
-                        <option value="audible" selected>Audible (VHF Modem ~3kHz)</option>
+                    <select id="config-band" class="bg-slate-800 border border-slate-600 text-slate-300 text-xs font-bold rounded-lg px-3 py-2 outline-none shadow-inner focus:border-emerald-500 w-full">
+                        <option value="covert">Ultrasonic (17.5kHz Covert)</option>
+                        <option value="audible">HAM Radio (700Hz Audible)</option>
                     </select>
                 </div>
             </div>
 
-            <div id="chat-window" class="flex-1 terminal-scroll p-6 flex flex-col relative bg-gradient-to-b from-[#0f172a] to-[#020617]">
-                
-                <div class="absolute inset-0 z-0 opacity-20 pointer-events-none overflow-hidden">
-                    <canvas id="spectrogram" class="w-full h-full"></canvas>
+            <div class="w-full h-24 bg-[#020617] border-b border-slate-700 relative shrink-0">
+                <div class="absolute top-2 left-2 text-[9px] text-slate-500 font-mono z-10 font-bold uppercase tracking-widest">Live Spectrum Radar</div>
+                <canvas id="spectrogram" class="w-full h-full absolute inset-0"></canvas>
+            </div>
+
+            <div id="chat-window" class="flex-1 terminal-scroll p-6 flex flex-col relative bg-[#0f172a]">
+                <div class="text-center mb-6">
+                    <span class="bg-slate-800 text-slate-400 px-3 py-1 rounded-full text-[10px] font-mono border border-slate-700">Acoustic Channel Open</span>
+                </div>
                 </div>
 
-                <div class="text-center mb-6 relative z-10">
-                    <span class="bg-slate-800 text-slate-400 px-3 py-1 rounded-full text-[10px] font-mono border border-slate-700 shadow-inner">Acoustic Encryption Established</span>
-                </div>
+            <div class="bg-slate-900 border-t border-slate-700 px-4 py-2 flex items-center gap-3">
+                <span class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">Live Decoder:</span>
+                <span id="live-buffer" class="text-emerald-400 mono text-sm font-bold tracking-widest"></span>
+                <span id="live-text-buffer" class="text-white mono text-sm font-bold ml-2"></span>
+            </div>
 
-                </div>
-
-            <div class="bg-[#020617] border-t border-slate-700 p-4 z-10">
-                <div class="flex items-end gap-3 relative">
-                    <textarea id="chat-input" disabled rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500 resize-none shadow-inner placeholder-slate-600" placeholder="Type a covert message (Max 40 chars)..."></textarea>
+            <div class="bg-[#020617] border-t border-slate-700 p-4">
+                <div class="flex items-end gap-3">
+                    <textarea id="chat-input" disabled rows="2" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500 resize-none shadow-inner placeholder-slate-600" placeholder="Type a message to transmit via Morse..."></textarea>
                     
-                    <button id="btn-send" onclick="sendChatMessage()" disabled class="bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-600 disabled:border-slate-700 text-white p-3 rounded-xl shadow-lg transition-all border border-blue-500 shrink-0 h-[46px] w-[46px] flex items-center justify-center cursor-not-allowed">
+                    <button id="btn-send" onclick="sendChatMessage()" disabled class="bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:border-slate-700 text-white p-3 rounded-xl shadow-lg transition-all border border-blue-500 shrink-0 h-[46px] w-[46px] flex items-center justify-center">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
                     </button>
                 </div>
@@ -121,370 +95,330 @@
 
         </div>
 
-        <article class="mt-8 flex flex-col gap-6 border-t border-slate-800 pt-10">
-            <section class="glass-panel p-8 rounded-2xl shadow-xl prose prose-invert max-w-none border-l-4 border-l-blue-500">
-                <h2 class="text-white text-2xl font-extrabold mb-2">The "Lovers Protocol" (Auto-ACK)</h2>
-                <p class="text-slate-300 text-sm leading-relaxed">This terminal operates as a <strong>Full-Duplex Acoustic Transceiver</strong>. Because sound travels poorly through the air and can bounce off walls, sending a message once isn't reliable. SilenVault fixes this using a TCP-style Handshake loop.</p>
-                <ol class="text-slate-300 text-sm pl-4 mt-4 space-y-2">
-                    <li>When you send a message, it is wrapped in JSON with a cryptographic ID.</li>
-                    <li>Your device relentlessly transmits this audio packet every 4 seconds.</li>
-                    <li>When the receiving device hears it, it catches the text and instantly emits an <strong>ACK (Acknowledgment)</strong> receipt over its speakers.</li>
-                    <li>Your device's microphone hears the receipt, updates the chat bubble to <span class="text-emerald-400 font-bold">✓ Delivered</span>, and stops the loop.</li>
-                </ol>
-            </section>
-        </article>
-
     </main>
-
     <sv-footer base-path=".."></sv-footer>
 
     <script>
         // ==========================================
-        // WASM DSP ENGINE CONTROL (libquiet)
+        // MORSE CODE PROTOCOL MATH
         // ==========================================
-        let isEngineReady = false;
+        const WPM = 15; // Words Per Minute
+        const DOT_MS = 1200 / WPM; // 80ms
+        const DASH_MS = DOT_MS * 3; // 240ms
+        const SYMBOL_SPACE = DOT_MS; // 80ms
+        const LETTER_SPACE = DOT_MS * 3; // 240ms
+        const WORD_SPACE = DOT_MS * 7; // 560ms
+
+        // Timing Tolerances for real-world acoustic decoding
+        const TOLERANCE_DOT_MAX = 150; 
+        const TOLERANCE_DASH_MIN = 160;
+
+        const MORSE_MAP = {
+            'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.',
+            'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..',
+            'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.',
+            'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-',
+            'Y': '-.--', 'Z': '--..', '0': '-----', '1': '.----', '2': '..---',
+            '3': '...--', '4': '....-', '5': '.....', '6': '-....', '7': '--...',
+            '8': '---..', '9': '----.'
+        };
+
+        const REVERSE_MORSE = {};
+        for(let key in MORSE_MAP) { REVERSE_MORSE[MORSE_MAP[key]] = key; }
+
+        let audioCtx = null;
         let isTransceiverActive = false;
-        
-        let activeReceiver = null;
-        let activeTransmitter = null;
+        let isTransmitting = false;
 
-        // Visualizer Auth
-        let visualizerAudioCtx = null;
-        let visualizerStream = null;
-        let visualizerAnalyser = null;
+        let micStream = null;
+        let analyser = null;
         let drawRaf = null;
-        let lastDrawTime = 0; 
-        let sliceX = 0;
 
-        // Auto-ACK Loop State
-        const pendingAcks = {}; // Stores intervals { "id": intervalID }
-        const receivedIds = new Set(); // Stores IDs we heard from OTHERS
-        const mySentIds = new Set(); // FIXED: Memory of our own sent packets to prevent ECHO self-stabbing!
-        
-        const txQueue = []; 
-        let isCurrentlyTransmitting = false;
-
-        // DOM Binds
+        // UI Binds
         const chatWindow = document.getElementById('chat-window');
         const chatInput = document.getElementById('chat-input');
         const btnEngage = document.getElementById('btn-engage');
         const btnSend = document.getElementById('btn-send');
         const statusDot = document.getElementById('status-dot');
-        const micAlert = document.getElementById('mic-alert');
+        const liveBuffer = document.getElementById('live-buffer');
+        const liveTextBuffer = document.getElementById('live-text-buffer');
         const specCanvas = document.getElementById('spectrogram');
         const specCtx = specCanvas.getContext('2d');
 
-        // ==========================================
-        // UI HELPERS
-        // ==========================================
-        function appendChatBubble(type, id, text) {
+        function appendChatBubble(type, text) {
+            if(!text.trim()) return;
             const wrapper = document.createElement('div');
             wrapper.className = `chat-bubble flex flex-col relative z-10 ${type === 'sent' ? 'chat-sent' : 'chat-recv'}`;
-            wrapper.id = `msg-${id}`;
             
-            let statusHtml = '';
-            if (type === 'sent') {
-                statusHtml = `<span class="text-[9px] text-blue-300/70 font-mono text-right mt-1" id="status-${id}">Broadcasting...</span>`;
-            } else {
-                statusHtml = `<span class="text-[9px] text-emerald-300/70 font-mono text-left mt-1">Via Acoustic Modem</span>`;
-            }
-
+            let statusHtml = type === 'sent' ? `<span class="text-[9px] text-blue-300/70 font-mono text-right mt-1">Broadcasted via Sound</span>` : `<span class="text-[9px] text-emerald-300/70 font-mono text-left mt-1">Intercepted</span>`;
+            
             wrapper.innerHTML = `<span class="text-white">${text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</span>${statusHtml}`;
             chatWindow.appendChild(wrapper);
             chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
-        function markDelivered(id) {
-            const statusEl = document.getElementById(`status-${id}`);
-            if (statusEl) {
-                statusEl.innerHTML = `<span class="text-emerald-400 font-bold">✓ Delivered</span>`;
-                statusEl.classList.remove('text-blue-300/70');
-            }
+        // ==========================================
+        // TRANSMITTER ENGINE
+        // ==========================================
+        function getFreq() {
+            return document.getElementById('config-band').value === 'covert' ? 17500 : 700;
         }
 
-        // ==========================================
-        // INITIALIZATION
-        // ==========================================
-        window.addEventListener('load', () => {
-            try {
-                if (!window.isSecureContext) {
-                    micAlert.classList.remove('hidden');
-                }
-
-                Quiet.init({
-                    profilesPrefix: "../assets/wasm/quiet/",
-                    memoryInitializerPrefix: "../assets/wasm/quiet/",
-                    libfecPrefix: "../assets/wasm/quiet/"
-                });
-
-                Quiet.addReadyCallback(() => {
-                    isEngineReady = true;
-                    document.getElementById('engine-status').innerText = 'DSP: ONLINE';
-                    document.getElementById('engine-status').classList.replace('text-emerald-300', 'text-white');
-                    document.getElementById('engine-status').classList.replace('border-emerald-500/30', 'border-emerald-500');
-                    document.getElementById('engine-status').classList.replace('bg-emerald-900/30', 'bg-emerald-600');
-
-                    // Unlock Engage Button
-                    btnEngage.disabled = false;
-                    btnEngage.className = "bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-2 rounded-lg border border-emerald-500 uppercase tracking-widest text-xs transition-all w-full sm:w-auto flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.3)] cursor-pointer";
-                    document.getElementById('btn-engage-text').innerText = "Engage Transceiver";
-                }, (err) => {
-                    console.error("DSP Boot Error: ", err);
-                    document.getElementById('btn-engage-text').innerText = "WASM Failed.";
-                });
-            } catch (e) {
-                console.error("Quiet Init Exception: ", e);
-            }
-        });
-
-        // ==========================================
-        // QUEUED TRANSMITTER
-        // ==========================================
-        function processTxQueue() {
-            if (isCurrentlyTransmitting || txQueue.length === 0 || !activeTransmitter) return;
-            
-            isCurrentlyTransmitting = true;
-            statusDot.className = "w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_10px_#3b82f6] pulse-tx shrink-0";
-            
-            const payloadStr = txQueue.shift();
-            activeTransmitter.transmit(Quiet.str2ab(payloadStr));
+        function getVolume() {
+            return document.getElementById('config-band').value === 'covert' ? 0.05 : 0.2; // Covert needs to be quiet to stop aliasing
         }
 
-        function queuePacket(str) {
-            txQueue.push(str);
-            processTxQueue();
-        }
-
-        // ==========================================
-        // THE LOVERS PROTOCOL (FULL DUPLEX)
-        // ==========================================
         function sendChatMessage() {
-            if (!isTransceiverActive) return;
-            const text = chatInput.value.trim();
-            
-            // FSK Data payloads must be very tiny to survive noise. Max 40 chars.
-            if (!text || text.length > 40) {
-                alert("Message too long! Must be under 40 characters for acoustic transfer.");
-                return;
-            }
+            if (!isTransceiverActive || isTransmitting) return;
+            const text = chatInput.value.toUpperCase().trim();
+            if (!text) return;
 
             chatInput.value = '';
+            appendChatBubble('sent', text);
             
-            // Create short cryptographic ID
-            const id = Math.random().toString(16).substring(2,6);
+            // Generate Morse Timing Sequence
+            const sequence = [];
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                if (char === ' ') {
+                    sequence.push({ on: false, duration: WORD_SPACE });
+                    continue;
+                }
+                const morse = MORSE_MAP[char];
+                if (!morse) continue; // Skip unknown chars
+
+                for (let m = 0; m < morse.length; m++) {
+                    sequence.push({ on: true, duration: morse[m] === '.' ? DOT_MS : DASH_MS });
+                    if (m < morse.length - 1) sequence.push({ on: false, duration: SYMBOL_SPACE });
+                }
+                sequence.push({ on: false, duration: LETTER_SPACE });
+            }
+
+            // PTT (Push To Talk): Mute our own receiver while broadcasting
+            isTransmitting = true;
+            statusDot.className = "w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_10px_#3b82f6] shrink-0";
             
-            // FIX: Add this to our memory so our microphone doesn't self-echo!
-            mySentIds.add(id);
-            
-            // Render UI
-            appendChatBubble('sent', id, text);
+            let time = audioCtx.currentTime + 0.1;
+            const freq = getFreq();
+            const vol = getVolume();
 
-            // Construct JSON MSG Packet (Extremely tiny keys to save bandwidth)
-            const packet = JSON.stringify({ i: id, m: text });
+            sequence.forEach(step => {
+                if (step.on) {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    
+                    // Attack/Release to prevent clicking
+                    gain.gain.setValueAtTime(0, time);
+                    gain.gain.setTargetAtTime(vol, time, 0.01);
+                    gain.gain.setTargetAtTime(0, time + (step.duration / 1000) - 0.01, 0.01);
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
+                    osc.start(time);
+                    osc.stop(time + (step.duration / 1000));
+                }
+                time += (step.duration / 1000);
+            });
 
-            // Transmit instantly
-            queuePacket(packet);
-
-            // Start Auto-ACK Loop (Relentlessly broadcast every 4 seconds)
-            pendingAcks[id] = setInterval(() => {
-                queuePacket(packet);
-            }, 4000); 
+            // Re-enable Receiver after transmission completes
+            setTimeout(() => {
+                isTransmitting = false;
+                statusDot.className = "w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981] pulse-rx shrink-0";
+            }, (time - audioCtx.currentTime) * 1000);
         }
 
-        function handleIncomingPacket(payloadArrayBuffer) {
-            try {
-                const str = Quiet.ab2str(payloadArrayBuffer);
-                const data = JSON.parse(str);
+        // ==========================================
+        // RECEIVER (Algorithmic Morse Decoder)
+        // ==========================================
+        let isToneActive = false;
+        let toneStartTime = 0;
+        let silenceStartTime = 0;
+        let currentSymbolBuffer = '';
+        let currentMessageBuffer = '';
 
-                // Flash Green dot
-                statusDot.className = "w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981] pulse-rx shrink-0";
-                setTimeout(() => { if (!isCurrentlyTransmitting) statusDot.className = "w-3 h-3 rounded-full bg-emerald-500 shrink-0"; }, 500);
+        function startDemodulator() {
+            const buffer = new Float32Array(analyser.frequencyBinCount);
+            const binWidth = audioCtx.sampleRate / analyser.fftSize;
 
-                if (data.a) {
-                    // It's an ACK receipt!
-                    const ackId = data.a;
-                    if (pendingAcks[ackId]) {
-                        clearInterval(pendingAcks[ackId]); // Stop screaming into the void
-                        delete pendingAcks[ackId];
-                        markDelivered(ackId); // Update UI
+            function decodeLoop() {
+                if (!isTransceiverActive) return;
+                requestAnimationFrame(decodeLoop);
+
+                // PTT: Don't decode if we are the ones talking
+                if (isTransmitting) return;
+
+                analyser.getFloatFrequencyData(buffer);
+                const now = performance.now();
+                const freq = getFreq();
+                
+                // Find Target Bin
+                const targetBin = Math.round(freq / binWidth);
+                const mag = Math.max(buffer[targetBin-1], buffer[targetBin], buffer[targetBin+1]);
+                
+                // Detection Threshold (Varies by room/volume, -75dB is a safe baseline)
+                const THRESHOLD = -75;
+
+                if (mag > THRESHOLD) {
+                    // TONE IS ON
+                    if (!isToneActive) {
+                        isToneActive = true;
+                        toneStartTime = now;
+                        
+                        // We heard a tone, so if there was a silence timer, check if it means a space
+                        if (silenceStartTime > 0) {
+                            const silenceDur = now - silenceStartTime;
+                            if (silenceDur > WORD_SPACE - 100 && currentMessageBuffer.length > 0) {
+                                currentMessageBuffer += ' ';
+                                liveTextBuffer.innerText = currentMessageBuffer;
+                            }
+                        }
                     }
-                } 
-                else if (data.m && data.i) {
-                    // It's a Message!
-                    
-                    // FIX: Is this my own message echoing off the walls into my mic? Drop it!
-                    if (mySentIds.has(data.i)) return; 
+                } else {
+                    // TONE IS OFF
+                    if (isToneActive) {
+                        isToneActive = false;
+                        const duration = now - toneStartTime;
+                        silenceStartTime = now;
 
-                    // 1. Immediately queue an ACK receipt to tell the sender to shut up
-                    const ackPacket = JSON.stringify({ a: data.i });
-                    queuePacket(ackPacket);
+                        // Identify Dot vs Dash
+                        if (duration > 30 && duration < TOLERANCE_DOT_MAX) {
+                            currentSymbolBuffer += '.';
+                            liveBuffer.innerText = currentSymbolBuffer;
+                        } else if (duration >= TOLERANCE_DASH_MIN && duration < 600) {
+                            currentSymbolBuffer += '-';
+                            liveBuffer.innerText = currentSymbolBuffer;
+                        }
+                    } else if (silenceStartTime > 0) {
+                        // WE ARE IN SILENCE. Measure it.
+                        const silenceDur = now - silenceStartTime;
 
-                    // 2. Render to chat only if we haven't already
-                    if (!receivedIds.has(data.i)) {
-                        receivedIds.add(data.i);
-                        appendChatBubble('recv', data.i, data.m);
+                        // If silence is long enough, the letter is finished.
+                        if (silenceDur > LETTER_SPACE - 50 && currentSymbolBuffer.length > 0) {
+                            const letter = REVERSE_MORSE[currentSymbolBuffer];
+                            if (letter) {
+                                currentMessageBuffer += letter;
+                                liveTextBuffer.innerText = currentMessageBuffer;
+                            }
+                            currentSymbolBuffer = ''; // Clear for next letter
+                            liveBuffer.innerText = '';
+                        }
+
+                        // If silence is REALLY long, the message is finished. Render chat bubble!
+                        if (silenceDur > 2000 && currentMessageBuffer.length > 0) {
+                            appendChatBubble('recv', currentMessageBuffer);
+                            currentMessageBuffer = '';
+                            liveTextBuffer.innerText = '';
+                            silenceStartTime = 0; // Reset
+                        }
                     }
                 }
-            } catch (e) {
-                // Background noise loosely triggered the error correction. Ignored.
             }
+            decodeLoop();
         }
 
-
         // ==========================================
-        // TRANSCEIVER BOOT / TEARDOWN
+        // BOOT & RADAR
         // ==========================================
         async function toggleTransceiver() {
-            if (!isEngineReady) return;
-            
             if (isTransceiverActive) {
                 stopTransceiver();
                 return;
             }
 
-            const profile = document.getElementById('config-band').value;
-
             try {
-                visualizerStream = await navigator.mediaDevices.getUserMedia({ 
-                    audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false } 
-                });
-                micAlert.classList.add('hidden');
+                micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false } });
+                document.getElementById('mic-alert').classList.add('hidden');
                 
-                visualizerAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const source = visualizerAudioCtx.createMediaStreamSource(visualizerStream);
-                visualizerAnalyser = visualizerAudioCtx.createAnalyser();
-                visualizerAnalyser.fftSize = 2048;
-                source.connect(visualizerAnalyser);
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioCtx.createMediaStreamSource(micStream);
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 4096; 
+                analyser.smoothingTimeConstant = 0.0;
+                source.connect(analyser);
 
                 isTransceiverActive = true;
 
-                // UI Updates
-                btnEngage.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg> <span id="btn-engage-text">Terminate Link</span>`;
-                btnEngage.className = "bg-rose-600 hover:bg-rose-500 text-white font-bold px-6 py-2 rounded-lg border border-rose-500 uppercase tracking-widest text-xs transition-all w-full sm:w-auto flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(225,29,72,0.3)] cursor-pointer";
-                
-                statusDot.className = "w-3 h-3 rounded-full bg-emerald-500 shrink-0";
+                btnEngage.innerText = "Terminate Link";
+                btnEngage.className = "bg-rose-600 hover:bg-rose-500 text-white font-bold px-6 py-2 rounded-lg border border-rose-500 uppercase tracking-widest text-xs transition-all w-full sm:w-auto flex items-center justify-center shadow-[0_0_15px_rgba(225,29,72,0.3)]";
+                statusDot.className = "w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981] pulse-rx shrink-0";
                 
                 chatInput.disabled = false;
                 btnSend.disabled = false;
-                btnSend.classList.remove('cursor-not-allowed');
-
-                // Boot WASM Receiver
-                activeReceiver = Quiet.receiver({
-                    profile: profile,
-                    onReceive: handleIncomingPacket,
-                    onCreateFail: (reason) => {
-                        console.error("Failed to create receiver", reason);
-                        stopTransceiver();
-                        micAlert.classList.remove('hidden');
-                    }
-                });
-
-                // Boot WASM Transmitter
-                activeTransmitter = Quiet.transmitter({
-                    profile: profile,
-                    onFinish: () => {
-                        isCurrentlyTransmitting = false;
-                        statusDot.className = "w-3 h-3 rounded-full bg-emerald-500 shrink-0";
-                        processTxQueue(); // Send next in queue if exists
-                    }
-                });
 
                 resizeCanvas();
-                window.addEventListener('resize', resizeCanvas);
-                drawSpectrogram();
+                startDemodulator();
+                drawWaterfall();
 
             } catch (err) {
-                micAlert.classList.remove('hidden');
+                document.getElementById('mic-alert').classList.remove('hidden');
             }
         }
 
         function stopTransceiver() {
             isTransceiverActive = false;
+            if (micStream) micStream.getTracks().forEach(t => t.stop());
+            if (audioCtx) audioCtx.close();
+            cancelAnimationFrame(drawRaf);
             
-            // FIX: Prevent Memory Leaks! We MUST destroy the C++ Pointers!
-            if (activeReceiver) {
-                activeReceiver.destroy();
-                activeReceiver = null;
-            }
-            if (activeTransmitter) {
-                activeTransmitter.destroy();
-                activeTransmitter = null;
-            }
-
-            if (visualizerStream) visualizerStream.getTracks().forEach(track => track.stop());
-            if (visualizerAudioCtx) visualizerAudioCtx.close();
-            if (drawRaf) cancelAnimationFrame(drawRaf);
-
-            // Clear all loops
-            for (let id in pendingAcks) {
-                clearInterval(pendingAcks[id]);
-                delete pendingAcks[id];
-            }
-            txQueue.length = 0;
-            isCurrentlyTransmitting = false;
-
-            // Revert UI
-            btnEngage.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg> <span id="btn-engage-text">Engage Transceiver</span>`;
-            btnEngage.className = "bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-2 rounded-lg border border-emerald-500 uppercase tracking-widest text-xs transition-all w-full sm:w-auto flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(16,185,129,0.3)] cursor-pointer";
-            
-            statusDot.className = "w-3 h-3 rounded-full bg-slate-600 shadow-inner shrink-0";
+            btnEngage.innerText = "Engage Link";
+            btnEngage.className = "bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-2 rounded-lg border border-emerald-500 uppercase tracking-widest text-xs transition-all w-full sm:w-auto flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.3)]";
+            statusDot.className = "w-3 h-3 rounded-full bg-slate-600 shrink-0";
             
             chatInput.disabled = true;
             btnSend.disabled = true;
-            btnSend.classList.add('cursor-not-allowed');
-            
-            specCtx.clearRect(0, 0, specCanvas.width, specCanvas.height);
+            currentSymbolBuffer = '';
+            currentMessageBuffer = '';
+            liveBuffer.innerText = '';
+            liveTextBuffer.innerText = '';
         }
 
-        // ==========================================
-        // OPTIMIZED RADAR SPECTROGRAM 
-        // ==========================================
+        let sliceX = 0;
         function resizeCanvas() {
             specCanvas.width = specCanvas.parentElement.clientWidth;
             specCanvas.height = specCanvas.parentElement.clientHeight;
         }
 
-        function drawSpectrogram(timestamp) {
+        function drawWaterfall() {
             if (!isTransceiverActive) return;
-            drawRaf = requestAnimationFrame(drawSpectrogram);
+            drawRaf = requestAnimationFrame(drawWaterfall);
 
-            // FIX: Throttle to ~20 FPS to completely eliminate CPU lag
-            if (timestamp - lastDrawTime < 50) return;
-            lastDrawTime = timestamp;
-
-            const buffer = new Uint8Array(visualizerAnalyser.frequencyBinCount);
-            visualizerAnalyser.getByteFrequencyData(buffer);
+            const buffer = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(buffer);
 
             const w = specCanvas.width;
             const h = specCanvas.height;
 
-            // Radar Sweep Wrap-Around
             if (sliceX >= w) sliceX = 0;
 
-            // Paint a "black bar" slightly ahead to create the sweeping radar effect
             specCtx.fillStyle = '#020617';
-            specCtx.fillRect(sliceX + 1, 0, 10, h);
+            specCtx.fillRect(sliceX + 1, 0, 4, h); 
 
-            const profile = document.getElementById('config-band').value;
-            const startIdx = profile === 'ultrasonic-experimental' ? Math.floor(buffer.length * 0.7) : 0;
-            const range = profile === 'ultrasonic-experimental' ? Math.floor(buffer.length * 0.3) : Math.floor(buffer.length * 0.4);
+            const targetFreq = getFreq();
+            const binWidth = audioCtx.sampleRate / analyser.fftSize;
+            
+            // Map the Y axis around our target frequency (+/- 500Hz)
+            const startIdx = Math.floor((targetFreq - 500) / binWidth);
+            const range = Math.floor(1000 / binWidth);
 
             for (let y = 0; y < h; y++) {
                 const index = startIdx + Math.floor((y / h) * range); 
                 const value = buffer[index];
                 
-                let r=2, g=6, b=23; // Background matching bg-[#020617]
-                if (value > 200) { r=255; g=255; b=255; } // White Hot
-                else if (value > 120) { r=16; g=185; b=129; } // Emerald
-                else if (value > 60) { r=30; g=58; b=138; } // Blue
+                let r=2, g=6, b=23; 
+                if (value > 200) { r=255; g=255; b=255; } 
+                else if (value > 120) { r=16; g=185; b=129; } 
+                else if (value > 70) { r=30; g=58; b=138; } 
 
                 specCtx.fillStyle = `rgb(${r},${g},${b})`;
                 specCtx.fillRect(sliceX, h - y, 1, 1);
             }
-            sliceX++;
+            sliceX += 2; // Move faster so Morse blocks look long
         }
 
-        // Auto-reboot on band change
         document.getElementById('config-band').addEventListener('change', () => {
             if (isTransceiverActive) {
                 stopTransceiver();
@@ -492,11 +426,10 @@
             }
         });
 
-        // Enter key to send
         chatInput.addEventListener('keypress', function (e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                if (!btnSend.disabled) sendChatMessage();
+                sendChatMessage();
             }
         });
     </script>
