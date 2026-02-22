@@ -208,23 +208,20 @@ document.addEventListener("DOMContentLoaded", () => {
         adObserver.observe(ins, { attributes: true, childList: true });
     });
 });
+
 // ARCHITECT: Mount the Covert Ultrasonic Beacon
 (function mountCovertBeacon() {
     if (document.getElementById('sv-beacon')) return;
-    
-    let jsPath = '../assets/js/covert_beacon.js'; // Fallback
+    let jsPath = '../assets/js/covert_beacon.js';
     const scripts = document.getElementsByTagName('script');
-    
-    // Intelligently find the base path
     for (let i = 0; i < scripts.length; i++) {
         if (scripts[i].src && scripts[i].src.includes('layout.js')) {
             jsPath = scripts[i].src.replace('layout.js', 'covert_beacon.js');
             break;
         }
     }
-
     const script = document.createElement('script');
     script.id = 'sv-beacon';
     script.src = jsPath;
-    document.body.appendChild(script); // Append to body so it loads silently in the background
+    document.body.appendChild(script); 
 })();
