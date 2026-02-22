@@ -24,13 +24,16 @@ class SVHeader extends HTMLElement {
         const basePath = this.getAttribute('base-path') || '.';
         const sponsorLink = `${basePath}/donate`; 
 
-        let favicon = document.querySelector("link[rel~='icon']");
-        if (!favicon) {
-            favicon = document.createElement('link');
-            favicon.rel = 'icon';
-            document.head.appendChild(favicon);
-        }
-        favicon.href = `${basePath}/assets/img/SILENVAULT_CREST.png`;
+        // ARCHITECT FIX: Favicon Injection Engine
+        // 1. Remove any existing favicons to force the browser to redraw the tab
+        document.querySelectorAll("link[rel~='icon']").forEach(el => el.remove());
+        
+        // 2. Create a fresh link element using a universally supported format (.png)
+        const favicon = document.createElement('link');
+        favicon.rel = 'icon';
+        favicon.type = 'image/png'; // Explicitly define type
+        favicon.href = `${basePath}/assets/img/SILENVAULT_CREST.png`; // Switched from .webp to .png
+        document.head.appendChild(favicon);
 
         if (!document.getElementById('sv-adsense')) {
             const adScript = document.createElement('script');
@@ -159,8 +162,7 @@ window.bookmarkSite = function() {
     setTimeout(removeToast, 5000);
 };
 
-// ARCHITECT FIX: Universal Smart Ad-Sensing Engine
-// This completely eliminates the need for 'monitorAds()' in individual files.
+// Universal Smart Ad-Sensing Engine
 document.addEventListener("DOMContentLoaded", () => {
     const adObserver = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
