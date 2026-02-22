@@ -33,7 +33,6 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        /* BRIGHTER, MORE READABLE BASE THEME */
         :root {
             --bg-color: #0f172a; 
             --panel-bg: rgba(30, 41, 59, 0.85); 
@@ -47,7 +46,7 @@
         .glass-panel { background: var(--panel-bg); backdrop-filter: blur(16px); border: 1px solid var(--border-color); transition: all 0.5s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         .mono { font-family: 'Fira Code', monospace; }
 
-        /* BRIGHTER FORGE THEME (Deep Crimson) */
+        /* FORGE THEME OVERRIDES */
         body.forge-mode {
             --bg-color: #22050f; 
             --panel-bg: rgba(60, 10, 24, 0.85);
@@ -82,8 +81,8 @@
         @keyframes scan { 0% { top: 0%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
 
         /* TERMINAL STYLE 1 (UNIFIED APP FRAME) */
-        .term-1 { background: rgba(2, 6, 23, 0.9); border: 1px solid var(--border-color); border-radius: 1rem; display: flex; flex-direction: column; box-shadow: inset 0 2px 15px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.5); min-height: 350px; }
-        .term-1-header { background: rgba(15, 23, 42, 0.6); padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); border-radius: 1rem 1rem 0 0; display: flex; align-items: center; justify-content: space-between; }
+        .term-1 { background: rgba(2, 6, 23, 0.9); border: 1px solid var(--border-color); border-radius: 1.5rem; display: flex; flex-direction: column; box-shadow: inset 0 2px 15px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.5); min-height: 350px; }
+        .term-1-header { background: rgba(15, 23, 42, 0.6); padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); border-radius: 1.5rem 1.5rem 0 0; display: flex; align-items: center; justify-content: space-between; }
         .terminal-scroll { overflow-y: auto; padding: 16px; flex: 1; font-family: 'Fira Code', monospace; font-size: 13px; color: #e2e8f0; scroll-behavior: smooth; }
         .terminal-scroll::-webkit-scrollbar { width: 6px; }
         .terminal-scroll::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
@@ -100,14 +99,10 @@
         .forge-mode .val-sys { color: #fca5a5; }
         .val-safe { color: #86efac; font-weight: bold; text-shadow: 0 0 10px rgba(16,185,129,0.3);}
 
-        /* MAP FIX: Sleek Cryptographic Slate Filter */
+        /* MAP FIX */
         #location-map-container { transition: max-height 0.8s ease, opacity 0.5s ease; overflow: hidden; max-height: 0; opacity: 0; border-radius: 8px; }
         #location-map-container.active { max-height: 250px; opacity: 1; border: 1px solid rgba(244,63,94,0.4); margin-top: 1rem; }
-        #leaflet-map { 
-            height: 200px; width: 100%; z-index: 1; 
-            border-radius: 8px;
-            filter: brightness(0.8) contrast(1.1) opacity(0.9);
-        }
+        #leaflet-map { height: 200px; width: 100%; z-index: 1; border-radius: 8px; filter: brightness(0.8) contrast(1.1) opacity(0.9); }
 
         .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
         .status-warn { background: rgba(251, 191, 36, 0.15); color: #fde047; border: 1px solid rgba(251, 191, 36, 0.4); }
@@ -122,7 +117,6 @@
         .modal-inner { transform: translateY(20px) scale(0.95); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .active .modal-inner { transform: translateY(0) scale(1); }
 
-        /* TOASTER */
         #toaster-notification { position: fixed; bottom: 2rem; right: 2rem; z-index: 9000; transform: translateY(150%); transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
         #toaster-notification.show { transform: translateY(0); }
         
@@ -174,7 +168,8 @@
             <div id="workspace-stage" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-start transition-all duration-500">
                 
                 <div class="lg:col-span-5 flex flex-col gap-6">
-                    <div class="sv-frame-hybrid flex flex-col w-full h-[500px] p-1 select-none touch-none">
+                    
+                    <div class="sv-frame-hybrid flex flex-col w-full aspect-square p-1 shadow-2xl">
                         <div class="sv-window-header border-b border-slate-700 pb-2 mb-0 justify-between">
                             <div class="flex items-center">
                                 <div class="sv-window-dots">
@@ -184,19 +179,25 @@
                                 </div>
                                 <span class="sv-window-title text-[9px] ml-2">Render Canvas</span>
                             </div>
-                            <div id="canvas-tabs" class="hidden flex bg-slate-900 rounded p-0.5 border border-slate-700 pointer-events-auto">
-                                <div id="tab-original" class="px-3 py-1 text-[10px] text-white bg-slate-700 rounded font-bold shadow cursor-pointer transition-colors" onclick="window.switchTab('original')">Original</div>
-                                <div id="tab-scrubbed" class="px-3 py-1 text-[10px] text-slate-400 font-bold cursor-pointer transition-colors" onclick="window.switchTab('scrubbed')">Scrubbed</div>
+                            
+                            <div id="canvas-tabs" class="hidden flex bg-slate-900 rounded p-0.5 border border-slate-700 pointer-events-auto shadow-inner">
+                                <div id="tab-original" class="px-3 py-1 text-[10px] text-white bg-slate-700 rounded font-bold shadow cursor-pointer transition-colors" onclick="window.switchTab('original')">Target</div>
+                                <div id="tab-scrubbed" class="px-3 py-1 text-[10px] text-slate-400 font-bold cursor-pointer transition-colors" onclick="window.switchTab('scrubbed')">Export</div>
                             </div>
                         </div>
                         
-                        <div id="input-box" class="sv-viewport-hybrid flex-1 w-full flex flex-col items-center justify-center relative scanning">
+                        <div id="input-box" class="sv-viewport-hybrid flex-1 w-full flex flex-col items-center justify-center relative scanning select-none touch-none">
                             <div class="sv-bg-blueprint"></div>
                             <div class="scanner-line"></div>
                             
                             <img id="img-input" class="sv-img-cover z-20 hidden preview-img" alt="Input Preview">
                             <img id="img-output" class="sv-img-cover z-30 hidden preview-img" alt="Output Preview">
                         </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 text-xs text-center px-2">
+                        <span id="label-filename-input" class="truncate text-[10px] text-slate-400 font-mono block">...</span>
+                        <span id="label-filename-output" class="truncate text-[10px] text-emerald-400 font-mono font-bold block opacity-0 transition-opacity duration-500">...</span>
                     </div>
 
                     <div class="grid grid-cols-2 gap-3 text-xs">
@@ -209,24 +210,25 @@
                             <span id="badge-engine" class="text-white font-mono text-sm truncate">Determining...</span>
                         </div>
                     </div>
+                    
                     <button id="btn-reset-app" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-bold px-4 py-4 rounded-xl transition-all duration-300 border border-slate-700 shadow-lg">Abort & Load New Target</button>
                 </div>
 
                 <div class="lg:col-span-7 flex flex-col gap-6">
-                    <div class="term-1 flex-1" id="main-terminal">
+                    
+                    <div class="term-1 flex-1 shadow-2xl" id="main-terminal">
                         <div class="term-1-header">
-                            <div class="flex items-center gap-3">
-                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                                <span class="text-[10px] text-slate-300 font-mono font-bold tracking-widest uppercase">Forensic Audit Log</span>
-                            </div>
+                            <span class="text-white font-bold text-xs uppercase tracking-widest flex items-center gap-2">
+                                <svg class="w-4 h-4 text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg> Forensic Audit Log
+                            </span>
                             
                             <div class="flex items-center gap-4">
                                 <div id="export-options" class="hidden flex items-center gap-2">
-                                    <button id="btn-export-txt" class="text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded border border-slate-600 transition-colors">TXT</button>
-                                    <button id="btn-export-json" class="text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded border border-slate-600 transition-colors">JSON</button>
-                                    <button id="btn-export-csv" class="text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded border border-slate-600 transition-colors">CSV</button>
+                                    <button id="btn-export-txt" class="text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded border border-slate-600 transition-colors shadow-inner">TXT</button>
+                                    <button id="btn-export-json" class="text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded border border-slate-600 transition-colors shadow-inner">JSON</button>
+                                    <button id="btn-export-csv" class="text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded border border-slate-600 transition-colors shadow-inner">CSV</button>
                                 </div>
-                                <span id="meta-count" class="bg-slate-800 px-2 py-0.5 rounded border border-slate-600 text-[10px] font-mono text-slate-300">0 Tags</span>
+                                <span id="meta-count" class="bg-slate-800 px-3 py-1 rounded border border-slate-600 text-[11px] font-mono font-bold text-slate-300 shadow-inner">0 Tags</span>
                             </div>
                         </div>
                         <div class="terminal-scroll" id="terminal-out"></div>
@@ -259,6 +261,7 @@
             </div>
 
             <article class="mt-20 flex flex-col gap-16 border-t border-slate-800 pt-16">
+                
                 <section class="prose prose-invert prose-slate max-w-none glass-panel p-8 md:p-12 rounded-2xl shadow-xl">
                     <h2 class="text-white text-3xl font-extrabold mb-6">Understanding EXIF and Image Metadata</h2>
                     <p class="text-lg text-slate-300 leading-relaxed mb-6">Every time you take a picture with a smartphone or digital camera, the device invisibly attaches a massive payload of text-based information directly into the image file. This umbrella of information is known as <strong>Metadata</strong> (data about data). While some metadata is structurally required to render the image on a screen, much of it poses a severe privacy risk.</p>
@@ -658,8 +661,6 @@
             if (threatMap) document.getElementById('location-map-container').classList.remove('active');
             document.getElementById('export-options').classList.add('hidden');
             document.getElementById('toaster-notification').classList.remove('show');
-            document.getElementById('canvas-tabs').classList.add('hidden');
-            window.switchTab('original');
             
             document.getElementById('file-size').innerText = formatBytes(originalFile.size);
             document.getElementById('upload-stage').classList.add('hidden');
@@ -673,7 +674,10 @@
             document.getElementById('btn-scrub').classList.add('opacity-50', 'cursor-not-allowed', 'hidden');
             document.getElementById('btn-download').classList.add('hidden');
 
+            document.getElementById('canvas-tabs').classList.add('hidden');
+            window.switchTab('original');
             document.getElementById('btn-reset-app').innerText = "Abort & Load New Target";
+
             document.getElementById('badge-engine').innerText = processorInstance.engineName;
             
             if(isAdvancedMode) {
@@ -821,9 +825,10 @@
                 document.getElementById('btn-scrub').disabled = false;
                 document.getElementById('btn-scrub').classList.remove('opacity-50', 'cursor-not-allowed', 'hidden');
                 document.getElementById('btn-download').classList.remove('hidden');
-                
-                // Allow toggling between identical files
+
                 document.getElementById('canvas-tabs').classList.remove('hidden');
+                window.switchTab('scrubbed');
+                document.getElementById('btn-reset-app').innerText = "Scrub Another File";
             }, 1000);
         }
 
@@ -913,8 +918,7 @@
                     document.getElementById('btn-download').classList.remove('hidden');
 
                     document.getElementById('toaster-notification').classList.add('show');
-                    
-                    // Activate Toggle Tab & Switch text
+
                     document.getElementById('canvas-tabs').classList.remove('hidden');
                     window.switchTab('scrubbed');
                     document.getElementById('btn-reset-app').innerText = "Scrub Another File";
@@ -1042,7 +1046,7 @@
             document.getElementById('btn-scrub').disabled = true;
             document.getElementById('btn-scrub').classList.add('opacity-50', 'cursor-not-allowed', 'hidden');
             document.getElementById('btn-download').classList.add('hidden');
-            
+
             document.getElementById('canvas-tabs').classList.add('hidden');
             window.switchTab('original');
             document.getElementById('btn-reset-app').innerText = "Abort & Load New Target";
