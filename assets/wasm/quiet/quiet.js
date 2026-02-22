@@ -62,6 +62,7 @@ var Quiet = (function() {
     function initAudioContext() {
         if (audioCtx === undefined) {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            console.log(audioCtx.sampleRate);
         }
     };
 
@@ -304,10 +305,12 @@ var Quiet = (function() {
         var done = opts.onFinish;
 
         var opt = Module.ccall('quiet_encoder_profile_str', 'pointer', ['array', 'array'], [c_profiles, c_profile]);
+        console.log(opt);
 
         // libquiet internally works at 44.1kHz but the local sound card
         // may be a different rate. we inform quiet about that here
         var encoder = Module.ccall('quiet_encoder_create', 'pointer', ['pointer', 'number'], [opt, audioCtx.sampleRate]);
+        console.log(encoder);
 
         Module.ccall('free', null, ['pointer'], [opt]);
 
@@ -415,6 +418,7 @@ var Quiet = (function() {
         // first we push as much payload as will fit into encoder's tx queue
         // then we create the next sample block (if played = true)
         var writebuf = function() {
+            console.log('writebuf');
             if (destroyed) {
                 return;
             }
@@ -505,6 +509,7 @@ var Quiet = (function() {
         };
 
         var transmit = function(buf) {
+            console.log('transmit');
             if (destroyed) {
                 return;
             }
