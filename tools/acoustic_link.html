@@ -52,7 +52,6 @@
         .cursor-blink { animation: blink 1s step-end infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-        /* The Signal Processor Loading Bar */
         .signal-bar-container { width: 100%; height: 4px; background: #0f172a; overflow: hidden; border-radius: 2px; position: relative; border: 1px solid #1e293b; }
         .signal-bar-active { position: absolute; top: 0; left: 0; height: 100%; width: 30%; background: #10b981; box-shadow: 0 0 10px #10b981; animation: scan-bar 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate; display: none; }
         .signal-bar-tx { background: #3b82f6; box-shadow: 0 0 10px #3b82f6; }
@@ -73,7 +72,7 @@
                 </h1>
                 <p class="text-base text-slate-300 mt-2 font-medium">Bridge air-gapped devices using WebAssembly Digital Signal Processing.</p>
             </div>
-            <span class="bg-emerald-900/30 border border-emerald-500/30 text-emerald-300 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-widest hidden md:block" id="engine-status">DSP: INITIALIZING...</span>
+            <span class="bg-emerald-900/30 border border-emerald-500/30 text-emerald-300 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-widest hidden md:block" id="engine-status">DSP: BOOTING...</span>
         </div>
 
         <div class="glass-panel p-5 rounded-2xl border border-slate-700 shadow-xl flex flex-col md:flex-row gap-6 items-center justify-between bg-slate-900/50">
@@ -222,7 +221,6 @@
         const iconRx = document.getElementById('rx-icon-wrapper');
         const btnListen = document.getElementById('btn-listen');
         const btnTransmit = document.getElementById('btn-transmit');
-        
         const txSignalBar = document.getElementById('tx-signal-bar');
         const rxSignalBar = document.getElementById('rx-signal-bar');
 
@@ -231,15 +229,16 @@
             rxPlaceholder.classList.remove('hidden');
         }
 
-        // 1. Initialize Quiet.js WebAssembly
-        function bootDSPEngine() {
+        // Wait for DOM so Quiet.js has time to register, then trigger initialization
+        window.addEventListener('load', () => {
             try {
+                // Point Quiet to your local /assets/wasm/quiet/ folder
                 Quiet.init({
                     profilesPrefix: "../assets/wasm/quiet/",
-                    memoryInitializerPrefix: "../assets/wasm/quiet/",
-                    libfecPrefix: "../assets/wasm/quiet/"
+                    memoryInitializerPrefix: "../assets/wasm/quiet/"
                 });
 
+                // When WASM successfully mounts the memory files, it fires this callback
                 Quiet.addReadyCallback(() => {
                     isEngineReady = true;
                     
@@ -259,15 +258,15 @@
                     document.getElementById('btn-listen-text').innerText = "Engage Microphone";
                     
                     rxPlaceholder.innerText = "> Engine ready. Waiting for engagement...";
+                }, (err) => {
+                    console.error("DSP Boot Error: ", err);
+                    rxPlaceholder.innerText = "> FATAL: Failed to parse quiet-profiles.json or .mem files. Check console.";
                 });
-            } catch (e) {
-                console.error("DSP Engine Boot Failure:", e);
-                rxPlaceholder.innerText = "> FATAL: Failed to load WebAssembly DSP.";
-            }
-        }
 
-        // Fire boot on load
-        window.addEventListener('load', bootDSPEngine);
+            } catch (e) {
+                console.error("Quiet Init Exception: ", e);
+            }
+        });
 
         // ==========================================
         // TRANSMITTER LOGIC
@@ -317,8 +316,6 @@
             const profile = document.getElementById('config-band').value;
 
             try {
-                // We ask for mic access manually to feed the visualizer, 
-                // Quiet.js will inherit the permission.
                 visualizerStream = await navigator.mediaDevices.getUserMedia({ 
                     audio: { echoCancellation: false, autoGainControl: false, noiseSuppression: false } 
                 });
@@ -333,7 +330,6 @@
                 rxPlaceholder.classList.add('hidden');
                 rxCursor.classList.remove('hidden');
 
-                // UI Updates
                 btnListen.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg> <span id="btn-listen-text">Stop Listening</span>`;
                 btnListen.classList.replace('text-emerald-400', 'text-rose-400');
                 
@@ -349,12 +345,10 @@
                 activeReceiver = Quiet.receiver({
                     profile: profile,
                     onReceive: (payload) => {
-                        // Data packet perfectly reconstructed by Reed-Solomon!
                         const text = Quiet.ab2str(payload);
                         rxContent.innerText += text;
                         rxContent.parentElement.scrollTop = rxContent.parentElement.scrollHeight;
                         
-                        // Flash the signal bar to show successful chunk processing
                         rxSignalBar.classList.add('active');
                         setTimeout(() => rxSignalBar.classList.remove('active'), 500);
                     },
@@ -364,8 +358,7 @@
                         alert("Microphone hardware failed to bind to DSP engine.");
                     },
                     onReceiveFail: (num_fails) => {
-                        // Background noise caused a packet drop that FEC couldn't fix.
-                        // We intentionally ignore this to keep the console clean.
+                        // Error Correction failed due to extreme noise
                     }
                 });
 
@@ -381,7 +374,6 @@
         function stopListening() {
             isListening = false;
             if (activeReceiver) {
-                // Quiet.js doesn't have a formal "destroy" method, so we force it to forget the callbacks.
                 activeReceiver = null;
             }
             if (visualizerStream) visualizerStream.getTracks().forEach(track => track.stop());
@@ -419,7 +411,6 @@
             const buffer = new Uint8Array(visualizerAnalyser.frequencyBinCount);
             visualizerAnalyser.getByteFrequencyData(buffer);
 
-            // Shift canvas left
             if (sliceX >= specCanvas.width) {
                 const imgData = specCtx.getImageData(1, 0, specCanvas.width - 1, specCanvas.height);
                 specCtx.putImageData(imgData, 0, 0);
@@ -429,7 +420,6 @@
             const h = specCanvas.height;
             const profile = document.getElementById('config-band').value;
             
-            // Adjust visualization focus based on the selected band
             const startIdx = profile === 'ultrasonic-experimental' ? Math.floor(buffer.length * 0.7) : 0;
             const range = profile === 'ultrasonic-experimental' ? Math.floor(buffer.length * 0.3) : Math.floor(buffer.length * 0.4);
 
@@ -437,7 +427,7 @@
                 const index = startIdx + Math.floor((y / h) * range); 
                 const value = buffer[index];
                 
-                let r=2, g=6, b=23; // Background (Slate 950)
+                let r=2, g=6, b=23; 
                 if (value > 200) { r=255; g=255; b=255; }
                 else if (value > 120) { r=16; g=185; b=129; } 
                 else if (value > 60) { r=15; g=23; b=42; }
@@ -450,7 +440,6 @@
             drawRaf = requestAnimationFrame(drawSpectrogram);
         }
 
-        // Auto-restart listening if frequency band changes while active
         document.getElementById('config-band').addEventListener('change', () => {
             if (isListening) {
                 stopListening();
