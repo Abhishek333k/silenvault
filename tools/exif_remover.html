@@ -8,12 +8,12 @@
     <meta name="description" content="Free, local-first forensic tool to permanently remove hidden EXIF data, GPS coordinates, and XMP trackers from images. Lossless support for JPEG, PNG, WebP, and RAW (CR2, DNG) formats.">
     <meta name="keywords" content="exif remover, metadata scrubber, remove gps from photo, clear cr2 metadata, raw image metadata cleaner, local exif tool, privacy image editor">
     <meta name="author" content="SilenVault">
-    <link rel="canonical" href="https://silenvault.com/tools/exif_remover.html">
+    <link rel="canonical" href="https://silenvault.com/tools/exif_remover">
     
     <meta property="og:title" content="EXIF Remover & Metadata Scrubber | SilenVault">
     <meta property="og:description" content="Securely purge hidden tracking data from your images completely offline. Enterprise-grade RAW sensor support via WebAssembly.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://silenvault.com/tools/exif_remover.html">
+    <meta property="og:url" content="https://silenvault.com/tools/exif_remover">
     <meta property="og:site_name" content="SilenVault">
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
@@ -69,15 +69,14 @@
         .forge-mode .drop-zone:hover { border-color: #fb7185; }
         .drop-zone input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
 
-        .preview-img { opacity: 0.7; transition: opacity 0.5s ease; padding: 0.5rem; }
-        .preview-img.scanned { opacity: 1; }
+        .sv-img-cover { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; transition: opacity 0.5s ease; border-radius: 0.5rem; position: relative; z-index: 10; }
+        .sv-img-cover.scanned { opacity: 1; }
 
         .scanner-line { position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: #60a5fa; box-shadow: 0 0 15px #60a5fa; animation: scan 2s cubic-bezier(0.4, 0, 0.2, 1) infinite; z-index: 20; display: none; }
         .scanning .scanner-line { display: block; }
         @keyframes scan { 0% { top: 0%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
 
-        /* FIX: Terminal Height locked so internal scrollbar activates */
-        .term-1 { background: rgba(2, 6, 23, 0.9); border: 1px solid var(--border-color); border-radius: 1.5rem; display: flex; flex-direction: column; box-shadow: inset 0 2px 15px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.5); height: 400px; max-height: 400px; overflow: hidden; }
+        .term-1 { background: rgba(2, 6, 23, 0.9); border: 1px solid var(--border-color); border-radius: 1.5rem; display: flex; flex-direction: column; box-shadow: inset 0 2px 15px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.5); height: 420px; max-height: 420px; overflow: hidden; }
         .term-1-header { background: rgba(15, 23, 42, 0.6); padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); border-radius: 1.5rem 1.5rem 0 0; display: flex; align-items: center; justify-content: space-between; }
         .terminal-scroll { overflow-y: auto; padding: 16px; flex: 1; font-family: 'Fira Code', monospace; font-size: 13px; color: #e2e8f0; scroll-behavior: smooth; }
         .terminal-scroll::-webkit-scrollbar { width: 6px; }
@@ -146,7 +145,7 @@
             <div id="upload-stage" class="glass-panel p-3 rounded-2xl transition-all duration-500 shadow-xl">
                 <div id="drop-zone" class="drop-zone">
                     <div class="bg-blue-500/10 p-6 rounded-full mb-6 border border-blue-500/20 transition-all duration-500 shadow-[0_0_20px_rgba(59,130,246,0.15)]" id="dz-icon-wrap">
-                        <svg class="w-14 h-14 text-blue-400 transition-colors duration-500" id="dz-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2-2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        <svg class="w-14 h-14 text-blue-400 transition-colors duration-500" id="dz-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     </div>
                     <h3 class="text-2xl font-bold text-white mb-2 pointer-events-none tracking-tight">Select Image to Audit</h3>
                     <div class="flex flex-wrap gap-2 justify-center pointer-events-none mb-8 mt-2">
@@ -162,7 +161,6 @@
             <div id="workspace-stage" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8 items-start transition-all duration-500">
                 
                 <div class="lg:col-span-5 flex flex-col gap-6">
-                    
                     <div class="sv-frame-hybrid flex flex-col w-full aspect-square p-1 shadow-2xl select-none touch-none">
                         <div class="sv-window-header border-b border-slate-700 pb-2 mb-0 justify-between">
                             <div class="flex items-center">
@@ -173,19 +171,20 @@
                                 </div>
                                 <span class="sv-window-title text-[9px] ml-2">Render Canvas</span>
                             </div>
-                            
                             <div id="canvas-tabs" class="hidden flex bg-slate-900 rounded p-0.5 border border-slate-700 pointer-events-auto shadow-inner">
                                 <div id="tab-original" class="px-3 py-1 text-[10px] text-white bg-slate-700 rounded font-bold shadow cursor-pointer transition-colors" onclick="window.switchTab('original')">Target</div>
                                 <div id="tab-scrubbed" class="px-3 py-1 text-[10px] text-slate-400 font-bold cursor-pointer transition-colors" onclick="window.switchTab('scrubbed')">Export</div>
                             </div>
                         </div>
-                        
                         <div id="input-box" class="sv-viewport-hybrid flex-1 w-full flex flex-col items-center justify-center relative scanning">
                             <div class="sv-bg-blueprint"></div>
                             <div class="scanner-line"></div>
-                            
-                            <img id="img-input" class="sv-img-cover z-20 hidden preview-img w-full h-full object-cover" alt="Input Preview">
-                            <img id="img-output" class="sv-img-cover z-30 hidden preview-img w-full h-full object-cover" alt="Output Preview">
+                            <div id="output-placeholder" class="hidden text-[10px] text-slate-500 font-mono text-center flex-col items-center gap-2 z-20 absolute">
+                                <svg class="w-6 h-6 text-slate-600 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                Pending Purge
+                            </div>
+                            <img id="img-input" class="sv-img-cover z-20 hidden" alt="Input Preview">
+                            <img id="img-output" class="sv-img-cover z-30 hidden" alt="Output Preview">
                         </div>
                     </div>
 
@@ -204,18 +203,15 @@
                             <span id="badge-engine" class="text-white font-mono text-sm truncate">Determining...</span>
                         </div>
                     </div>
-                    
                     <button id="btn-reset-app" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-bold px-4 py-4 rounded-xl transition-all duration-300 border border-slate-700 shadow-lg">Abort & Load New Target</button>
                 </div>
 
                 <div class="lg:col-span-7 flex flex-col gap-6 h-full">
-                    
-                    <div class="term-1 shadow-2xl w-full" id="main-terminal">
+                    <div class="term-1 w-full shadow-2xl" id="main-terminal">
                         <div class="term-1-header">
                             <span class="text-white font-bold text-xs uppercase tracking-widest flex items-center gap-2">
                                 <svg class="w-4 h-4 text-current" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg> Forensic Audit Log
                             </span>
-                            
                             <div class="flex items-center gap-4">
                                 <div id="export-options" class="hidden flex items-center gap-2">
                                     <button id="btn-export-txt" class="text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-white px-3 py-1 rounded border border-slate-600 transition-colors shadow-inner">TXT</button>
@@ -238,14 +234,12 @@
                     </div>
 
                     <div id="action-area" class="glass-panel p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl relative overflow-hidden">
-                        
                         <div id="action-msg-container" class="flex flex-col gap-1 relative z-10">
                             <span id="status-indicator" class="status-badge status-scan w-max transition-colors duration-500">
                                 <svg class="w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Scanning
                             </span>
                             <span id="action-msg" class="text-sm mt-1 block text-slate-300 font-medium">Analyzing binary structure...</span>
                         </div>
-                        
                         <button id="btn-scrub" disabled class="hidden w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-8 py-4 rounded-xl transition-all duration-300 opacity-50 cursor-not-allowed shadow-lg relative z-10">
                             <span id="btn-scrub-text">Remove Metadata</span>
                         </button>
@@ -255,11 +249,9 @@
             </div>
 
             <article class="mt-20 flex flex-col gap-16 border-t border-slate-800 pt-16">
-                
                 <section class="prose prose-invert prose-slate max-w-none glass-panel p-8 md:p-12 rounded-2xl shadow-xl">
                     <h2 class="text-white text-3xl font-extrabold mb-6">Understanding EXIF and Image Metadata</h2>
                     <p class="text-lg text-slate-300 leading-relaxed mb-6">Every time you take a picture with a smartphone or digital camera, the device invisibly attaches a massive payload of text-based information directly into the image file. This umbrella of information is known as <strong>Metadata</strong> (data about data). While some metadata is structurally required to render the image on a screen, much of it poses a severe privacy risk.</p>
-                    
                     <h3 class="text-slate-200 text-xl font-bold mt-8 mb-4">The Three Layers of Hidden Data</h3>
                     <ul class="space-y-4 list-none pl-0">
                         <li class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
@@ -275,7 +267,6 @@
                             <span class="text-slate-300 text-sm">Non-identifying machine data such as Image Width, Height, Bit Depth, and Color Space. SilenVault automatically whitelists structural data to ensure your files remain visually flawless after purging.</span>
                         </li>
                     </ul>
-
                     <h3 class="text-slate-200 text-2xl font-bold mt-10 mb-4">Why You Must Scrub Your Images</h3>
                     <p class="text-slate-300 leading-relaxed text-base">When you share an un-scrubbed image on forums, personal blogs, or via direct messaging apps, anyone can download that image and extract its EXIF payload in seconds. If the photo was taken at your home, the embedded GPS coordinates reveal your exact physical address to strangers. SilenVault acts as a cryptographic firewall, allowing you to audit the contents of your files, export the reports for your own records, and permanently obliterate the tracking data before you publish.</p>
                 </section>
@@ -285,7 +276,6 @@
                         <h2 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Standard Operating Procedure</h2>
                         <p class="text-slate-400 mt-4 text-lg">How to securely audit and annihilate image metadata using SilenVault.</p>
                     </div>
-                    
                     <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div class="glass-panel p-8 rounded-2xl relative overflow-hidden group shadow-lg">
                             <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><span class="text-7xl font-black font-mono text-blue-500">01</span></div>
@@ -326,7 +316,6 @@
                             <div class="flex items-center gap-4 mb-4"><span class="p-2 bg-slate-800 rounded text-white font-mono text-xs font-bold border border-slate-600 shadow-inner">CANVAS API</span><h3 class="text-xl font-bold text-white">Pixel-Matrix Re-encoding</h3></div>
                             <p class="text-slate-400 leading-relaxed text-sm">Used for standard web formats. The browser unpacks the image into a raw matrix of RGB pixels, paints it onto an invisible HTML5 canvas, and exports a brand new file. Painting only the pixels guarantees that 100% of the tracking data is left behind.</p>
                         </div>
-                        
                         <div class="glass-panel p-8 rounded-2xl shadow-md border-rose-900/30 hover:border-rose-500/50 transition-colors bg-rose-950/10">
                             <div class="flex flex-col gap-2 mb-4">
                                 <div class="flex gap-2">
@@ -362,16 +351,13 @@
                     <span class="font-bold text-blue-400 block mb-1 text-lg">Standard Conversion (Fast)</span>
                     <span class="text-sm text-slate-400">Extracts the secret preview and safely exports a clean, highly-compatible JPEG.</span>
                 </button>
-                
                 <button id="btn-modal-forge" class="w-full text-left p-5 rounded-xl border border-rose-600 bg-rose-900/40 hover:bg-rose-800/60 transition-all group shadow-[0_0_15px_rgba(225,29,72,0.2)] relative overflow-hidden">
                     <span id="btn-wasm-text" class="font-bold text-rose-300 flex items-center gap-2 mb-1 text-lg">Execute Double-Pass Wiper</span>
                     <span class="text-sm text-rose-200/80">Uses diagnostic intelligence to target metadata natively, retaining exact file extension.</span>
-                    
                     <div id="forge-progress-wrap" class="hidden w-full h-1.5 bg-rose-950 rounded-full mt-4 overflow-hidden relative">
                         <div id="forge-progress-bar" class="absolute top-0 left-0 h-full bg-gradient-to-r from-rose-500 to-amber-500 w-0 transition-all duration-[2500ms] ease-out"></div>
                     </div>
                 </button>
-                
                 <button id="btn-modal-cancel" class="w-full text-center p-3 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-800 text-sm font-bold text-slate-300 transition-all">Cancel</button>
             </div>
         </div>
@@ -386,7 +372,6 @@
                 </h2>
                 <button id="btn-close-comparison" class="text-slate-400 hover:text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
             </div>
-            
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 overflow-hidden">
                 <div class="flex flex-col bg-slate-900/50 rounded-xl border border-slate-700">
                     <div class="p-3 border-b border-slate-700 bg-slate-800/50 rounded-t-xl flex justify-between items-center">
@@ -395,7 +380,6 @@
                     </div>
                     <div id="list-original" class="p-4 data-list space-y-2 text-slate-300"></div>
                 </div>
-                
                 <div class="flex flex-col bg-slate-900/50 rounded-xl border border-slate-700">
                     <div class="p-3 border-b border-slate-700 bg-slate-800/50 rounded-t-xl flex justify-between items-center">
                         <span class="font-bold text-emerald-400 text-sm">Retained Structural Data</span>
@@ -480,17 +464,25 @@
             const tScrub = document.getElementById('tab-scrubbed');
             const imgOrig = document.getElementById('img-input');
             const imgScrub = document.getElementById('img-output');
+            const outPlaceholder = document.getElementById('output-placeholder');
 
             if (tab === 'original') {
                 tOrig.className = "px-3 py-1 text-[10px] text-white bg-slate-700 rounded font-bold shadow cursor-pointer transition-colors";
                 tScrub.className = "px-3 py-1 text-[10px] text-slate-400 font-bold cursor-pointer transition-colors";
                 imgOrig.classList.remove('hidden');
                 imgScrub.classList.add('hidden');
+                outPlaceholder.classList.add('hidden');
             } else {
                 tScrub.className = "px-3 py-1 text-[10px] text-white bg-slate-700 rounded font-bold shadow cursor-pointer transition-colors";
                 tOrig.className = "px-3 py-1 text-[10px] text-slate-400 font-bold cursor-pointer transition-colors";
                 imgOrig.classList.add('hidden');
-                imgScrub.classList.remove('hidden');
+                if (scrubbedBlob) {
+                    imgScrub.classList.remove('hidden');
+                    outPlaceholder.classList.add('hidden');
+                } else {
+                    imgScrub.classList.add('hidden');
+                    outPlaceholder.classList.remove('hidden');
+                }
             }
         };
 
@@ -652,8 +644,6 @@
             if (threatMap) document.getElementById('location-map-container').classList.remove('active');
             document.getElementById('export-options').classList.add('hidden');
             document.getElementById('toaster-notification').classList.remove('show');
-            document.getElementById('canvas-tabs').classList.add('hidden');
-            window.switchTab('original');
             
             document.getElementById('file-size').innerText = formatBytes(originalFile.size);
             document.getElementById('upload-stage').classList.add('hidden');
@@ -667,7 +657,10 @@
             document.getElementById('btn-scrub').classList.add('opacity-50', 'cursor-not-allowed', 'hidden');
             document.getElementById('btn-download').classList.add('hidden');
 
+            document.getElementById('canvas-tabs').classList.add('hidden');
+            window.switchTab('original');
             document.getElementById('btn-reset-app').innerText = "Abort & Load New Target";
+
             document.getElementById('badge-engine').innerText = processorInstance.engineName;
             
             if(isAdvancedMode) {
@@ -1054,7 +1047,7 @@
             document.getElementById('btn-scrub').disabled = true;
             document.getElementById('btn-scrub').classList.add('opacity-50', 'cursor-not-allowed', 'hidden');
             document.getElementById('btn-download').classList.add('hidden');
-
+            
             document.getElementById('canvas-tabs').classList.add('hidden');
             window.switchTab('original');
             document.getElementById('btn-reset-app').innerText = "Abort & Load New Target";
