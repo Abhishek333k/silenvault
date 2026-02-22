@@ -39,7 +39,6 @@
         .drop-zone:hover, .drop-zone.dragover { border-color: #10b981; background: var(--accent-glow); }
         .drop-zone input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
 
-        /* Custom Target Scale Slider */
         input[type="range"].custom-slider { -webkit-appearance: none; width: 100%; background: transparent; }
         input[type="range"].custom-slider::-webkit-slider-thumb { -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%; background: #10b981; cursor: pointer; margin-top: -8px; box-shadow: 0 0 15px rgba(16, 185, 129, 0.6); transition: transform 0.1s; }
         input[type="range"].custom-slider::-webkit-slider-thumb:active { transform: scale(1.1); }
@@ -173,7 +172,7 @@
                         <span class="sv-window-title">Comparison Viewport</span>
                     </div>
 
-                    <div class="sv-viewport-hybrid flex-1 min-h-[500px] relative" id="comp-container">
+                    <div class="sv-viewport-hybrid flex-1 min-h-[500px] relative select-none touch-none" id="comp-container">
                         <div class="sv-bg-blueprint"></div>
                         
                         <img id="img-original" class="sv-img-contain" alt="Original Image">
@@ -297,7 +296,6 @@
         const compContainer = document.getElementById('comp-container');
         const compSlider = document.getElementById('comp-slider');
 
-        // UI Helpers
         function showAlert(msg) {
             document.getElementById('ui-alert-text').innerText = msg;
             document.getElementById('ui-alert').classList.add('show');
@@ -305,7 +303,6 @@
         }
         function hideAlert() { document.getElementById('ui-alert').classList.remove('show'); }
 
-        // Event Listeners
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideAlert(); });
         dropZone.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') fileInput.click(); });
 
@@ -500,7 +497,7 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + ['Bytes', 'KB', 'MB', 'GB'][i];
         }
 
-        // FLAWLESS COMPARISON SLIDER
+        // FIX: Flawless Comparison Slider with preventDefault explicitly declared
         let isDraggingSlider = false;
         function moveSlider(clientX) {
             const rect = compContainer.getBoundingClientRect();
@@ -512,13 +509,27 @@
             imgComp.style.clipPath = `polygon(${percent}% 0, 100% 0, 100% 100%, ${percent}% 100%)`;
         }
 
-        compSlider.addEventListener('mousedown', () => isDraggingSlider = true);
+        compSlider.addEventListener('mousedown', (e) => {
+            isDraggingSlider = true;
+            e.preventDefault(); // Prevents Drag-to-Select bugs
+        });
         window.addEventListener('mouseup', () => isDraggingSlider = false);
-        window.addEventListener('mousemove', (e) => { if (isDraggingSlider) moveSlider(e.clientX); });
+        window.addEventListener('mousemove', (e) => { 
+            if (isDraggingSlider) {
+                e.preventDefault();
+                moveSlider(e.clientX); 
+            }
+        });
         
-        compSlider.addEventListener('touchstart', () => isDraggingSlider = true);
+        compSlider.addEventListener('touchstart', (e) => {
+            isDraggingSlider = true;
+        });
         window.addEventListener('touchend', () => isDraggingSlider = false);
-        window.addEventListener('touchmove', (e) => { if (isDraggingSlider) moveSlider(e.touches[0].clientX); });
+        window.addEventListener('touchmove', (e) => { 
+            if (isDraggingSlider) {
+                moveSlider(e.touches[0].clientX); 
+            }
+        });
 
         function downloadImage() {
             if (!finalDownloadBlob) return;
