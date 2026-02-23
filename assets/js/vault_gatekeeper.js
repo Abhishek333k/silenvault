@@ -11,11 +11,10 @@
     const currentPath = window.location.pathname.toLowerCase();
     const isLocked = lockedVaults.some(lockedPath => currentPath.includes(lockedPath));
 
-    // THE BYPASS: Automatically unlock for localhost, OR if the secret URL parameter is used
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    // THE BYPASS: Automatically unlock ONLY if the secret URL parameter is used
     const isDevOverride = window.location.search.includes('dev=true');
 
-    if (isLocked && !isLocalhost && !isDevOverride) {
+    if (isLocked && !isDevOverride) {
         const renderLockScreen = () => {
             document.documentElement.style.display = '';
             document.body.style.overflow = 'hidden';
