@@ -18,7 +18,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <script src="assets/js/layout.js" defer></script>
-    <script src="assets/js/directory.js" defer></script>
+    <script src="assets/js/directory.js"></script>
 
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; }
@@ -178,7 +178,7 @@
     </main>
     <sv-footer base-path="."></sv-footer>
 
-    <script>
+   <script>
         // ARCHITECT: Pro Shortcuts
         document.addEventListener('keydown', (e) => {
             if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') || (e.key === '/' && document.activeElement.tagName !== 'INPUT')) {
@@ -208,20 +208,22 @@
             setTimeout(() => { if (!adSlot.innerHTML.includes('iframe')) container.style.display = 'none'; }, 5000);
         }
 
-        // ARCHITECT: Dynamic Render Engine
+        // ARCHITECT: V2 High-Performance Render Engine
         function renderEngine() {
             const queryRaw = document.getElementById('toolSearch').value;
-            const query = queryRaw.toLowerCase();
+            const query = queryRaw.toLowerCase().trim(); // Added trim() for cleaner searches
             let totalFound = 0;
             
-            // FIX: Added 'hardware' array here to prevent JS Crash
             const filteredTools = { business: [], hardware: [], creator: [], dev: [] };
 
+            // 1. Lightning Fast Filtering
             silenVaultTools.forEach(tool => {
-                if (tool.title.toLowerCase().includes(query) || tool.desc.toLowerCase().includes(query) || (tool.tag && tool.tag.toLowerCase().includes(query))) {
-                    // This is where it was crashing previously
-                    filteredTools[tool.category].push(tool);
-                    totalFound++;
+                // Bypass heavy string checks if the search bar is empty
+                if (!query || tool.title.toLowerCase().includes(query) || tool.desc.toLowerCase().includes(query) || (tool.tag && tool.tag.toLowerCase().includes(query))) {
+                    if (filteredTools[tool.category]) {
+                        filteredTools[tool.category].push(tool);
+                        totalFound++;
+                    }
                 }
             });
 
@@ -229,31 +231,44 @@
             emptyState.classList.toggle('hidden', totalFound !== 0);
             if (totalFound === 0) document.getElementById('query-term').innerText = queryRaw;
 
+            // 2. Batched DOM Injection (Fixes the Loading Delay)
             Object.keys(filteredTools).forEach(category => {
                 const grid = document.getElementById(`grid-${category}`);
                 const sec = document.getElementById(`sec-${category}`);
                 
-                // Safety check in case a section div doesn't exist in HTML
                 if (!grid || !sec) return; 
 
-                grid.innerHTML = ''; 
-                sec.style.display = filteredTools[category].length === 0 ? 'none' : 'block';
-
-                filteredTools[category].forEach((tool, index) => {
-                    const tagHTML = tool.tag ? `<div class="absolute top-4 right-4"><span class="bg-slate-800 text-slate-300 border border-slate-700 text-[9px] font-black px-2 py-1 rounded-md tracking-widest uppercase shadow-sm">${tool.tag}</span></div>` : '';
-                    grid.innerHTML += `
-                        <a href="${tool.link}" class="tool-card p-8 rounded-2xl group block relative overflow-hidden animate-in-card" style="animation-delay: ${index * 0.05}s">
-                            <div class="w-14 h-14 ${tool.iconColors} rounded-xl flex items-center justify-center mb-6 transition-all shadow-inner">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="${tool.iconPath.includes('stroke') ? 'none' : 'currentColor'}" viewBox="0 0 24 24" stroke="currentColor">${tool.iconPath}</svg>
-                            </div>
-                            ${tagHTML}
-                            <h3 class="text-lg font-bold text-white mb-3">${tool.title}</h3>
-                            <p class="text-sm text-slate-400 leading-relaxed">${tool.desc}</p>
-                        </a>`;
-                });
+                if (filteredTools[category].length === 0) {
+                    sec.style.display = 'none';
+                    grid.innerHTML = ''; 
+                } else {
+                    sec.style.display = 'block';
+                    
+                    // The Buffer: We build the entire HTML string in memory first
+                    let htmlBuffer = '';
+                    
+                    filteredTools[category].forEach((tool, index) => {
+                        const tagHTML = tool.tag ? `<div class="absolute top-4 right-4"><span class="bg-slate-800 text-slate-300 border border-slate-700 text-[9px] font-black px-2 py-1 rounded-md tracking-widest uppercase shadow-sm">${tool.tag}</span></div>` : '';
+                        
+                        // Decreased animation delay from 0.05s to 0.03s for snappier loading
+                        htmlBuffer += `
+                            <a href="${tool.link}" class="tool-card p-8 rounded-2xl group block relative overflow-hidden animate-in-card" style="animation-delay: ${index * 0.03}s">
+                                <div class="w-14 h-14 ${tool.iconColors} rounded-xl flex items-center justify-center mb-6 transition-all shadow-inner">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="${tool.iconPath.includes('stroke') ? 'none' : 'currentColor'}" viewBox="0 0 24 24" stroke="currentColor">${tool.iconPath}</svg>
+                                </div>
+                                ${tagHTML}
+                                <h3 class="text-lg font-bold text-white mb-3">${tool.title}</h3>
+                                <p class="text-sm text-slate-400 leading-relaxed">${tool.desc}</p>
+                            </a>`;
+                    });
+                    
+                    // Execute exactly ONE DOM update per category
+                    grid.innerHTML = htmlBuffer; 
+                }
             });
         }
 
+        // 3. Immediate Execution 
         window.addEventListener('DOMContentLoaded', () => {
             if (typeof silenVaultTools !== 'undefined') {
                 renderEngine();
