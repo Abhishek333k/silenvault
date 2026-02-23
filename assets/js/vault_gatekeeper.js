@@ -4,6 +4,7 @@
 
 (function enforceGatekeeper() {
     const lockedVaults = [
+        'tools/web_ide',
         '/tools/bin/' // MASTER LOCK
     ];
 
