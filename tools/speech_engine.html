@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Speech & Text Utility | SilenVault</title>
     <meta name="description" content="Local browser-based speech synthesis and dictation utility. Process speech-to-text and text-to-speech with zero cloud dependencies.">
-    <meta name="keywords" content="speech to text, text to speech, local dictation, browser speech api, voice synthesizer, transcription tool, private voice recognition, offline dictation software, Web Speech API, SilenVault">
-    <meta name="author" content="SilenVault">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -100,8 +98,8 @@
                 </div>
 
                 <div class="flex-1 bg-[#020617] border border-slate-700 rounded-xl p-4 min-h-[220px] relative shadow-inner overflow-y-auto">
-                    <p id="stt-output" class="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed outline-none" contenteditable="true" spellcheck="false"></p>
-                    <p id="stt-interim" class="text-sm text-slate-500 italic mt-2"></p>
+                    <div id="stt-output" class="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed outline-none" contenteditable="true" spellcheck="false"></div>
+                    <span id="stt-interim" class="text-sm text-slate-500 italic mt-1 inline-block"></span>
                 </div>
 
                 <div class="flex gap-3 mt-2">
@@ -109,10 +107,10 @@
                         <span id="mic-icon" class="w-3 h-3 rounded-full bg-white"></span>
                         <span id="btn-listen-text">Start Dictation</span>
                     </button>
-                    <button onclick="copyTranscript()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-3 rounded-xl transition-all border border-slate-600" title="Copy Text">
+                    <button id="btn-copy" onclick="copyTranscript()" class="w-16 flex justify-center items-center bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-all border border-slate-600" title="Copy Text">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                     </button>
-                    <button onclick="downloadTranscript()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 py-3 rounded-xl transition-all border border-slate-600 text-xs" title="Download Text File">
+                    <button onclick="downloadTranscript()" class="w-16 flex justify-center items-center bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-all border border-slate-600 text-xs" title="Download Text File">
                         .TXT
                     </button>
                 </div>
@@ -151,7 +149,9 @@
     <sv-footer base-path=".."></sv-footer>
 
     <script>
-        // TTS Logic
+        // ==========================================
+        // TEXT TO SPEECH (TTS) LOGIC
+        // ==========================================
         const synth = window.speechSynthesis;
         const voiceSelect = document.getElementById('voice-select');
         const rateInput = document.getElementById('rate');
@@ -162,10 +162,11 @@
             voices = synth.getVoices();
             if (voices.length === 0) return;
             voiceSelect.innerHTML = '';
-            voices.forEach((voice, i) => {
+            voices.forEach((voice) => {
                 const option = document.createElement('option');
                 option.textContent = `${voice.name} (${voice.lang})`;
-                option.value = i;
+                // BUG FIX: Bind to voice.name instead of array index for reliability
+                option.value = voice.name; 
                 voiceSelect.appendChild(option);
             });
         }
@@ -176,11 +177,12 @@
         pitchInput.addEventListener('input', () => document.getElementById('pitch-val').innerText = pitchInput.value);
 
         function speakText() {
-            synth.cancel(); // Cancel any current speech before starting new
+            synth.cancel(); 
             const text = document.getElementById('tts-input').value;
             if (text !== '') {
                 const utterThis = new SpeechSynthesisUtterance(text);
-                const selectedVoice = voices[voiceSelect.value];
+                const selectedVoiceName = voiceSelect.value;
+                const selectedVoice = voices.find(v => v.name === selectedVoiceName);
                 if (selectedVoice) utterThis.voice = selectedVoice;
                 utterThis.pitch = pitchInput.value;
                 utterThis.rate = rateInput.value;
@@ -190,7 +192,62 @@
         function stopSpeech() { synth.cancel(); }
         function clearTTS() { document.getElementById('tts-input').value = ''; }
 
-        // STT Logic
+        // ==========================================
+        // CUSTOM UI/UX AUDIO & HAPTIC ENGINE
+        // ==========================================
+        let audioCtx = null;
+        function playFeedback(type) {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                
+                // Haptic Feedback
+                if (navigator.vibrate) { type === 'start' ? navigator.vibrate([50]) : navigator.vibrate([30, 50, 30]); }
+
+                // Subdued UI Synthesizer Blip
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                if (type === 'start') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                } else {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+                }
+                
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime); // Very low volume
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+            } catch(e) { /* Ignore audio init errors gracefully */ }
+        }
+
+        // ==========================================
+        // OS BEEP SUPPRESSION HACK (Chrome Mic Lock)
+        // ==========================================
+        let dummyMicStream = null;
+        async function lockMicrophoneHardware() {
+            // Activating a hidden continuous stream prevents Chrome from dropping 
+            // the hardware mic lock, which suppresses the annoying repeated "beep".
+            try { if (!dummyMicStream) dummyMicStream = await navigator.mediaDevices.getUserMedia({ audio: true }); } 
+            catch(e) {}
+        }
+        function unlockMicrophoneHardware() {
+            if (dummyMicStream) {
+                dummyMicStream.getTracks().forEach(t => t.stop());
+                dummyMicStream = null;
+            }
+        }
+
+        // ==========================================
+        // SPEECH TO TEXT (STT) LOGIC
+        // ==========================================
         const sttOutput = document.getElementById('stt-output');
         const sttInterim = document.getElementById('stt-interim');
         const btnListen = document.getElementById('btn-listen');
@@ -215,20 +272,39 @@
                     if (event.results[i].isFinal) { finalTranscript += event.results[i][0].transcript + ' '; } 
                     else { interimTranscript += event.results[i][0].transcript; }
                 }
-                if (finalTranscript) sttOutput.innerText += finalTranscript;
+                
+                if (finalTranscript) {
+                    // BUG FIX: Creates safe text nodes instead of innerHTML modification
+                    const textNode = document.createTextNode(finalTranscript);
+                    sttOutput.appendChild(textNode);
+                }
                 sttInterim.innerText = interimTranscript;
                 sttOutput.parentElement.scrollTop = sttOutput.parentElement.scrollHeight;
             };
 
             recognition.onerror = (event) => {
                 if (event.error === 'not-allowed') { stopDictation(); alert("Microphone access denied or blocked by local file policy."); }
+                // Silent ignore for 'no-speech' to allow the onend loop to keep running seamlessly
             };
-            recognition.onend = () => { if (isRecording) { setTimeout(() => { try { recognition.start(); } catch(e) {} }, 250); } };
+            
+            recognition.onend = () => { 
+                if (isRecording) { 
+                    setTimeout(() => { try { recognition.start(); } catch(e) {} }, 100); 
+                } 
+            };
         }
 
         function toggleDictation() {
             if (!recognition) return alert("Browser does not support Web Speech API.");
-            isRecording ? stopDictation() : startDictation();
+            if (!isRecording) {
+                playFeedback('start');
+                lockMicrophoneHardware(); // Trigger beep suppression
+                startDictation();
+            } else {
+                playFeedback('stop');
+                stopDictation();
+                unlockMicrophoneHardware(); // Release suppression
+            }
         }
 
         function startDictation() {
@@ -253,9 +329,19 @@
         }
 
         function clearSTT() { sttOutput.innerText = ''; sttInterim.innerText = ''; }
-        function copyTranscript() { navigator.clipboard.writeText(sttOutput.innerText); }
+        
+        // UX UPGRADE: Visual feedback on copy
+        function copyTranscript() { 
+            if(!sttOutput.innerText.trim()) return;
+            navigator.clipboard.writeText(sttOutput.innerText); 
+            const btn = document.getElementById('btn-copy');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = `<span class="text-emerald-400 font-bold text-[9px] tracking-widest">COPIED</span>`;
+            setTimeout(() => { btn.innerHTML = originalHtml; }, 2000);
+        }
+
         function downloadTranscript() {
-            if (!sttOutput.innerText) return;
+            if (!sttOutput.innerText.trim()) return;
             const a = document.createElement('a');
             a.href = URL.createObjectURL(new Blob([sttOutput.innerText], { type: 'text/plain' }));
             a.download = `SilenVault_Transcription_${Date.now()}.txt`;
