@@ -163,6 +163,14 @@ const silenVaultTools = [
         iconPath: `<path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>`
     },
     {
+        category: "creator", id: "speech_engine",
+        title: "Speech & Text Engine", 
+        desc: "Local browser-based speech synthesis and dictation with zero cloud dependencies.",
+        link: "tools/speech_engine", tag: "Audio",
+        iconColors: "bg-teal-500/10 text-teal-400 group-hover:bg-teal-500",
+        iconPath: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />`
+    },
+    {
         category: "creator", id: "image_converter",
         title: "Image Converter Pro", desc: "Convert between WebP, AVIF, PNG, and JPG locally and instantly.",
         link: "tools/image_converter", tag: "",
