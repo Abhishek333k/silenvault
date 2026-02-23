@@ -223,5 +223,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const script = document.createElement('script');
     script.id = 'sv-beacon';
     script.src = jsPath;
-    document.body.appendChild(script); 
+    
+    // FIX: Safely append depending on if the body has rendered yet
+    if (document.body) {
+        document.body.appendChild(script); 
+    } else {
+        document.addEventListener('DOMContentLoaded', () => document.body.appendChild(script));
+    }
 })();
