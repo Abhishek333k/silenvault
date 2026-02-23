@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Speech & Text Utility | SilenVault</title>
-    <meta name="description" content="Local browser-based speech synthesis and dictation utility. Process speech-to-text and text-to-speech with zero cloud dependencies.">
+    <title>Speech & Text Engine</title>
+    <meta name="description" content="Local browser-based speech synthesis and dictation utility.">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -34,7 +34,7 @@
         <div class="mb-4 flex flex-col md:flex-row items-center justify-between gap-4">
             <div>
                 <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Speech & Text Engine</h1>
-                <p class="text-sm text-slate-400 mt-2">Native browser speech synthesis and dictation. Zero external cloud processing.</p>
+                <p class="text-sm text-slate-400 mt-2">Browser-native speech synthesis and dictation utility.</p>
             </div>
             <span class="bg-blue-900/30 border border-blue-500/30 text-blue-300 px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest hidden md:block">Web_Speech_API</span>
         </div>
@@ -97,9 +97,9 @@
                     </button>
                 </div>
 
-                <div class="flex-1 bg-[#020617] border border-slate-700 rounded-xl p-4 min-h-[220px] relative shadow-inner overflow-y-auto">
-                    <div id="stt-output" class="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed outline-none" contenteditable="true" spellcheck="false"></div>
-                    <span id="stt-interim" class="text-sm text-slate-500 italic mt-1 inline-block"></span>
+                <div class="flex-1 relative flex flex-col">
+                    <textarea id="stt-output" class="w-full flex-1 min-h-[220px] bg-[#020617] border border-slate-700 rounded-xl p-4 text-sm text-emerald-400 focus:outline-none focus:border-emerald-500 resize-none shadow-inner" placeholder="Start dictation and begin speaking..."></textarea>
+                    <span id="stt-interim" class="text-sm text-slate-500 italic mt-2 inline-block px-1 h-6"></span>
                 </div>
 
                 <div class="flex gap-3 mt-2">
@@ -120,25 +120,25 @@
 
         <article class="mt-12 flex flex-col gap-8 border-t border-slate-800 pt-12">
             <section class="prose prose-invert prose-slate max-w-none glass-panel p-8 md:p-10 rounded-2xl shadow-xl">
-                <h2 class="text-white text-2xl font-bold mb-4">How Browser-Native Speech Processing Secures Your Data</h2>
+                <h2 class="text-white text-2xl font-bold mb-4">How Browser-Native Speech Processing Works</h2>
                 <p class="text-sm text-slate-300 leading-relaxed mb-6">
-                    In the modern era of cloud computing, most dictation tools, voice synthesizers, and transcription software rely entirely on remote servers. When a user speaks into their microphone, the audio file is recorded, compressed, and transmitted across the internet to a third-party data center. There, an artificial intelligence model processes the audio and returns the transcribed text. While efficient, this architecture presents a massive privacy vulnerability for users handling sensitive, confidential, or proprietary information.
+                    In the modern era of cloud computing, most dictation tools and transcription software rely entirely on remote servers. When a user speaks into their microphone, the audio file is recorded, compressed, and transmitted across the internet to a third-party data center.
                 </p>
                 <p class="text-sm text-slate-300 leading-relaxed mb-6">
-                    The SilenVault Speech & Text Engine fundamentally redesigns this workflow by eliminating the cloud entirely. By tapping directly into the <strong>Web Speech API</strong>—a standard built directly into the core architecture of modern browsers like Google Chrome, Microsoft Edge, and Apple Safari—all phonetic processing and text generation is forced to execute locally on your machine's hardware.
+                    This engine fundamentally redesigns this workflow by tapping directly into the <strong>Web Speech API</strong>—a standard built directly into the core architecture of modern browsers.
                 </p>
 
                 <div class="grid md:grid-cols-2 gap-6 mt-8">
                     <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-700">
-                        <h3 class="text-emerald-400 font-bold mb-2">Speech Recognition (Local Dictation)</h3>
+                        <h3 class="text-emerald-400 font-bold mb-2">Speech Recognition (Dictation)</h3>
                         <p class="text-xs text-slate-400 leading-relaxed">
-                            The engine utilizes the <code>SpeechRecognition</code> interface to capture raw audio from your local microphone. Because the phonetic translation matrix is stored inside the browser, no audio files are ever uploaded, saved, or transmitted over the network. The API features continuous listening protocols, allowing it to dynamically pause and resume as you formulate complex sentences.
+                            The engine utilizes the <code>SpeechRecognition</code> interface to capture raw audio from your local microphone. Depending on the browser engine (e.g., Chromium vs Firefox), this translates phonetics into text natively or via secure API bridges without saving the audio files.
                         </p>
                     </div>
                     <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-700">
                         <h3 class="text-blue-400 font-bold mb-2">Speech Synthesis (Offline TTS)</h3>
                         <p class="text-xs text-slate-400 leading-relaxed">
-                            Using the <code>SpeechSynthesis</code> interface, written text is converted into spoken audio entirely offline. The voices populated in the system dropdown menu are not downloaded from external servers; they are the physical, native voice profiles already installed on your host operating system (Windows, macOS, iOS, or Android). 
+                            Using the <code>SpeechSynthesis</code> interface, written text is converted into spoken audio entirely offline. The voices populated in the system dropdown menu are the physical, native voice profiles already installed on your host operating system.
                         </p>
                     </div>
                 </div>
@@ -165,7 +165,6 @@
             voices.forEach((voice) => {
                 const option = document.createElement('option');
                 option.textContent = `${voice.name} (${voice.lang})`;
-                // BUG FIX: Bind to voice.name instead of array index for reliability
                 option.value = voice.name; 
                 voiceSelect.appendChild(option);
             });
@@ -200,11 +199,8 @@
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioCtx.state === 'suspended') audioCtx.resume();
-                
-                // Haptic Feedback
                 if (navigator.vibrate) { type === 'start' ? navigator.vibrate([50]) : navigator.vibrate([30, 50, 30]); }
 
-                // Subdued UI Synthesizer Blip
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.connect(gain);
@@ -220,29 +216,12 @@
                     osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
                 }
                 
-                gain.gain.setValueAtTime(0.05, audioCtx.currentTime); // Very low volume
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime); 
                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
                 
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.1);
-            } catch(e) { /* Ignore audio init errors gracefully */ }
-        }
-
-        // ==========================================
-        // OS BEEP SUPPRESSION HACK (Chrome Mic Lock)
-        // ==========================================
-        let dummyMicStream = null;
-        async function lockMicrophoneHardware() {
-            // Activating a hidden continuous stream prevents Chrome from dropping 
-            // the hardware mic lock, which suppresses the annoying repeated "beep".
-            try { if (!dummyMicStream) dummyMicStream = await navigator.mediaDevices.getUserMedia({ audio: true }); } 
-            catch(e) {}
-        }
-        function unlockMicrophoneHardware() {
-            if (dummyMicStream) {
-                dummyMicStream.getTracks().forEach(t => t.stop());
-                dummyMicStream = null;
-            }
+            } catch(e) { }
         }
 
         // ==========================================
@@ -267,24 +246,28 @@
 
             recognition.onresult = (event) => {
                 let interimTranscript = '';
-                let finalTranscript = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) { finalTranscript += event.results[i][0].transcript + ' '; } 
-                    else { interimTranscript += event.results[i][0].transcript; }
-                }
-                
-                if (finalTranscript) {
-                    // BUG FIX: Creates safe text nodes instead of innerHTML modification
-                    const textNode = document.createTextNode(finalTranscript);
-                    sttOutput.appendChild(textNode);
+                    if (event.results[i].isFinal) { 
+                        // Cleanly append text to the textarea
+                        sttOutput.value += event.results[i][0].transcript + ' '; 
+                    } else { 
+                        interimTranscript += event.results[i][0].transcript; 
+                    }
                 }
                 sttInterim.innerText = interimTranscript;
-                sttOutput.parentElement.scrollTop = sttOutput.parentElement.scrollHeight;
+                sttOutput.scrollTop = sttOutput.scrollHeight;
             };
 
             recognition.onerror = (event) => {
-                if (event.error === 'not-allowed') { stopDictation(); alert("Microphone access denied or blocked by local file policy."); }
-                // Silent ignore for 'no-speech' to allow the onend loop to keep running seamlessly
+                console.error("Speech API Error: ", event.error);
+                if (event.error === 'not-allowed') { 
+                    stopDictation(); 
+                    alert("Microphone access blocked. If using Electron, hardware permission failed."); 
+                }
+                if (event.error === 'network') {
+                    stopDictation();
+                    alert("Network Error: STT requires Google's API connection in this browser.");
+                }
             };
             
             recognition.onend = () => { 
@@ -295,15 +278,13 @@
         }
 
         function toggleDictation() {
-            if (!recognition) return alert("Browser does not support Web Speech API.");
+            if (!recognition) return alert("Browser engine does not support Web Speech API.");
             if (!isRecording) {
                 playFeedback('start');
-                lockMicrophoneHardware(); // Trigger beep suppression
                 startDictation();
             } else {
                 playFeedback('stop');
                 stopDictation();
-                unlockMicrophoneHardware(); // Release suppression
             }
         }
 
@@ -319,7 +300,7 @@
 
         function stopDictation() {
             isRecording = false;
-            recognition.stop();
+            if(recognition) recognition.stop();
             sttInterim.innerText = '';
             btnListen.className = "flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition-all shadow-lg border border-emerald-500 text-xs uppercase tracking-widest flex justify-center items-center gap-2";
             btnListenText.innerText = "Start Dictation";
@@ -328,12 +309,11 @@
             sttStatus.className = "text-[9px] font-mono text-slate-500 border border-slate-700 px-2 py-0.5 rounded bg-slate-800";
         }
 
-        function clearSTT() { sttOutput.innerText = ''; sttInterim.innerText = ''; }
+        function clearSTT() { sttOutput.value = ''; sttInterim.innerText = ''; }
         
-        // UX UPGRADE: Visual feedback on copy
         function copyTranscript() { 
-            if(!sttOutput.innerText.trim()) return;
-            navigator.clipboard.writeText(sttOutput.innerText); 
+            if(!sttOutput.value.trim()) return;
+            navigator.clipboard.writeText(sttOutput.value); 
             const btn = document.getElementById('btn-copy');
             const originalHtml = btn.innerHTML;
             btn.innerHTML = `<span class="text-emerald-400 font-bold text-[9px] tracking-widest">COPIED</span>`;
@@ -341,10 +321,10 @@
         }
 
         function downloadTranscript() {
-            if (!sttOutput.innerText.trim()) return;
+            if (!sttOutput.value.trim()) return;
             const a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob([sttOutput.innerText], { type: 'text/plain' }));
-            a.download = `SilenVault_Transcription_${Date.now()}.txt`;
+            a.href = URL.createObjectURL(new Blob([sttOutput.value], { type: 'text/plain' }));
+            a.download = `Transcription_${Date.now()}.txt`;
             a.click();
         }
     </script>
