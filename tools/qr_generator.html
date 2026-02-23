@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator | SilenVault</title>
+    <meta name="description" content="Generate high-resolution, non-expiring QR codes locally in your browser. Free, secure, and private QR creator for URLs, text, and Wi-Fi.">
+    <meta name="keywords" content="qr code generator, free qr code, create qr code, offline qr code, non expiring qr code, secure qr generator">
+    
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="../assets/js/layout.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f8fafc; }
+        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .mono { font-family: 'Fira Code', monospace; }
+        
+        /* Custom Color Picker Styling */
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 100%;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            padding: 0;
+            background: none;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: 1px solid #334155; border-radius: 8px; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <sv-header base-path=".."></sv-header>
+
+    <main class="flex-1 w-full px-4 md:px-8 py-10 max-w-6xl mx-auto">
+        
+        <div class="mb-8 text-center md:text-left">
+            <h1 class="text-3xl font-bold text-white tracking-tight mb-2">QR Code Generator</h1>
+            <p class="text-sm text-slate-400">Generate non-expiring, static QR codes instantly. Processed locally in your browser.</p>
+        </div>
+
+        <div class="grid lg:grid-cols-12 gap-8">
+            
+            <div class="lg:col-span-8 space-y-6">
+                
+                <div class="glass-panel rounded-2xl p-6 shadow-xl border-slate-700">
+                    <label class="block text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2">URL or Text Content</label>
+                    <textarea id="qr-text" class="w-full bg-[#020617] border border-slate-700 rounded-xl p-4 text-white font-mono text-sm focus:outline-none focus:border-blue-500 min-h-[120px] transition-colors shadow-inner placeholder-slate-600 mb-6" placeholder="https://silenvault.com/&#10;&#10;Enter a URL, Wi-Fi password, or any text to encode..."></textarea>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Correction Level</label>
+                            <select id="qr-level" class="w-full bg-[#020617] border border-slate-700 text-slate-300 text-sm rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors">
+                                <option value="L">Low (7% damage recovery)</option>
+                                <option value="M" selected>Medium (15% recovery)</option>
+                                <option value="Q">Quartile (25% recovery)</option>
+                                <option value="H">High (30% recovery - Best for logos)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Export Size (px)</label>
+                            <input type="number" id="qr-size" value="500" min="100" max="2000" step="100" class="w-full bg-[#020617] border border-slate-700 text-slate-300 text-sm rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Foreground Color</label>
+                            <div class="flex gap-3 items-center">
+                                <input type="color" id="qr-fg" value="#000000" class="w-16">
+                                <span class="text-xs text-slate-500 font-mono" id="fg-hex">#000000</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Background Color</label>
+                            <div class="flex gap-3 items-center">
+                                <input type="color" id="qr-bg" value="#ffffff" class="w-16">
+                                <span class="text-xs text-slate-500 font-mono" id="bg-hex">#ffffff</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:hidden">
+                    <div id="sidebar-ad-wrapper" class="smart-ad-unit bg-slate-900/50 border border-slate-800 rounded-2xl flex flex-col items-center justify-center p-4 min-h-[100px]">
+                        <span class="text-[10px] uppercase tracking-widest text-slate-600 block mb-2 pointer-events-none">Sponsored</span>
+                        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="9264203071" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-4 space-y-6">
+                <div class="glass-panel p-6 rounded-2xl border-slate-700 flex flex-col items-center">
+                    <h3 class="w-full text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-800 pb-2">Live Preview</h3>
+                    
+                    <div class="bg-white p-4 rounded-xl shadow-[0_0_30px_rgba(59,130,246,0.15)] border border-slate-200 mb-6 transition-transform hover:scale-105">
+                        <canvas id="qr-canvas" class="max-w-full h-auto block rounded"></canvas>
+                    </div>
+
+                    <button onclick="downloadQR()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        Download PNG
+                    </button>
+                    <p class="text-[10px] text-slate-500 text-center mt-3">High-resolution export generated locally.</p>
+                </div>
+
+                <div id="sidebar-ad-wrapper" class="hidden lg:flex smart-ad-unit bg-slate-900/50 border border-slate-800 rounded-2xl flex-col items-center justify-center p-4 min-h-[250px]">
+                    <span class="text-[10px] uppercase tracking-widest text-slate-600 block mb-2 pointer-events-none">Sponsored</span>
+                    <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="9264203071" data-ad-format="vertical" data-full-width-responsive="true"></ins>
+                </div>
+            </div>
+
+        </div>
+
+        <article class="mt-16 glass-panel rounded-2xl p-8 border-slate-800 text-slate-300">
+            <h2 class="text-2xl font-bold text-white mb-4">The Standard for Secure, Static QR Codes</h2>
+            
+            <div class="grid md:grid-cols-2 gap-8 text-sm leading-relaxed">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-100 mb-2">Static vs. Dynamic QR Codes</h3>
+                    <p class="mb-4">
+                        Most free tools on the internet generate <strong>Dynamic QR Codes</strong>. These codes do not actually contain your website URL; instead, they contain a shortened tracking link owned by the generator company. This allows them to track analytics, but it also allows them to disable your QR code and demand a subscription fee after it has been printed on your business cards.
+                    </p>
+                    <p>
+                        The SilenVault engine strictly generates <strong>Static QR Codes</strong>. The exact text or URL you type is mathematically encoded directly into the black and white squares. Because there is no middle-man server tracking the link, these codes are completely free, incredibly fast to scan, and will literally <strong>never expire</strong>.
+                    </p>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-bold text-slate-100 mb-2">Error Correction Levels (ECL)</h3>
+                    <p class="mb-4">
+                        QR codes feature built-in redundancy known as the Reed-Solomon error correction algorithm. This ensures that even if part of the printed code is torn, smudged, or covered, the scanner can still recover the data.
+                    </p>
+                    <ul class="space-y-2 mb-4">
+                        <li><strong class="text-blue-400">Level L (Low):</strong> Can sustain ~7% damage. Best for massive URLs where you want the code to look less dense and "cleaner."</li>
+                        <li><strong class="text-blue-400">Level M (Medium):</strong> Can sustain ~15% damage. The standard setting for digital displays and general printing.</li>
+                        <li><strong class="text-blue-400">Level H (High):</strong> Can sustain ~30% damage. Essential if you plan to overlay a custom logo in the center of the code, or if the code will be printed in a harsh physical environment.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <hr class="my-8 border-slate-800">
+
+            <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-800">
+                <h3 class="text-lg font-bold text-white mb-2">Security & Privacy Guarantee</h3>
+                <p class="text-sm text-slate-400">
+                    Unlike standard marketing platforms, the SilenVault Generator utilizes an HTML5 Canvas pipeline. When you paste your data, the image is rendered entirely utilizing your device's local CPU. We do not store, track, or intercept the contents of your QR codes, making this tool completely safe for encoding sensitive Wi-Fi passwords, internal network IPs, or confidential cryptographic wallet addresses.
+                </p>
+            </div>
+        </article>
+
+    </main>
+
+    <sv-footer base-path=".."></sv-footer>
+
+    <script>
+        // Initialize QRious instance
+        let qr = new QRious({
+            element: document.getElementById('qr-canvas'),
+            value: 'https://silenvault.com',
+            size: 500,
+            level: 'M',
+            foreground: '#000000',
+            background: '#ffffff'
+        });
+
+        // DOM Elements
+        const textInput = document.getElementById('qr-text');
+        const sizeInput = document.getElementById('qr-size');
+        const levelInput = document.getElementById('qr-level');
+        const fgInput = document.getElementById('qr-fg');
+        const bgInput = document.getElementById('qr-bg');
+        
+        const fgHex = document.getElementById('fg-hex');
+        const bgHex = document.getElementById('bg-hex');
+
+        // Master update function
+        function generateQR() {
+            const val = textInput.value.trim() || 'https://silenvault.com';
+            
+            // Note: The visual canvas is scaled down by CSS, but the actual 
+            // internal size of the canvas is determined by qr.size for high-res downloads
+            qr.set({
+                value: val,
+                size: parseInt(sizeInput.value) || 500,
+                level: levelInput.value,
+                foreground: fgInput.value,
+                background: bgInput.value
+            });
+            
+            fgHex.innerText = fgInput.value.toUpperCase();
+            bgHex.innerText = bgInput.value.toUpperCase();
+        }
+
+        // Event Listeners
+        textInput.addEventListener('input', generateQR);
+        sizeInput.addEventListener('change', generateQR);
+        levelInput.addEventListener('change', generateQR);
+        fgInput.addEventListener('input', generateQR);
+        bgInput.addEventListener('input', generateQR);
+
+        // Download functionality
+        function downloadQR() {
+            // Re-render at exact requested size just to be safe
+            generateQR(); 
+            
+            const canvas = document.getElementById('qr-canvas');
+            const dataURL = canvas.toDataURL('image/png');
+            
+            const a = document.createElement('a');
+            a.href = dataURL;
+            a.download = `SilenVault_QR_${Date.now()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // Initial render
+        generateQR();
+    </script>
+</body>
+</html>
