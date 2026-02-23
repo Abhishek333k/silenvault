@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cryptographic Hash Generator | SilenVault</title>
-    <meta name="description" content="Calculate SHA-1, SHA-256, SHA-384, and SHA-512 hashes locally in your browser. No data is uploaded to any server.">
+    <meta name="description" content="Calculate SHA-1, SHA-256, SHA-384, and SHA-512 hashes locally in your browser. Verify file checksums securely with zero server uploads.">
+    <meta name="keywords" content="hash generator, sha256 calculator, file checksum, sha512 hash, local hash generator, web crypto api, cryptography tool">
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
 
@@ -132,14 +133,14 @@
 
             <div class="hidden lg:block space-y-6">
                 <div class="glass-panel p-6 rounded-2xl border-slate-800">
-                    <h3 class="font-bold text-white mb-3 text-sm uppercase tracking-wider">How it works</h3>
+                    <h2 class="font-bold text-white mb-3 text-sm uppercase tracking-wider">How it works</h2>
                     <p class="text-xs text-slate-400 leading-relaxed mb-4">
-                        This tool utilizes the <code class="text-blue-400 font-mono bg-slate-900 px-1 rounded">window.crypto.subtle</code> API natively built into modern browsers. 
+                        This tool utilizes the <code class="text-blue-400 font-mono bg-slate-900 px-1 rounded">window.crypto.subtle</code> API natively built into modern web browsers to compute hashes locally.
                     </p>
                     <ul class="text-xs text-slate-400 space-y-2">
-                        <li class="flex gap-2"><span class="text-emerald-500">✔</span> Zero server dependencies.</li>
-                        <li class="flex gap-2"><span class="text-emerald-500">✔</span> Files are processed entirely in your RAM.</li>
-                        <li class="flex gap-2"><span class="text-emerald-500">✔</span> Cryptographically secure algorithms.</li>
+                        <li class="flex gap-2"><span class="text-emerald-500">✔</span> <strong>Zero server uploads:</strong> Files never leave your device.</li>
+                        <li class="flex gap-2"><span class="text-emerald-500">✔</span> <strong>High performance:</strong> Processing utilizes your local RAM and CPU.</li>
+                        <li class="flex gap-2"><span class="text-emerald-500">✔</span> <strong>Secure algorithms:</strong> Direct access to native cryptographic functions.</li>
                     </ul>
                 </div>
 
@@ -150,6 +151,51 @@
             </div>
 
         </div>
+
+        <article class="mt-16 glass-panel rounded-2xl p-8 border-slate-800 text-slate-300">
+            <h2 class="text-2xl font-bold text-white mb-4">Secure Local Hash Calculation & File Verification</h2>
+            
+            <div class="grid md:grid-cols-2 gap-8 text-sm leading-relaxed">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-100 mb-2">What is a Cryptographic Hash?</h3>
+                    <p class="mb-4">
+                        A cryptographic hash function is a mathematical algorithm that maps data of arbitrary size (like a text string or a massive software installer) to a bit array of a fixed size. The resulting string of characters is known as a <strong>hash value</strong>, <strong>checksum</strong>, or <strong>digital fingerprint</strong>. 
+                    </p>
+                    <p>
+                        Even the slightest change to the input data—such as modifying a single text character or a single byte in a 2GB file—will produce a drastically different hash output. This makes hashing the industry standard for verifying data integrity and identifying tampered files.
+                    </p>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-bold text-slate-100 mb-2">Why Calculate Checksums Locally?</h3>
+                    <p class="mb-4">
+                        Many online hash generators require you to upload your files to their remote servers to calculate the checksum. This is a severe privacy vulnerability if you are verifying proprietary code, legal documents, or confidential databases. Furthermore, uploading gigabytes of data wastes massive amounts of bandwidth and time.
+                    </p>
+                    <p>
+                        The SilenVault Cryptographic Engine eliminates this risk. By leveraging the modern <code class="bg-slate-900 px-1 py-0.5 rounded text-blue-300">SubtleCrypto</code> Web API, all mathematical calculations occur entirely within your browser's local memory. <strong>No data is ever transmitted across the internet.</strong>
+                    </p>
+                </div>
+            </div>
+
+            <hr class="my-8 border-slate-800">
+
+            <h3 class="text-xl font-bold text-white mb-4">Supported Hashing Algorithms</h3>
+            <div class="grid md:grid-cols-3 gap-6 text-sm">
+                <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                    <strong class="text-emerald-400 block mb-1">SHA-256 (Recommended)</strong>
+                    <p class="text-slate-400">Part of the SHA-2 family. It is the current industry standard for software distribution, password hashing, and SSL certificate signatures due to its high collision resistance.</p>
+                </div>
+                <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                    <strong class="text-blue-400 block mb-1">SHA-512</strong>
+                    <p class="text-slate-400">A stronger variant of the SHA-2 family that produces a 512-bit hash. It is often faster on 64-bit processors and provides an extreme level of cryptographic security.</p>
+                </div>
+                <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                    <strong class="text-rose-400 block mb-1">SHA-1 (Legacy)</strong>
+                    <p class="text-slate-400">Provided strictly for backwards compatibility with older databases and legacy systems. SHA-1 is cryptographically broken and should not be used for modern security applications.</p>
+                </div>
+            </div>
+        </article>
+
     </main>
 
     <sv-footer base-path=".."></sv-footer>
