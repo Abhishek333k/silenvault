@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code Generator | Free & Private | SilenVault</title>
     <meta name="description" content="Generate high-resolution, static QR codes locally. Create QR codes for URLs, Wi-Fi networks, vCard contacts, WhatsApp, and exact map locations.">
-    <meta name="keywords" content="qr code generator, free qr code maker, wifi qr code, vcard qr code, whatsapp qr code generator, local qr code, no tracking qr code, static qr code">
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="../assets/js/layout.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    
+    <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
@@ -32,20 +32,29 @@
         .tab-btn:hover { background: #1e293b; color: #94a3b8; }
         .tab-btn.active { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.3); }
 
+        .theme-btn { font-size: 0.65rem; font-weight: 700; padding: 0.4rem 0.8rem; border-radius: 0.25rem; background: #1e293b; color: #cbd5e1; transition: all 0.2s; cursor: pointer; border: 1px solid #334155; text-transform: uppercase; letter-spacing: 0.05em; }
+        .theme-btn:hover { border-color: #3b82f6; color: #f8fafc; }
+
         input[type="color"] { -webkit-appearance: none; border: none; width: 40px; height: 40px; border-radius: 8px; cursor: pointer; background: none; padding: 0; }
         input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         input[type="color"]::-webkit-color-swatch { border: 1px solid #334155; border-radius: 8px; }
         
-        #qr-canvas { width: 100% !important; height: auto !important; aspect-ratio: 1 / 1; object-fit: contain; image-rendering: pixelated; }
+        /* * FIX 1: Flawless QR Canvas constraints. 
+         * Forces the generated canvas to fit naturally without leaking or adding harsh white boxes. 
+         */
+        #qr-container { display: flex; align-items: center; justify-content: center; width: 280px; height: 280px; margin: 0 auto; border-radius: 1rem; overflow: hidden; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); }
+        #qr-container canvas { width: 100% !important; height: 100% !important; display: block; }
+        
         .density-bar { transition: width 0.3s ease, background-color 0.3s ease; }
         
-        /* Leaflet Theme Overrides for SilenVault */
+        /* Leaflet Map Overrides */
         .leaflet-container { font-family: 'Inter', sans-serif; background: #020617; outline: none; z-index: 10; border-radius: 0.75rem; }
         .leaflet-control-zoom a, .leaflet-control-layers { background: #0f172a !important; color: #94a3b8 !important; border: 1px solid #334155 !important; border-radius: 0.5rem !important; }
         .leaflet-control-zoom a:hover { color: #f8fafc !important; background: #1e293b !important; }
         .leaflet-control-layers-expanded { padding: 10px !important; background: #0f172a !important; color: #cbd5e1 !important; border: 1px solid #334155 !important; border-radius: 0.5rem !important; }
-        .leaflet-control-layers-list label { cursor: pointer; font-size: 12px; margin-bottom: 4px; }
-        .leaflet-control-attribution { display: none !important; }
+        
+        /* FIX 2: Brutal override to permanently hide the map attribution text */
+        .leaflet-bottom { display: none !important; }
 
         /* Search Autocomplete */
         .suggestion-list { position: absolute; top: 100%; left: 0; right: 0; background: #0f172a; border: 1px solid #334155; border-radius: 0.5rem; margin-top: 0.25rem; max-height: 200px; overflow-y: auto; z-index: 50; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); display: none; }
@@ -84,7 +93,6 @@
                 </div>
 
                 <div class="glass-panel rounded-2xl p-6 shadow-xl border-slate-700 min-h-[220px]">
-                    
                     <div id="panel-url" class="data-panel">
                         <label class="label-sv">Website URL</label>
                         <input type="url" id="in-url" class="input-sv font-mono" placeholder="https://www.example.com">
@@ -98,27 +106,10 @@
                     </div>
 
                     <div id="panel-wifi" class="data-panel hidden grid md:grid-cols-2 gap-5">
-                        <div class="md:col-span-2">
-                            <label class="label-sv">Network Name (SSID)</label>
-                            <input type="text" id="in-wifi-ssid" class="input-sv" placeholder="Your Wi-Fi Name">
-                        </div>
-                        <div>
-                            <label class="label-sv">Password</label>
-                            <input type="text" id="in-wifi-pass" class="input-sv font-mono" placeholder="Network Password">
-                        </div>
-                        <div>
-                            <label class="label-sv">Security Protocol</label>
-                            <select id="in-wifi-type" class="input-sv">
-                                <option value="WPA">WPA / WPA2 (Most Common)</option>
-                                <option value="WEP">WEP (Legacy)</option>
-                                <option value="nopass">None (Open Network)</option>
-                            </select>
-                        </div>
-                        <div class="md:col-span-2 flex items-center gap-2 mt-1">
-                            <input type="checkbox" id="in-wifi-hidden" class="w-4 h-4 rounded bg-[#020617] border-slate-600 focus:ring-blue-500">
-                            <label for="in-wifi-hidden" class="text-xs text-slate-300">Hidden Network (SSID Broadcast Disabled)</label>
-                        </div>
-                        <span class="helper-sv md:col-span-2">Scanning automatically prompts the mobile device to join this local network.</span>
+                        <div class="md:col-span-2"><label class="label-sv">Network Name (SSID)</label><input type="text" id="in-wifi-ssid" class="input-sv" placeholder="Your Wi-Fi Name"></div>
+                        <div><label class="label-sv">Password</label><input type="text" id="in-wifi-pass" class="input-sv font-mono" placeholder="Network Password"></div>
+                        <div><label class="label-sv">Security Protocol</label><select id="in-wifi-type" class="input-sv"><option value="WPA">WPA / WPA2 (Most Common)</option><option value="WEP">WEP</option><option value="nopass">None</option></select></div>
+                        <div class="md:col-span-2 flex items-center gap-2 mt-1"><input type="checkbox" id="in-wifi-hidden" class="w-4 h-4 rounded bg-[#020617] border-slate-600 focus:ring-blue-500"><label for="in-wifi-hidden" class="text-xs text-slate-300">Hidden Network (SSID Broadcast Disabled)</label></div>
                     </div>
 
                     <div id="panel-vcard" class="data-panel hidden grid md:grid-cols-2 gap-5">
@@ -129,110 +120,138 @@
                         <div><label class="label-sv">Phone Number</label><input type="tel" id="in-vc-tel" class="input-sv font-mono" placeholder="+1 (555) 000-0000"></div>
                         <div><label class="label-sv">Email Address</label><input type="email" id="in-vc-em" class="input-sv font-mono" placeholder="jane@example.com"></div>
                         <div class="md:col-span-2"><label class="label-sv">Website URL</label><input type="url" id="in-vc-url" class="input-sv font-mono" placeholder="https://example.com"></div>
-                        <span class="helper-sv md:col-span-2">Uses vCard formatting. Scanning prompts the user to save this contact directly to their address book.</span>
                     </div>
 
                     <div id="panel-whatsapp" class="data-panel hidden space-y-4">
-                        <div>
-                            <label class="label-sv">WhatsApp Phone Number</label>
-                            <input type="tel" id="in-wa-phone" class="input-sv font-mono" placeholder="+1234567890 (Include country code)">
-                        </div>
-                        <div>
-                            <label class="label-sv">Pre-filled Message (Optional)</label>
-                            <textarea id="in-wa-msg" class="input-sv min-h-[80px]" placeholder="Hello, I'm interested in your services."></textarea>
-                        </div>
-                        <span class="helper-sv">Scanning opens the WhatsApp application directly to a chat window with this number.</span>
+                        <div><label class="label-sv">WhatsApp Phone Number</label><input type="tel" id="in-wa-phone" class="input-sv font-mono" placeholder="+1234567890 (Include country code)"></div>
+                        <div><label class="label-sv">Pre-filled Message (Optional)</label><textarea id="in-wa-msg" class="input-sv min-h-[80px]" placeholder="Hello, I'm interested in your services."></textarea></div>
                     </div>
 
                     <div id="panel-email" class="data-panel hidden space-y-4">
                         <div><label class="label-sv">Recipient Email</label><input type="email" id="in-em-to" class="input-sv font-mono" placeholder="support@example.com"></div>
                         <div><label class="label-sv">Subject Line</label><input type="text" id="in-em-sub" class="input-sv" placeholder="Support Inquiry"></div>
-                        <span class="helper-sv">Scanning opens the default mail application with a pre-addressed draft.</span>
                     </div>
 
                     <div id="panel-sms" class="data-panel hidden space-y-4">
                         <div><label class="label-sv">Phone Number</label><input type="tel" id="in-sms-to" class="input-sv font-mono" placeholder="+1234567890"></div>
                         <div><label class="label-sv">Message Text</label><textarea id="in-sms-msg" class="input-sv min-h-[80px]" placeholder="Type message..."></textarea></div>
-                        <span class="helper-sv">Scanning opens the native SMS/Messaging app with a pre-filled text.</span>
                     </div>
 
                     <div id="panel-geo" class="data-panel hidden space-y-4 relative">
                         <div class="flex justify-between items-end mb-1">
-                            <label class="label-sv m-0">Search Location (Address or Landmark)</label>
+                            <label class="label-sv m-0">Search Location (Address or Business)</label>
                             <button onclick="getUserLocation()" id="btn-locate" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-[10px] uppercase font-bold tracking-wider px-3 py-1.5 rounded flex items-center gap-1 transition-colors">
-                                <svg class="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.242-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                Locate Me
+                                <svg class="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.242-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Locate Me
                             </button>
                         </div>
-                        
                         <div class="relative">
-                            <input type="text" id="in-geo-search" class="input-sv" placeholder="e.g., Eiffel Tower, Paris">
+                            <input type="text" id="in-geo-search" class="input-sv" placeholder="e.g., Central Park, NY">
                             <ul id="geo-suggestions" class="suggestion-list"></ul>
                         </div>
-                        
                         <div class="w-full h-[250px] border border-slate-700 relative z-0" id="map-container"></div>
-                        
                         <div class="grid grid-cols-2 gap-4">
                             <div><label class="label-sv">Latitude</label><input type="number" id="in-geo-lat" class="input-sv font-mono text-xs" step="0.000001" value="40.7128"></div>
                             <div><label class="label-sv">Longitude</label><input type="number" id="in-geo-lng" class="input-sv font-mono text-xs" step="0.000001" value="-74.0060"></div>
                         </div>
-                        
-                        <span class="helper-sv">Drag the pin, search an address, or use 'Locate Me'. Scanning the code opens native maps. Note: You can change the map style using the layer icon in the top right of the map.</span>
                     </div>
-
                 </div>
 
-                <div class="glass-panel rounded-2xl p-6 shadow-xl border-slate-700 grid md:grid-cols-2 gap-8">
-                    <div class="space-y-4">
-                        <label class="label-sv uppercase tracking-wider text-xs">Color Configuration</label>
-                        <div class="flex gap-4">
-                            <div class="flex items-center gap-3 bg-[#020617] p-2 rounded-xl border border-slate-800 flex-1">
-                                <input type="color" id="cfg-fg" value="#000000">
-                                <div class="flex flex-col">
-                                    <span class="text-[9px] text-slate-500 uppercase font-bold">QR Pixel Color</span>
+                <div class="glass-panel rounded-2xl p-6 shadow-xl border-slate-700">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 border-b border-slate-800 pb-4 gap-4">
+                        <label class="label-sv m-0 uppercase tracking-wider text-xs">Visual Configuration</label>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="applyTheme('standard')" class="theme-btn">Minimal</button>
+                            <button onclick="applyTheme('corporate')" class="theme-btn text-blue-300 border-blue-500/30">Corporate</button>
+                            <button onclick="applyTheme('darkmode')" class="theme-btn text-yellow-400 border-yellow-500/30">Dark Mode</button>
+                            <button onclick="applyTheme('soft')" class="theme-btn text-pink-400 border-pink-500/30">Soft</button>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-[10px] text-slate-500 font-bold mb-1 block">Data Color (Pixels)</label>
+                                <div class="flex items-center gap-3 bg-[#020617] p-1.5 rounded-lg border border-slate-800">
+                                    <input type="color" id="cfg-fg" value="#000000">
                                     <span id="hex-fg" class="text-xs font-mono text-slate-300">#000000</span>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-3 bg-[#020617] p-2 rounded-xl border border-slate-800 flex-1">
-                                <input type="color" id="cfg-bg" value="#ffffff">
-                                <div class="flex flex-col">
-                                    <span class="text-[9px] text-slate-500 uppercase font-bold">Background</span>
+                            <div>
+                                <label class="text-[10px] text-slate-500 font-bold mb-1 block">Background Color</label>
+                                <div class="flex items-center gap-3 bg-[#020617] p-1.5 rounded-lg border border-slate-800">
+                                    <input type="color" id="cfg-bg" value="#ffffff">
                                     <span id="hex-bg" class="text-xs font-mono text-slate-300">#FFFFFF</span>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="space-y-4">
-                        <label class="label-sv uppercase tracking-wider text-xs">Output Parameters</label>
-                        <div class="grid grid-cols-2 gap-3">
+
+                        <div class="space-y-4">
                             <div>
-                                <label class="text-[10px] text-slate-500 font-bold mb-1 block">Export Resolution</label>
-                                <select id="cfg-size" class="input-sv py-2 text-xs">
-                                    <option value="500">500px (Web)</option>
-                                    <option value="1000" selected>1000px (Print)</option>
-                                    <option value="2000">2000px (Large)</option>
+                                <label class="text-[10px] text-slate-500 font-bold mb-1 block">Matrix Pattern</label>
+                                <select id="cfg-dots" class="input-sv py-2 text-xs">
+                                    <option value="square">Standard Squares</option>
+                                    <option value="dots">Dots</option>
+                                    <option value="rounded">Rounded</option>
+                                    <option value="classy">Classy</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="text-[10px] text-slate-500 font-bold mb-1 block">Error Correction</label>
-                                <select id="cfg-level" class="input-sv py-2 text-xs">
-                                    <option value="L">Low (Simple URLs)</option>
-                                    <option value="M" selected>Medium (Standard)</option>
-                                    <option value="Q">High (Dense Data)</option>
-                                    <option value="H">Maximum (Rough Prints)</option>
+                                <label class="text-[10px] text-slate-500 font-bold mb-1 block">Corner Markers</label>
+                                <select id="cfg-corners" class="input-sv py-2 text-xs">
+                                    <option value="square">Square</option>
+                                    <option value="dot">Circular</option>
+                                    <option value="extra-rounded">Extra Rounded</option>
                                 </select>
                             </div>
                         </div>
+
+                        <div class="flex flex-col h-full">
+                            <label class="text-[10px] text-slate-500 font-bold mb-1 block">Center Logo Upload</label>
+                            <div class="border-2 border-dashed border-slate-600 rounded-xl p-3 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-500/5 transition-all relative overflow-hidden flex-1 flex items-center justify-center bg-[#020617] min-h-[80px]" id="logo-drop">
+                                <div class="z-10 flex flex-col items-center gap-1" id="logo-text">
+                                    <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                    <span class="text-[10px] text-slate-400 font-medium">Drop Image</span>
+                                </div>
+                                <input type="file" id="logo-input" accept="image/png, image/jpeg, image/svg+xml" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
+                                <img id="logo-preview" class="absolute inset-0 w-full h-full object-contain p-2 hidden z-10 bg-[#020617]" />
+                            </div>
+                            <button id="clear-logo" class="text-[10px] text-rose-500 hover:text-rose-400 mt-2 hidden uppercase tracking-widest font-bold w-full text-center">✕ Remove Logo</button>
+                        </div>
                     </div>
                 </div>
+
+                <div class="glass-panel rounded-2xl p-6 shadow-xl border-slate-700">
+                    <label class="label-sv uppercase tracking-wider text-xs mb-4">Export Parameters</label>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <label class="text-[10px] text-slate-500 font-bold mb-1 block">Target Resolution</label>
+                            <select id="cfg-size" class="input-sv py-2 text-xs">
+                                <option value="500">500px (Web Embedded)</option>
+                                <option value="1000" selected>1000px (Standard Print)</option>
+                                <option value="2000">2000px (Large Format)</option>
+                                <option value="4000">4000px (Billboard)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-500 font-bold mb-1 block">Error Correction Level</label>
+                            <select id="cfg-level" class="input-sv py-2 text-xs">
+                                <option value="L">Low (Best for simple links)</option>
+                                <option value="M">Medium (Standard durability)</option>
+                                <option value="Q">High (Recommended if using a Logo)</option>
+                                <option value="H" selected>Maximum (For dense data or rough prints)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             <div class="lg:col-span-4 space-y-6">
                 <div class="glass-panel p-6 rounded-2xl border-slate-700 flex flex-col items-center shadow-2xl lg:sticky lg:top-6">
-                    <label class="label-sv w-full mb-6 border-b border-slate-800 pb-3 uppercase tracking-wider">Generated Output</label>
+                    <label class="label-sv w-full mb-6 border-b border-slate-800 pb-3 uppercase tracking-wider">Output Render</label>
                     
-                    <div class="bg-white p-4 rounded-xl shadow-inner mb-6 w-full max-w-[280px]">
-                        <canvas id="qr-canvas"></canvas>
+                    <div class="mb-8 w-full flex justify-center">
+                        <div id="qr-container"></div>
                     </div>
 
                     <div class="w-full mb-6 bg-[#020617] p-3 rounded-lg border border-slate-800">
@@ -243,12 +262,12 @@
                         <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
                             <div id="density-bar" class="density-bar h-full bg-emerald-500 w-[5%]"></div>
                         </div>
-                        <p id="density-helper" class="text-[9px] text-slate-500 mt-2 leading-relaxed">Lower complexity means larger pixels, making it easier for older phones to scan.</p>
+                        <p id="density-helper" class="text-[9px] text-slate-500 mt-2 leading-relaxed">Lower complexity ensures instant scanning on older phones.</p>
                     </div>
 
                     <button onclick="downloadImage()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-sm tracking-wide">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                        Download Image File
+                        Download High-Res PNG
                     </button>
                 </div>
             </div>
@@ -269,21 +288,11 @@
                         Step-by-Step Instructions
                     </h3>
                     <ol class="list-decimal list-outside ml-4 space-y-4 text-slate-400">
-                        <li>
-                            <strong class="text-slate-200">Select an Encoding Method:</strong> Choose the type of data you want to share from the top navigation tabs. Options include basic website links, Wi-Fi login credentials, digital business cards (vCard), or map locations.
-                        </li>
-                        <li>
-                            <strong class="text-slate-200">Input Your Data:</strong> Fill out the required fields in the input panel. As you type, the QR code on the right will update instantaneously. Note: The generator utilizes proper formatting protocols behind the scenes to ensure smartphone compatibility.
-                        </li>
-                        <li>
-                            <strong class="text-slate-200">Customize the Design:</strong> Adjust the QR Pixel Color and Background Color to match your brand guidelines. Ensure there is high contrast between the two colors (e.g., dark pixels on a light background) so device cameras can read the matrix.
-                        </li>
-                        <li>
-                            <strong class="text-slate-200">Set Output Parameters:</strong> Select your desired export resolution. Use <code class="bg-slate-900 px-1 rounded text-blue-400">1000px</code> for standard printing, or <code class="bg-slate-900 px-1 rounded text-blue-400">500px</code> for digital embedding.
-                        </li>
-                        <li>
-                            <strong class="text-slate-200">Download:</strong> Click the "Download Image File" button to save the finalized PNG to your device.
-                        </li>
+                        <li><strong class="text-slate-200">Select an Encoding Method:</strong> Choose the type of data you want to share from the top navigation tabs. Options include basic website links, Wi-Fi login credentials, digital business cards (vCard), or map locations.</li>
+                        <li><strong class="text-slate-200">Input Your Data:</strong> Fill out the required fields in the input panel. As you type, the QR code on the right will update instantaneously.</li>
+                        <li><strong class="text-slate-200">Customize the Design:</strong> Adjust the QR Pixel Color, Matrix Patterns, and Center Logo to match your brand guidelines. Ensure high contrast between the foreground and background.</li>
+                        <li><strong class="text-slate-200">Set Output Parameters:</strong> Select your desired export resolution. Use <code class="bg-slate-900 px-1 rounded text-blue-400">1000px</code> for standard printing, or <code class="bg-slate-900 px-1 rounded text-blue-400">500px</code> for digital embedding.</li>
+                        <li><strong class="text-slate-200">Download:</strong> Click the "Download High-Res PNG" button to securely save the finalized image to your device.</li>
                     </ol>
                 </div>
 
@@ -292,21 +301,19 @@
                         <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
                         Understanding Data Protocols
                     </h3>
-                    <p class="mb-4 text-slate-400">
-                        When a smartphone scans a QR matrix, it looks for specific text strings (URIs) to trigger native applications. Here is how our generator formats your data:
-                    </p>
+                    <p class="mb-4 text-slate-400">When a smartphone scans a QR matrix, it looks for specific text strings (URIs) to trigger native applications. Here is how our generator formats your data:</p>
                     <ul class="space-y-4 text-slate-400">
                         <li class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
                             <strong class="text-white block mb-1">Wi-Fi Networks</strong>
-                            Encodes the <code class="text-xs text-blue-400">WIFI:T:WPA;S:NetworkName;P:Password;;</code> protocol. This forces iOS and Android devices to automatically join the router without requiring the user to type passwords manually.
+                            Encodes the <code class="text-xs text-blue-400">WIFI:T:WPA;S:Network;P:Pass;;</code> protocol to automatically join routers.
                         </li>
                         <li class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
                             <strong class="text-white block mb-1">Location / Maps</strong>
-                            Uses the interactive Leaflet mapping engine. You can search for an address, drag the pin, or click "Locate Me". The engine extracts the exact Latitude and Longitude and formats it so scanning the code opens Google Maps or Apple Maps with a dropped pin.
+                            Uses the interactive mapping engine to extract Latitude and Longitude, formatting it so scanning opens Google Maps or Apple Maps with a dropped pin.
                         </li>
                         <li class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
                             <strong class="text-white block mb-1">Contact (vCard)</strong>
-                            Generates a <code class="text-xs text-blue-400">BEGIN:VCARD</code> syntax payload. This is a digital business card. When scanned, it populates the scanner's native address book with the name, phone, email, and company details.
+                            Generates a <code class="text-xs text-blue-400">BEGIN:VCARD</code> payload. Scanning populates the user's address book instantly.
                         </li>
                     </ul>
                 </div>
@@ -316,11 +323,9 @@
                         <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                         Privacy & "Static" Code Guarantee
                     </h3>
-                    <p class="text-slate-400 mb-4">
-                        A major hazard in the industry is the use of <strong>Dynamic QR Codes</strong>. Many free generators intercept your target link, replace it with their own tracking URL, and hold your code hostage behind a monthly subscription fee. If you stop paying, your printed codes will break.
-                    </p>
+                    <p class="text-slate-400 mb-4">A major hazard in the industry is the use of <strong>Dynamic QR Codes</strong>. Many free generators intercept your target link, replace it with their own tracking URL, and hold your code hostage behind a monthly subscription fee.</p>
                     <p class="text-slate-400 p-4 border-l-2 border-purple-500 bg-purple-500/5 rounded-r-lg">
-                        This tool generates <strong>100% Static QR Codes</strong>. The exact text or configuration you type is mathematically permanently baked into the black-and-white pixel pattern. Because there are no external tracking servers involved, the codes generated here will <strong>never expire</strong> and cost absolutely nothing to maintain. Furthermore, generation happens locally in your HTML5 Canvas, ensuring complete data privacy.
+                        This tool generates <strong>100% Static QR Codes</strong>. Because there are no external tracking servers involved, the codes generated here will <strong>never expire</strong> and cost absolutely nothing to maintain. Generation happens locally in your HTML5 Canvas, ensuring complete data privacy.
                     </p>
                 </div>
 
@@ -329,14 +334,9 @@
                         <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                         Scannability & Data Density
                     </h3>
-                    <p class="text-slate-400 mb-4">
-                        Pay attention to the <strong>Data Complexity Meter</strong> below the preview window. A QR code's grid has a maximum capacity. The more text or data you put into the code (such as a very long URL or a full vCard), the smaller the individual pixels must become to fit inside the square. 
-                    </p>
-                    <p class="text-slate-400 mb-4">
-                        If the meter enters the red "Dense" zone, older smartphones with lower-quality cameras may struggle to focus on the tiny pixels. 
-                    </p>
+                    <p class="text-slate-400 mb-4">Pay attention to the <strong>Data Complexity Meter</strong>. The more text or data you put into the code (such as a full vCard), the smaller the individual pixels must become to fit inside the square.</p>
                     <p class="text-slate-400">
-                        <strong>Pro Tip:</strong> Use the <strong>Error Correction</strong> dropdown to increase reliability. Setting Error Correction to "High" or "Maximum" adds redundant mathematical data to the matrix. This allows the code to still be read even if up to 30% of the image is torn, covered by a logo, or printed on a rough, textured surface.
+                        <strong>Pro Tip:</strong> Use the <strong>Error Correction</strong> dropdown to increase reliability. Setting Error Correction to "Maximum" adds redundant mathematical data to the matrix. This allows the code to still be read even if up to 30% of the image is torn, covered by a logo, or printed on a rough surface.
                     </p>
                 </div>
             </div>
@@ -350,9 +350,13 @@
         const DOM = {
             panels: document.querySelectorAll('.data-panel'),
             tabs: document.querySelectorAll('.tab-btn'),
-            canvas: document.getElementById('qr-canvas'),
+            container: document.getElementById('qr-container'),
             density: { bar: document.getElementById('density-bar'), label: document.getElementById('density-label'), helper: document.getElementById('density-helper') },
-            cfg: { fg: document.getElementById('cfg-fg'), bg: document.getElementById('cfg-bg'), size: document.getElementById('cfg-size'), level: document.getElementById('cfg-level') },
+            cfg: { 
+                fg: document.getElementById('cfg-fg'), bg: document.getElementById('cfg-bg'), 
+                size: document.getElementById('cfg-size'), level: document.getElementById('cfg-level'),
+                dots: document.getElementById('cfg-dots'), corners: document.getElementById('cfg-corners')
+            },
             fields: {
                 url: document.getElementById('in-url'), text: document.getElementById('in-text'),
                 wifi_s: document.getElementById('in-wifi-ssid'), wifi_p: document.getElementById('in-wifi-pass'), wifi_t: document.getElementById('in-wifi-type'), wifi_h: document.getElementById('in-wifi-hidden'),
@@ -365,14 +369,25 @@
         };
 
         let currentMode = 'url';
+        let uploadedLogo = "";
         let map, marker;
-        const qriousEngine = new QRious({ element: DOM.canvas, size: 500, level: 'M' });
+        
+        // FIX 1: Exact UI matching canvas size to prevent "Massive Eye" cropping bug
+        const qrEngine = new QRCodeStyling({
+            width: 280, 
+            height: 280, 
+            type: "canvas", 
+            data: "https://silenvault.com",
+            margin: 10, // Natural quiet zone padding
+            imageOptions: { crossOrigin: "anonymous", margin: 8, imageSize: 0.3 }
+        });
+        qrEngine.append(DOM.container);
 
-        // --- MAP ENGINE WITH HYBRID LABELS ---
+        // --- MAP ENGINE ---
         function initMap() {
             if (map) { map.invalidateSize(); return; }
             
-            map = L.map('map-container').setView([40.7128, -74.0060], 13);
+            map = L.map('map-container', { attributionControl: false }).setView([40.7128, -74.0060], 13);
             
             const satelliteImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 });
             const satelliteLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 });
@@ -382,244 +397,198 @@
 
             satelliteHybrid.addTo(map);
 
-            const baseMaps = {
-                "Satellite (Default)": satelliteHybrid,
+            L.control.layers({
+                "Satellite Map": satelliteHybrid,
                 "Standard Map": standardLayer,
                 "Dark Mode": darkLayer
-            };
-
-            L.control.layers(baseMaps, null, {position: 'topright'}).addTo(map);
+            }, null, {position: 'topright'}).addTo(map);
 
             marker = L.marker([40.7128, -74.0060], {draggable: true}).addTo(map);
 
-            marker.on('dragend', function() {
-                const pos = marker.getLatLng();
-                DOM.fields.geo_lat.value = pos.lat.toFixed(6);
-                DOM.fields.geo_lng.value = pos.lng.toFixed(6);
-                updateCanvas();
-            });
-
-            map.on('click', function(e) {
-                marker.setLatLng(e.latlng);
-                DOM.fields.geo_lat.value = e.latlng.lat.toFixed(6);
-                DOM.fields.geo_lng.value = e.latlng.lng.toFixed(6);
-                updateCanvas();
-            });
+            marker.on('dragend', () => { const p = marker.getLatLng(); DOM.fields.geo_lat.value = p.lat.toFixed(6); DOM.fields.geo_lng.value = p.lng.toFixed(6); debouncedRender(); });
+            map.on('click', (e) => { marker.setLatLng(e.latlng); DOM.fields.geo_lat.value = e.latlng.lat.toFixed(6); DOM.fields.geo_lng.value = e.latlng.lng.toFixed(6); debouncedRender(); });
         }
 
         function getUserLocation() {
-            const btn = document.getElementById('btn-locate');
-            const ogText = btn.innerHTML;
-            btn.innerHTML = 'Locating...';
-
+            const btn = document.getElementById('btn-locate'); const ogText = btn.innerHTML; btn.innerHTML = 'Locating...';
             if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    const lat = position.coords.latitude.toFixed(6);
-                    const lng = position.coords.longitude.toFixed(6);
-                    
-                    DOM.fields.geo_lat.value = lat;
-                    DOM.fields.geo_lng.value = lng;
-                    
-                    if(map && marker) {
-                        marker.setLatLng([lat, lng]);
-                        map.setView([lat, lng], 16);
-                    }
-                    
-                    updateCanvas();
-                    btn.innerHTML = ogText;
-                }, (error) => {
-                    alert("Location access denied or unavailable.");
-                    btn.innerHTML = ogText;
-                }, { timeout: 10000 });
-            } else {
-                alert("Geolocation is not supported by your browser.");
-                btn.innerHTML = ogText;
+                navigator.geolocation.getCurrentPosition((p) => {
+                    DOM.fields.geo_lat.value = p.coords.latitude.toFixed(6); DOM.fields.geo_lng.value = p.coords.longitude.toFixed(6);
+                    if(map && marker) { marker.setLatLng([p.coords.latitude, p.coords.longitude]); map.setView([p.coords.latitude, p.coords.longitude], 16); }
+                    debouncedRender(); btn.innerHTML = ogText;
+                }, () => { alert("Location access denied."); btn.innerHTML = ogText; }, { timeout: 10000 });
             }
         }
 
-        // --- ESRI ARCGIS SEARCH ENGINE (Better for Businesses & POIs) ---
         const searchInput = document.getElementById('in-geo-search');
         const suggestionsList = document.getElementById('geo-suggestions');
         let searchTimeout;
 
         searchInput.addEventListener('input', (e) => {
-            clearTimeout(searchTimeout);
-            const query = e.target.value.trim();
-            
-            if(query.length < 4) { 
-                suggestionsList.style.display = 'none'; 
-                return; 
-            }
-            
+            clearTimeout(searchTimeout); const query = e.target.value.trim();
+            if(query.length < 4) { suggestionsList.style.display = 'none'; return; }
             suggestionsList.innerHTML = '<li class="suggestion-loading">Searching commercial map database...</li>';
             suggestionsList.style.display = 'block';
             
-            // 400ms debounce for fast typing
             searchTimeout = setTimeout(async () => {
                 try {
-                    // Step 1: Use Esri's Suggest API (Great for autocomplete)
                     const suggestRes = await fetch(`https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/suggest?text=${encodeURIComponent(query)}&f=json&maxSuggestions=5`);
-                    
-                    if (!suggestRes.ok) throw new Error("API Limit");
-                    
+                    if (!suggestRes.ok) throw new Error("API");
                     const suggestData = await suggestRes.json();
                     suggestionsList.innerHTML = '';
-                    
-                    if(!suggestData.suggestions || suggestData.suggestions.length === 0) { 
-                        suggestionsList.innerHTML = '<li class="suggestion-loading">No businesses or addresses found.</li>';
-                        return; 
-                    }
+                    if(!suggestData.suggestions || suggestData.suggestions.length === 0) { suggestionsList.innerHTML = '<li class="suggestion-loading">No locations found.</li>'; return; }
                     
                     suggestData.suggestions.forEach(item => {
-                        const li = document.createElement('li');
-                        li.className = 'suggestion-item';
-                        li.innerText = item.text; // The formatted address
+                        const li = document.createElement('li'); li.className = 'suggestion-item'; li.innerText = item.text;
                         li.onclick = async () => {
                             suggestionsList.innerHTML = '<li class="suggestion-loading text-blue-400">Locating...</li>';
-                            
                             try {
-                                // Step 2: Use Esri's Find API to get the exact Lat/Lng of the clicked suggestion
                                 const findRes = await fetch(`https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?magicKey=${item.magicKey}&f=json`);
                                 const findData = await findRes.json();
-                                
                                 if (findData.candidates && findData.candidates.length > 0) {
-                                    const exactLocation = findData.candidates[0].location;
-                                    const lat = exactLocation.y;
-                                    const lng = exactLocation.x;
-
-                                    DOM.fields.geo_lat.value = lat.toFixed(6);
-                                    DOM.fields.geo_lng.value = lng.toFixed(6);
-                                    marker.setLatLng([lat, lng]);
-                                    map.setView([lat, lng], 17);
-                                    searchInput.value = item.text;
-                                    suggestionsList.style.display = 'none';
-                                    updateCanvas();
+                                    const loc = findData.candidates[0].location;
+                                    DOM.fields.geo_lat.value = loc.y.toFixed(6); DOM.fields.geo_lng.value = loc.x.toFixed(6);
+                                    marker.setLatLng([loc.y, loc.x]); map.setView([loc.y, loc.x], 17);
+                                    searchInput.value = item.text; suggestionsList.style.display = 'none'; debouncedRender();
                                 }
-                            } catch (e) {
-                                suggestionsList.innerHTML = '<li class="suggestion-loading text-rose-400">Failed to get exact coordinates.</li>';
-                            }
+                            } catch(e) {}
                         };
                         suggestionsList.appendChild(li);
                     });
-                } catch(err) { 
-                    suggestionsList.innerHTML = '<li class="suggestion-loading text-rose-400">Network error fetching address.</li>';
-                }
+                } catch(err) { suggestionsList.innerHTML = '<li class="suggestion-loading text-rose-400">Network error.</li>'; }
             }, 400);
         });
-
         document.addEventListener('click', (e) => { if(e.target !== searchInput) suggestionsList.style.display = 'none'; });
 
-        [DOM.fields.geo_lat, DOM.fields.geo_lng].forEach(el => {
-            el.addEventListener('change', () => {
-                const lat = parseFloat(DOM.fields.geo_lat.value) || 0;
-                const lng = parseFloat(DOM.fields.geo_lng.value) || 0;
-                marker.setLatLng([lat, lng]);
-                map.setView([lat, lng]);
-                updateCanvas();
-            });
+        // --- THEME ENGINE ---
+        function applyTheme(theme) {
+            const presets = {
+                standard: { fg: "#000000", bg: "#ffffff", dots: "square", corners: "square" },
+                corporate: { fg: "#1e3a8a", bg: "#f8fafc", dots: "rounded", corners: "extra-rounded" },
+                darkmode: { fg: "#fde047", bg: "#09090b", dots: "classy", corners: "square" },
+                soft: { fg: "#ec4899", bg: "#fdf2f8", dots: "dots", corners: "dot" }
+            };
+            const config = presets[theme];
+            DOM.cfg.fg.value = config.fg;
+            DOM.cfg.bg.value = config.bg;
+            DOM.cfg.dots.value = config.dots;
+            DOM.cfg.corners.value = config.corners;
+            debouncedRender();
+        }
+
+        // --- LOGO ENGINE ---
+        const logoInput = document.getElementById('logo-input');
+        const logoPreview = document.getElementById('logo-preview');
+        const logoText = document.getElementById('logo-text');
+        const clearLogoBtn = document.getElementById('clear-logo');
+
+        logoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) { alert("File exceeds 2MB limit."); logoInput.value = ""; return; }
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                uploadedLogo = event.target.result;
+                logoPreview.src = uploadedLogo; logoPreview.classList.remove('hidden');
+                logoText.classList.add('hidden'); clearLogoBtn.classList.remove('hidden');
+                DOM.cfg.level.value = 'H'; // Force High EC when logo is added
+                debouncedRender();
+            };
+            reader.readAsDataURL(file);
         });
 
-        // --- CORE QR LOGIC ---
+        clearLogoBtn.addEventListener('click', () => {
+            uploadedLogo = ""; logoInput.value = ""; 
+            logoPreview.classList.add('hidden'); logoText.classList.remove('hidden'); clearLogoBtn.classList.add('hidden');
+            debouncedRender();
+        });
+
+        // --- CORE LOGIC ---
         function setMode(mode) {
             currentMode = mode;
             DOM.tabs.forEach(t => t.classList.toggle('active', t.id === `btn-${mode}`));
             DOM.panels.forEach(panel => panel.classList.toggle('hidden', panel.id !== `panel-${mode}`));
-            
             if(mode === 'geo') { setTimeout(initMap, 50); } 
-            updateCanvas();
+            debouncedRender();
         }
 
         function extractDataString() {
             switch(currentMode) {
-                case 'url': 
-                    return DOM.fields.url.value.trim() || 'https://silenvault.com';
-                case 'text': 
-                    return DOM.fields.text.value || 'Your text here';
-                case 'wifi':
-                    const hidden = DOM.fields.wifi_h.checked ? 'true' : 'false';
-                    return `WIFI:T:${DOM.fields.wifi_t.value};S:${DOM.fields.wifi_s.value};P:${DOM.fields.wifi_p.value};H:${hidden};;`;
-                case 'vcard':
-                    return `BEGIN:VCARD\nVERSION:3.0\nN:${DOM.fields.vc_ln.value};${DOM.fields.vc_fn.value};;;\nFN:${DOM.fields.vc_fn.value} ${DOM.fields.vc_ln.value}\nORG:${DOM.fields.vc_org.value}\nTITLE:${DOM.fields.vc_title.value}\nTEL;TYPE=CELL:${DOM.fields.vc_tel.value}\nEMAIL:${DOM.fields.vc_em.value}\nURL:${DOM.fields.vc_url.value}\nEND:VCARD`;
-                case 'whatsapp':
-                    const cleanPhone = DOM.fields.wa_phone.value.replace(/\D/g, '');
-                    return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(DOM.fields.wa_msg.value)}`;
-                case 'email': 
-                    return `mailto:${DOM.fields.em_to.value}?subject=${encodeURIComponent(DOM.fields.em_sub.value)}`;
-                case 'sms': 
-                    return `smsto:${DOM.fields.sms_to.value}:${DOM.fields.sms_msg.value}`;
-                case 'geo': 
-                    // FIXED: Official Google Maps Search URI
-                    return `https://www.google.com/maps/search/?api=1&query=${DOM.fields.geo_lat.value},${DOM.fields.geo_lng.value}`;
-                default: 
-                    return '';
+                case 'url': return DOM.fields.url.value.trim() || 'https://silenvault.com';
+                case 'text': return DOM.fields.text.value || 'Your text here';
+                case 'wifi': const hidden = DOM.fields.wifi_h.checked ? 'true' : 'false'; return `WIFI:T:${DOM.fields.wifi_t.value};S:${DOM.fields.wifi_s.value};P:${DOM.fields.wifi_p.value};H:${hidden};;`;
+                case 'vcard': return `BEGIN:VCARD\nVERSION:3.0\nN:${DOM.fields.vc_ln.value};${DOM.fields.vc_fn.value};;;\nFN:${DOM.fields.vc_fn.value} ${DOM.fields.vc_ln.value}\nORG:${DOM.fields.vc_org.value}\nTITLE:${DOM.fields.vc_title.value}\nTEL;TYPE=CELL:${DOM.fields.vc_tel.value}\nEMAIL:${DOM.fields.vc_em.value}\nURL:${DOM.fields.vc_url.value}\nEND:VCARD`;
+                case 'whatsapp': const cleanPhone = DOM.fields.wa_phone.value.replace(/\D/g, ''); return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(DOM.fields.wa_msg.value)}`;
+                case 'email': return `mailto:${DOM.fields.em_to.value}?subject=${encodeURIComponent(DOM.fields.em_sub.value)}`;
+                case 'sms': return `smsto:${DOM.fields.sms_to.value}:${DOM.fields.sms_msg.value}`;
+                case 'geo': return `http://maps.google.com/maps?q=${DOM.fields.geo_lat.value},${DOM.fields.geo_lng.value}`;
+                default: return '';
             }
         }
 
         function evaluateDensity(dataLength) {
             let p = (dataLength / 300) * 100; 
             if (p > 100) p = 100; if (p < 5) p = 5;
-
             DOM.density.bar.style.width = `${p}%`;
-
-            if (p < 40) {
-                DOM.density.bar.className = 'density-bar h-full bg-emerald-500';
-                DOM.density.label.innerText = 'Optimal';
-                DOM.density.label.className = 'text-[10px] font-mono text-emerald-500';
-                DOM.density.helper.innerText = 'Low complexity. Easily scannable from a distance.';
-            } else if (p < 80) {
-                DOM.density.bar.className = 'density-bar h-full bg-amber-400';
-                DOM.density.label.innerText = 'Moderate';
-                DOM.density.label.className = 'text-[10px] font-mono text-amber-400';
-                DOM.density.helper.innerText = 'Average complexity. Ensure print size is at least 2 inches.';
-            } else {
-                DOM.density.bar.className = 'density-bar h-full bg-rose-500';
-                DOM.density.label.innerText = 'Dense';
-                DOM.density.label.className = 'text-[10px] font-mono text-rose-500 font-bold';
-                DOM.density.helper.innerText = 'High complexity. Set Error Correction to Maximum for best results.';
-            }
+            if (p < 40) { DOM.density.bar.className = 'density-bar h-full bg-emerald-500'; DOM.density.label.innerText = 'Optimal'; DOM.density.label.className = 'text-[10px] font-mono text-emerald-500'; DOM.density.helper.innerText = 'Low complexity. Easily scannable from a distance.'; }
+            else if (p < 80) { DOM.density.bar.className = 'density-bar h-full bg-amber-400'; DOM.density.label.innerText = 'Moderate'; DOM.density.label.className = 'text-[10px] font-mono text-amber-400'; DOM.density.helper.innerText = 'Average complexity. Ensure print size is at least 2 inches.'; }
+            else { DOM.density.bar.className = 'density-bar h-full bg-rose-500'; DOM.density.label.innerText = 'Dense'; DOM.density.label.className = 'text-[10px] font-mono text-rose-500 font-bold'; DOM.density.helper.innerText = 'High complexity. Set Error Correction to Maximum for best results.'; }
         }
 
         function updateCanvas() {
             const dataPayload = extractDataString();
             evaluateDensity(dataPayload.length);
 
-            qriousEngine.set({
-                value: dataPayload,
-                foreground: DOM.cfg.fg.value,
-                background: DOM.cfg.bg.value,
-                size: 500, // Fixed UI size to prevent layout shifting
-                level: DOM.cfg.level.value
+            const fg = DOM.cfg.fg.value; const bg = DOM.cfg.bg.value;
+            const dots = DOM.cfg.dots.value; const corners = DOM.cfg.corners.value;
+
+            document.getElementById('hex-fg').innerText = fg.toUpperCase();
+            document.getElementById('hex-bg').innerText = bg.toUpperCase();
+
+            // Match border color of container to QR background for a seamless look
+            DOM.container.style.backgroundColor = bg;
+
+            qrEngine.update({
+                data: dataPayload,
+                image: uploadedLogo,
+                dotsOptions: { color: fg, type: dots },
+                backgroundOptions: { color: bg },
+                cornersSquareOptions: { type: corners, color: fg },
+                cornersDotOptions: { type: corners === 'extra-rounded' ? 'dot' : corners, color: fg },
+                qrOptions: { errorCorrectionLevel: DOM.cfg.level.value }
+            });
+        }
+
+        let debounceTimer;
+        function debouncedRender() { clearTimeout(debounceTimer); debounceTimer = setTimeout(updateCanvas, 150); }
+
+        // FIX 3: Background Off-Screen Rendering for Downloads
+        // This ensures the user gets a massive 2000px file without the UI stuttering
+        function downloadImage() {
+            const targetSize = parseInt(DOM.cfg.size.value);
+            const fg = DOM.cfg.fg.value; const bg = DOM.cfg.bg.value;
+            const dots = DOM.cfg.dots.value; const corners = DOM.cfg.corners.value;
+            
+            const tempEngine = new QRCodeStyling({
+                width: targetSize,
+                height: targetSize,
+                type: "canvas",
+                data: extractDataString(),
+                image: uploadedLogo,
+                margin: Math.max(20, targetSize * 0.05), // Scales margin cleanly for massive exports
+                dotsOptions: { color: fg, type: dots },
+                backgroundOptions: { color: bg },
+                cornersSquareOptions: { type: corners, color: fg },
+                cornersDotOptions: { type: corners === 'extra-rounded' ? 'dot' : corners, color: fg },
+                qrOptions: { errorCorrectionLevel: DOM.cfg.level.value },
+                imageOptions: { crossOrigin: "anonymous", margin: targetSize * 0.03, imageSize: 0.3 }
             });
             
-            document.getElementById('hex-fg').innerText = DOM.cfg.fg.value.toUpperCase();
-            document.getElementById('hex-bg').innerText = DOM.cfg.bg.value.toUpperCase();
+            tempEngine.download({ name: `SilenVault_QR_${currentMode}_${Date.now()}`, extension: 'png' });
         }
 
-        function downloadImage() {
-            const tempCanvas = document.createElement('canvas');
-            new QRious({
-                element: tempCanvas,
-                value: extractDataString(),
-                foreground: DOM.cfg.fg.value,
-                background: DOM.cfg.bg.value,
-                size: parseInt(DOM.cfg.size.value), 
-                level: DOM.cfg.level.value
-            });
-
-            const link = document.createElement('a');
-            link.href = tempCanvas.toDataURL('image/png');
-            link.download = `SilenVault_QR_${currentMode}_${Date.now()}.png`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // Attach global input listener
-        document.querySelectorAll('input, textarea, select').forEach(el => { el.addEventListener('input', updateCanvas); });
-        
-        // Initial render
-        updateCanvas();
-    </script>
+        document.querySelectorAll('input, textarea, select').forEach(el => { el.addEventListener('input', debouncedRender); });
+        debouncedRender();
     </script>
 </body>
 </html>
