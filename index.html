@@ -11,7 +11,6 @@
     <meta property="og:title" content="SilenVault | Local Web Utilities">
     <meta property="og:description" content="Local-first data tools. Absolute privacy through client-side processing.">
     <meta property="og:image" content="https://silenvault.com/assets/img/SILENVAULT_LOGO.webp">
-
     <link rel="icon" type="image/webp" href="assets/img/SILENVAULT_LOGO.webp">
     
     <script type="application/ld+json">
@@ -26,7 +25,7 @@
     </script>
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Fira+Code:wght@400;500;700&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
     
     <script src="assets/js/layout.js" defer></script>
     <script src="assets/js/vault_gatekeeper.js" defer></script>
@@ -37,82 +36,131 @@
             --bg-base: #020617;
             --glass-bg: rgba(15, 23, 42, 0.4);
             --glass-border: rgba(51, 65, 85, 0.5);
-            --accent-glow: rgba(59, 130, 246, 0.15);
         }
 
-        body { font-family: 'Inter', sans-serif; background-color: var(--bg-base); color: #e2e8f0; overflow-x: hidden; scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-base); color: #e2e8f0; overflow-x: hidden; scroll-behavior: smooth; perspective: 1200px; }
         
-        /* =========================================
-           AMBIENT & LIQUID BACKGROUND ANIMATIONS
-           ========================================= */
-        .fixed-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -3; background: radial-gradient(circle at 50% 0%, #0f172a 0%, #020617 100%); }
-        .bg-crest { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; background-image: url('assets/img/SILENVAULT_LOGO.webp'); background-repeat: no-repeat; background-position: center; background-size: 85vmin; opacity: 0.02; z-index: -2; pointer-events: none; }
-        
-        .liquid-blob {
-            position: absolute; border-radius: 50%; filter: blur(80px); z-index: -1; opacity: 0.4;
-            animation: morph 15s ease-in-out infinite alternate;
-        }
-        .blob-1 { top: -10%; left: -10%; width: 500px; height: 500px; background: rgba(59, 130, 246, 0.2); animation-delay: 0s; }
-        .blob-2 { bottom: -10%; right: -10%; width: 600px; height: 600px; background: rgba(139, 92, 246, 0.15); animation-delay: 2s; }
+        /* D1 Environment */
+        .fixed-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: -3; background: radial-gradient(circle at 50% 0%, #0f172a 0%, #020617 100%); transition: filter 0.5s ease; }
+        .bg-crest { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 100vh; background-image: url('assets/img/SILENVAULT_LOGO.webp'); background-repeat: no-repeat; background-position: center; background-size: 85vmin; opacity: 0.02; z-index: -2; pointer-events: none; transition: all 0.5s ease; }
+        .liquid-blob { position: absolute; border-radius: 50%; filter: blur(80px); z-index: -1; opacity: 0.4; animation: morph 15s ease-in-out infinite alternate; transition: all 0.5s ease; }
+        .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: rgba(59, 130, 246, 0.2); animation-delay: 0s; }
+        .blob-2 { bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: rgba(139, 92, 246, 0.15); animation-delay: 2s; }
 
-        @keyframes morph {
-            0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; transform: translate(0, 0) scale(1); }
-            50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; transform: translate(50px, 50px) scale(1.05); }
-            100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; transform: translate(-50px, -20px) scale(0.95); }
-        }
+        @keyframes morph { 0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; transform: translate(0, 0) scale(1); } 50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; transform: translate(30px, 30px) scale(1.05); } 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; transform: translate(-30px, -20px) scale(0.95); } }
 
-        /* =========================================
-           GLASSMORPHISM & MICRO-INTERACTIONS
-           ========================================= */
+        /* UI Elements */
         .bento-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
-        
-        .tool-card {
-            background: rgba(30, 41, 59, 0.3); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); 
-            border: 1px solid rgba(51, 65, 85, 0.4); border-radius: 1rem; padding: 1.5rem; 
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            position: relative; overflow: hidden; display: flex; flex-direction: column; height: 100%;
-        }
-        .tool-card::before {
-            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
-            background: linear-gradient(to right, transparent, rgba(255,255,255,0.03), transparent);
-            transform: skewX(-20deg); transition: 0.5s; pointer-events: none;
-        }
+        .tool-card { background: rgba(30, 41, 59, 0.3); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.4); border-radius: 1rem; padding: 1.5rem; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; display: flex; flex-direction: column; height: 100%; will-change: transform, opacity; }
         .tool-card:hover { transform: translateY(-6px) scale(1.01); border-color: #3b82f6; background: rgba(30, 41, 59, 0.6); box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.15); }
-        .tool-card:hover::before { left: 150%; }
-
         .search-wrapper { transition: all 0.3s ease; }
         .search-wrapper:focus-within { box-shadow: 0 0 25px -5px rgba(59, 130, 246, 0.3); border-color: #3b82f6; transform: scale(1.01); }
 
-        /* =========================================
-           INFINITE MARQUEE (AUTO-SCROLLER)
-           ========================================= */
         .marquee-wrapper { width: 100%; overflow: hidden; position: relative; padding: 1.5rem 0; mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent); }
         .marquee-track { display: flex; gap: 1.5rem; width: max-content; animation: scrollLeft 45s linear infinite; }
         .marquee-track:hover { animation-play-state: paused; }
-        
-        .marquee-item { 
-            width: 320px; flex-shrink: 0; background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(51, 65, 85, 0.5); 
-            border-radius: 1rem; padding: 1.25rem; display: flex; align-items: center; gap: 1rem; 
-            transition: all 0.3s ease; cursor: pointer; backdrop-filter: blur(8px);
-        }
-        .marquee-item:hover { border-color: #3b82f6; transform: translateY(-4px); background: rgba(30, 41, 59, 0.8); box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.2); }
+        .marquee-item { width: 320px; flex-shrink: 0; background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(51, 65, 85, 0.5); border-radius: 1rem; padding: 1.25rem; display: flex; align-items: center; gap: 1rem; transition: all 0.3s ease; cursor: pointer; }
+        .marquee-item:hover { border-color: #3b82f6; transform: translateY(-4px); background: rgba(30, 41, 59, 0.8); }
         @media (max-width: 640px) { .marquee-item { width: 280px; } }
-        
         @keyframes scrollLeft { 0% { transform: translateX(0); } 100% { transform: translateX(calc(-50% - 0.75rem)); } }
 
-        /* =========================================
-           SCROLLYTELLING & SKELETON LOADERS
-           ========================================= */
         .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
         .reveal.active { opacity: 1; transform: translateY(0); }
-
         .skeleton { background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%); background-size: 200% 100%; animation: loadingPulse 1.5s infinite; border-radius: 0.5rem; }
         @keyframes loadingPulse { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-        /* SEO Section Styling */
         .seo-section h2 { font-size: 1.75rem; font-weight: 800; color: #f8fafc; margin-bottom: 1rem; border-bottom: 1px solid #1e293b; padding-bottom: 0.5rem; }
         .seo-section h3 { font-size: 1.25rem; font-weight: 700; color: #e2e8f0; margin-top: 2rem; margin-bottom: 0.75rem; }
         .seo-section p { color: #94a3b8; line-height: 1.7; margin-bottom: 1.25rem; }
+
+        #the-abyss { min-height: 40vh; width: 100%; background: #000; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; border-top: 1px solid #111; }
+        
+        /* ===================================================
+           VFX: THE VIRUS DECAY (Surface Corruption)
+           =================================================== */
+        body.system-virus .fixed-bg { filter: hue-rotate(240deg) contrast(1.8) saturate(1.5); }
+        body.system-virus .blob-1 { background: rgba(168, 85, 247, 0.4); transform: scale(1.5); }
+        body.system-virus .blob-2 { background: rgba(236, 72, 153, 0.4); transform: scale(1.5); }
+        body.system-virus .bg-crest { opacity: 0; transform: scale(1.5) rotate(15deg); filter: blur(10px); }
+        
+        .glitch-text { position: relative; display: inline-block; transition: color 0.5s; }
+        body.system-virus .glitch-text { animation: cyber-jitter 0.2s infinite; color: #ec4899; text-shadow: 2px 0 #22d3ee, -2px 0 #a855f7; }
+        @keyframes cyber-jitter { 0% { transform: translate(0); } 25% { transform: translate(-1px, 1px); } 50% { transform: translate(1px, -1px); filter: invert(0.1); } 75% { transform: translate(-1px, -1px); } 100% { transform: translate(0); } }
+
+        /* 3D Gravity Loss Decay */
+        body.system-virus .tool-card { animation: gravity-loss 3s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards; pointer-events: none; border-color: #a855f7; box-shadow: 0 0 20px rgba(168,85,247,0.4); }
+        body.system-virus .tool-card:nth-child(odd) { animation-duration: 4s; animation-name: gravity-loss-alt; }
+        body.system-virus .tool-card:nth-child(even) { animation-delay: 0.2s; }
+        @keyframes gravity-loss { 0% { transform: translateY(0) rotateX(0) rotateY(0); opacity: 1; filter: blur(0); } 100% { transform: translateY(800px) rotateX(60deg) rotateY(45deg) scale(0.5); opacity: 0; filter: blur(15px); } }
+        @keyframes gravity-loss-alt { 0% { transform: translateY(0) rotateX(0) rotateY(0); opacity: 1; filter: blur(0); } 100% { transform: translateY(1000px) rotateX(-70deg) rotateY(-30deg) scale(0.4); opacity: 0; filter: blur(20px); } }
+
+        /* ===================================================
+           VFX: CYBERPUNK GLASS TERMINAL
+           =================================================== */
+        #terminal-overlay { position: fixed; inset: 0; width: 100vw; height: 100dvh; z-index: 50; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); padding: 16px; }
+        
+        .cyber-window {
+            background: rgba(10, 2, 15, 0.8); backdrop-filter: blur(20px); border: 1px solid #a855f7; border-top: 3px solid #ec4899;
+            box-shadow: 0 0 50px rgba(168, 85, 247, 0.3), inset 0 0 20px rgba(168, 85, 247, 0.1);
+            width: 100%; max-width: 600px; display: flex; flex-direction: column; padding: 30px;
+            transform: scale(0.95) translateY(20px); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+        }
+        body.terminal-active .cyber-window { transform: scale(1) translateY(0); pointer-events: auto; }
+        
+        .term-body { font-family: 'Fira Code', monospace; font-size: 14px; line-height: 1.8; color: #d8b4fe; min-height: 120px; text-align: left; }
+        .term-highlight { color: #ec4899; font-weight: bold; text-shadow: 0 0 8px rgba(236,72,153,0.5); }
+        .term-cyan { color: #22d3ee; }
+        
+        .term-input-line { display: flex; align-items: center; gap: 12px; margin-top: 16px; animation: fade-in 0.5s forwards; }
+        @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .term-action-btn { background: rgba(168, 85, 247, 0.1); border: 1px solid #a855f7; color: #a855f7; font-family: 'Fira Code', monospace; font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.3s; padding: 8px 16px; text-transform: uppercase; letter-spacing: 2px; }
+        .term-action-btn:hover { background: #a855f7; color: #000; box-shadow: 0 0 15px rgba(168, 85, 247, 0.5); transform: translateY(-2px); }
+        .term-action-btn.abort { border-color: #ec4899; color: #ec4899; background: transparent; }
+        .term-action-btn.abort:hover { background: rgba(236, 72, 153, 0.2); box-shadow: none; color: #ec4899; }
+
+        body.terminal-warp .cyber-window { animation: terminal-dive 0.8s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards; }
+        @keyframes terminal-dive { 0% { transform: scale(1); opacity: 1; filter: blur(0); } 100% { transform: scale(3) translateZ(500px); opacity: 0; filter: blur(20px); } }
+
+        /* ===================================================
+           VFX: SYSTEM REBOOT (Magic Block Builder)
+           =================================================== */
+        body.crt-snap { animation: crt-off 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
+        @keyframes crt-off { 
+            0% { transform: scale(1, 1); filter: brightness(1); } 
+            40% { transform: scale(1, 0.005); filter: brightness(5); background: #fff; } 
+            100% { transform: scale(0, 0.005); filter: brightness(10); background: #000; } 
+        }
+
+        body.crt-on { animation: crt-on 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes crt-on { 
+            0% { transform: scale(0, 0.005); filter: brightness(10); } 
+            40% { transform: scale(1, 0.005); filter: brightness(5); } 
+            100% { transform: scale(1, 1); filter: brightness(1); } 
+        }
+
+        /* Hardware Accelerated Magic Block Assembly */
+        body.magic-build .tool-card { animation: block-assemble 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        body.magic-build .tool-card:nth-child(1n) { animation-delay: 0.05s; }
+        body.magic-build .tool-card:nth-child(2n) { animation-delay: 0.15s; }
+        body.magic-build .tool-card:nth-child(3n) { animation-delay: 0.1s; }
+        @keyframes block-assemble {
+            0% { transform: translate3d(0, -100px, 400px) rotateX(45deg); opacity: 0; filter: blur(10px); border-color: #00ff41; box-shadow: 0 0 20px rgba(0,255,65,0.4); }
+            100% { transform: translate3d(0, 0, 0) rotateX(0); opacity: 1; filter: blur(0); }
+        }
+
+        /* ===================================================
+           VFX: DIMENSIONAL DIVE TUNNEL
+           =================================================== */
+        #dimensional-dive { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+        .warp-ring { position: absolute; border-radius: 50%; border: 2px solid #a855f7; box-shadow: 0 0 50px #a855f7, inset 0 0 50px #ec4899; transform: scale(0); opacity: 0; }
+        body.tunnel-active .warp-ring { animation: warp-shoot 0.8s cubic-bezier(0.8, 0, 0.2, 1) forwards; }
+        body.tunnel-active .warp-ring:nth-child(2) { animation-delay: 0.1s; border-color: #22d3ee; box-shadow: 0 0 50px #22d3ee; border-width: 4px; }
+        body.tunnel-active .warp-ring:nth-child(3) { animation-delay: 0.2s; border-color: #ec4899; box-shadow: 0 0 100px #ec4899; border-width: 8px; }
+        @keyframes warp-shoot { 0% { transform: scale(0); opacity: 0; } 50% { opacity: 1; } 100% { transform: scale(12); opacity: 0; } }
+        
+        #burnout-flash { position: fixed; inset: 0; background: #fff; z-index: 100000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease-out; }
     </style>
 </head>
 <body class="flex flex-col min-h-screen relative">
@@ -122,21 +170,41 @@
     <div class="liquid-blob blob-1"></div>
     <div class="liquid-blob blob-2"></div>
 
+    <div id="terminal-overlay">
+        <div class="cyber-window">
+            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-[#a855f7]/30">
+                <div class="w-2.5 h-2.5 bg-[#ec4899] animate-pulse rounded-sm"></div>
+                <span class="text-xs font-mono text-[#ec4899] tracking-[0.2em] font-bold uppercase">System Override</span>
+            </div>
+            
+            <div class="term-body" id="term-body">
+                </div>
+            
+            <div id="term-actions">
+                </div>
+        </div>
+    </div>
+
+    <div id="dimensional-dive">
+        <div class="warp-ring w-64 h-64"></div>
+        <div class="warp-ring w-96 h-96"></div>
+        <div class="warp-ring w-[600px] h-[600px]"></div>
+    </div>
+    <div id="burnout-flash"></div>
+
     <sv-header base-path="."></sv-header>
 
-    <main class="flex-1 flex flex-col w-full">
+    <main class="flex-1 flex flex-col w-full transition-opacity duration-500" id="main-content">
         
         <section class="relative pt-24 md:pt-32 pb-12 px-4 text-center z-10 reveal active">
-            <h1 class="text-4xl md:text-6xl lg:text-7xl font-black text-white tracking-tighter mb-4 leading-tight drop-shadow-lg">
+            <h1 id="hero-title" class="text-4xl md:text-6xl lg:text-7xl font-black text-white tracking-tighter mb-4 leading-tight drop-shadow-lg glitch-target">
                 Local Web Utilities
             </h1>
-            
-            <p class="text-base md:text-lg text-slate-400 max-w-2xl mx-auto mb-10 italic font-medium leading-relaxed">
-                "Simplicity is the ultimate sophistication." <br>
-                <span class="text-sm text-slate-500 not-italic">— Leonardo da Vinci</span>
+            <p id="hero-sub" class="text-base md:text-lg text-slate-400 max-w-2xl mx-auto mb-10 font-medium leading-relaxed glitch-target">
+                A professional suite of client-side operations. We process your data in your browser's active memory, preventing external server exposure.
             </p>
 
-            <div class="max-w-xl mx-auto relative search-wrapper border border-slate-700 rounded-2xl bg-slate-900/60 backdrop-blur-xl flex items-center pr-4 shadow-xl">
+            <div class="max-w-xl mx-auto relative search-wrapper border border-slate-700 rounded-2xl bg-slate-900/60 backdrop-blur-xl flex items-center pr-4 shadow-xl glitch-target" id="hero-search">
                 <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 <input type="text" id="toolSearch" aria-label="Filter directory" placeholder="Search directory..." 
                        class="w-full bg-transparent border-none text-white px-12 py-4 focus:outline-none rounded-2xl placeholder-slate-500 font-mono text-sm"
@@ -147,21 +215,19 @@
             </div>
         </section>
 
-        <section class="w-full border-y border-slate-800/50 bg-[#020617]/50 backdrop-blur-md z-10 reveal" id="marquee-section">
+        <section class="w-full border-y border-slate-800/50 bg-[#020617]/50 backdrop-blur-md z-10 reveal glitch-target" id="marquee-section">
             <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center border-b border-slate-800/30">
-                <h3 class="text-xs font-mono font-bold tracking-widest text-slate-500 uppercase">Featured Modules</h3>
+                <h3 class="text-xs font-mono font-bold tracking-widest text-slate-500 uppercase glitch-target">Featured Modules</h3>
                 <button onclick="document.getElementById('directory').scrollIntoView();" class="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1">
                     View Directory <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </button>
             </div>
             <div class="marquee-wrapper">
-                <div class="marquee-track" id="marquee-track">
-                    </div>
+                <div class="marquee-track" id="marquee-track"></div>
             </div>
         </section>
 
-        <section class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-20 relative z-10" id="directory">
-            
+        <section class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-20 relative z-10 flex-1" id="directory">
             <div id="empty-state" class="hidden absolute inset-0 flex flex-col items-center mt-20 reveal">
                 <div class="w-16 h-16 bg-slate-900 border border-slate-700 rounded-2xl flex items-center justify-center mb-4 text-slate-500 shadow-inner">
                     <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
@@ -172,36 +238,32 @@
             </div>
 
             <div id="skeleton-loader" class="bento-grid w-full">
-                <div class="tool-card w-full"><div class="w-12 h-12 skeleton mb-4 rounded-xl"></div><div class="h-6 skeleton w-3/4 mb-3"></div><div class="h-4 skeleton w-full mb-1"></div><div class="h-4 skeleton w-5/6"></div></div>
-                <div class="tool-card w-full"><div class="w-12 h-12 skeleton mb-4 rounded-xl"></div><div class="h-6 skeleton w-2/3 mb-3"></div><div class="h-4 skeleton w-full mb-1"></div><div class="h-4 skeleton w-4/5"></div></div>
-                <div class="tool-card w-full"><div class="w-12 h-12 skeleton mb-4 rounded-xl"></div><div class="h-6 skeleton w-3/4 mb-3"></div><div class="h-4 skeleton w-full mb-1"></div><div class="h-4 skeleton w-5/6"></div></div>
-                <div class="tool-card w-full"><div class="w-12 h-12 skeleton mb-4 rounded-xl"></div><div class="h-6 skeleton w-1/2 mb-3"></div><div class="h-4 skeleton w-full mb-1"></div><div class="h-4 skeleton w-3/4"></div></div>
+                <div class="tool-card w-full"><div class="w-12 h-12 skeleton mb-4 rounded-xl"></div><div class="h-6 skeleton w-3/4 mb-3"></div><div class="h-4 skeleton w-full mb-1"></div></div>
+                <div class="tool-card w-full"><div class="w-12 h-12 skeleton mb-4 rounded-xl"></div><div class="h-6 skeleton w-2/3 mb-3"></div><div class="h-4 skeleton w-full mb-1"></div></div>
+                <div class="tool-card w-full"><div class="w-12 h-12 skeleton mb-4 rounded-xl"></div><div class="h-6 skeleton w-3/4 mb-3"></div><div class="h-4 skeleton w-full mb-1"></div></div>
             </div>
 
             <div id="grid-container" class="hidden w-full">
                 <div class="mb-20 tool-section reveal" id="sec-business">
-                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-3 uppercase tracking-widest mb-6 font-mono">
+                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-3 uppercase tracking-widest mb-6 font-mono glitch-target">
                         <span class="w-2 h-2 bg-emerald-500 rounded-sm shadow-[0_0_8px_#10b981]"></span> Administrative
                     </h3>
                     <div class="bento-grid" id="grid-business"></div>
                 </div>
-                
                 <div class="mb-20 tool-section reveal" id="sec-hardware">
-                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-3 uppercase tracking-widest mb-6 font-mono">
+                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-3 uppercase tracking-widest mb-6 font-mono glitch-target">
                         <span class="w-2 h-2 bg-purple-500 rounded-sm shadow-[0_0_8px_#a855f7]"></span> Hardware Diagnostics
                     </h3>
                     <div class="bento-grid" id="grid-hardware"></div>
                 </div>
-                
                 <div class="mb-20 tool-section reveal" id="sec-creator">
-                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-3 uppercase tracking-widest mb-6 font-mono">
+                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-3 uppercase tracking-widest mb-6 font-mono glitch-target">
                         <span class="w-2 h-2 bg-red-500 rounded-sm shadow-[0_0_8px_#ef4444]"></span> Media Operations
                     </h3>
                     <div class="bento-grid" id="grid-creator"></div>
                 </div>
-                
                 <div class="mb-20 tool-section reveal" id="sec-dev">
-                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-3 uppercase tracking-widest mb-6 font-mono">
+                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-3 uppercase tracking-widest mb-6 font-mono glitch-target">
                         <span class="w-2 h-2 bg-blue-500 rounded-sm shadow-[0_0_8px_#3b82f6]"></span> Developer Utilities
                     </h3>
                     <div class="bento-grid" id="grid-dev"></div>
@@ -209,36 +271,78 @@
             </div>
         </section>
 
-        <section class="w-full bg-[#020617] border-t border-slate-800/50 py-16 reveal mt-auto">
+        <section class="w-full bg-[#020617] border-t border-slate-800/50 py-16 reveal mt-auto glitch-target" id="seo-article">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <article class="bg-slate-900/30 border border-slate-800 p-8 md:p-12 rounded-3xl seo-content">
-                    <h2>The Standard in Client-Side Digital Operations</h2>
-                    <p>In the modern software landscape, data privacy is frequently compromised in exchange for cloud convenience. Standard web applications require users to transmit sensitive contact registries, internal network passphrases, and precise location coordinates to external servers simply to perform routine utility tasks.</p>
-                    <p><strong>SilenVault</strong> mitigates this security risk entirely. We engineer a comprehensive directory of web utilities that execute 100% on the client-side. Utilizing native HTML5 APIs, local JavaScript engines, and modern browser sandboxing, your data remains strictly within your device's active memory.</p>
-                    
-                    <h3>Static Architecture Implementation</h3>
-                    <p>Our featured modules, including the Enterprise Data Matrix (QR) Generator and Cryptographic Forges, highlight our structural philosophy. A majority of online generation tools utilize "Dynamic" routing architectures. They intercept the user's target parameters, append them to a proprietary tracking server, and generate an asset linked to that server. If the provider experiences downtime or cancels your subscription, the generated asset becomes functionally dead.</p>
-                    <p>SilenVault exclusively compiles <strong>Static Outputs</strong>. Data payloads are mathematically mapped directly into the structural output. This methodology requires zero server maintenance, circumvents third-party analytics tracking, and guarantees the permanent operational validity of your generated assets.</p>
+                    <h2 class="glitch-target">The Standard in Client-Side Digital Operations</h2>
+                    <p class="glitch-target">In the modern software landscape, data privacy is frequently compromised in exchange for cloud convenience.</p>
                 </article>
             </div>
         </section>
-
     </main>
 
-    <sv-footer base-path="."></sv-footer>
+    <sv-footer base-path="." id="main-footer" class="glitch-target"></sv-footer>
+
+    <div id="the-abyss">
+        <div id="abyss-content" class="max-w-2xl text-center opacity-0 transition-opacity duration-1000 px-4">
+            <p class="font-mono text-xs uppercase tracking-[0.3em] mb-6 text-[#a855f7]/50" id="abyss-status">[ SYSTEM BOUNDARY REACHED ]</p>
+            <p class="text-xl md:text-2xl font-serif text-[#d8b4fe] italic font-medium leading-relaxed">
+                "<span id="tomb-s" class="cursor-pointer hover:text-white transition-colors duration-300 px-1">S</span>implicity is the ultimate sophistication." <br>
+                <span class="text-sm text-[#a855f7]/60 not-italic mt-4 block tracking-widest">— Leonardo da <span id="tomb-v" class="cursor-pointer hover:text-white transition-colors duration-300 px-1">V</span>inci</span>
+            </p>
+        </div>
+    </div>
 
     <script>
-        // Keyboard Shortcut Initialization
+        // ----------------------------------------------------
+        // D2 ENCRYPTED PAYLOAD (Concept: External Hydration)
+        // ----------------------------------------------------
+        // We URI Encode the raw HTML to preserve all special characters safely, then Base64 it.
+        // To decrypt safely: decodeURIComponent(atob(payload))
+        const rawD2HTML = `
+            <div class="fixed inset-0 z-[-10]" style="background-color: #06010a; background-image: radial-gradient(circle at 50% 0%, rgba(147, 51, 234, 0.2) 0%, transparent 80%), linear-gradient(rgba(168, 85, 247, 0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(168, 85, 247, 0.15) 1px, transparent 1px); background-size: 100% 100%, 50px 50px, 50px 50px; background-position: center top, center center, center center;"></div>
+            <div class="absolute inset-0 w-full min-h-screen z-50 flex flex-col items-center justify-center px-4" style="animation: d2-arrive 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+                <button onclick="window.location.reload()" class="absolute top-8 left-8 text-xs font-mono text-[#d8b4fe] border border-[#a855f7]/50 bg-[#140523]/70 px-4 py-2 hover:bg-[#a855f7]/20 transition-all uppercase tracking-widest backdrop-blur-md" style="clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);">&lt; System Reboot</button>
+                <div class="text-center mb-10 w-full max-w-5xl px-4 md:px-8 flex flex-col md:flex-row justify-between items-center md:items-end gap-6 mt-16 md:mt-0">
+                    <div class="text-center md:text-left">
+                        <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-[#ec4899]/20 border border-[#ec4899] text-[#ec4899] text-[10px] font-mono tracking-widest uppercase mb-4" style="clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);">
+                            <span class="w-1.5 h-1.5 bg-[#ec4899] animate-ping"></span> Live Schematic
+                        </div>
+                        <h1 class="text-5xl md:text-7xl font-black tracking-tighter text-[#faf5ff] drop-shadow-[0_0_15px_rgba(168,85,247,0.4)]">THE FORGE</h1>
+                    </div>
+                    <div class="text-center md:text-right font-mono text-[#a855f7] text-[10px] md:text-xs opacity-60 leading-relaxed border border-[#a855f7]/30 p-2 bg-[#a855f7]/5">
+                        STATUS: ENCRYPTED<br>UPLINK: SEVERED<br>AUTH: FORGE_SMITH
+                    </div>
+                </div>
+                <div class="grid md:grid-cols-2 gap-6 max-w-5xl w-full px-4 md:px-8">
+                    <div class="p-6 md:p-8 bg-[#0a020f]/80 border border-[#a855f7]/40 border-t-[3px] border-t-[#22d3ee] relative transition-all hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(34,211,238,0.15)] hover:border-[#22d3ee] cursor-pointer backdrop-blur-md" style="clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));">
+                        <h3 class="font-mono text-[#22d3ee] font-bold text-lg md:text-xl mb-3">> HIRE_ARCHITECT.sh</h3>
+                        <p class="text-[#d8b4fe] text-xs md:text-sm leading-relaxed mb-6 font-mono opacity-80">Execute bespoke local-first software engineering protocols. Deploy isolated WebAssembly components.</p>
+                        <button class="bg-[#a855f7]/10 border border-[#a855f7] text-[#a855f7] font-mono text-[10px] md:text-xs uppercase tracking-[0.1em] px-4 py-3 md:px-6 md:py-3 transition-all hover:bg-[#a855f7] hover:text-[#000] hover:shadow-[0_0_20px_#a855f7]" style="clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);">Initialize Request</button>
+                    </div>
+                    <div class="p-6 md:p-8 bg-[#0a020f]/80 border border-[#a855f7]/40 border-t-[3px] border-t-[#ec4899] relative transition-all hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(236,72,153,0.15)] hover:border-[#ec4899] cursor-pointer backdrop-blur-md" style="clip-path: polygon(20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%, 0 20px);">
+                        <h3 class="font-mono text-[#ec4899] font-bold text-lg md:text-xl mb-3">> BLACK_MARKET.exe</h3>
+                        <p class="text-[#d8b4fe] text-xs md:text-sm leading-relaxed mb-6 font-mono opacity-80">Acquire unlisted UI boilerplates, experimental alpha-stage algorithms, and encrypted data modules.</p>
+                        <button class="bg-[#ec4899]/10 border border-[#ec4899] text-[#ec4899] font-mono text-[10px] md:text-xs uppercase tracking-[0.1em] px-4 py-3 md:px-6 md:py-3 transition-all hover:bg-[#ec4899] hover:text-[#000] hover:shadow-[0_0_20px_#ec4899]" style="clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);">Access Registry</button>
+                    </div>
+                </div>
+            </div>
+            <style>@keyframes d2-arrive { 0% { opacity: 0; transform: scale(0.5); filter: blur(20px); } 100% { opacity: 1; transform: scale(1); filter: blur(0); } }</style>
+        `;
+        window.D2_ENCRYPTED_PAYLOAD = btoa(encodeURIComponent(rawD2HTML));
+
+        // ----------------------------------------------------
+        // DIRECTORY RENDERING LOGIC
+        // ----------------------------------------------------
         document.addEventListener('keydown', (e) => {
             if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') || (e.key === '/' && document.activeElement.tagName !== 'INPUT')) {
+                if(isTerminalActive) return;
                 e.preventDefault();
                 const search = document.getElementById('toolSearch');
-                search.focus();
-                search.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if(search) { search.focus(); search.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
             }
         });
 
-        // Intersection Observer for Scrollytelling
         const observerOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
         const observer = new IntersectionObserver((entries, observer) => {
             entries.forEach(entry => {
@@ -249,61 +353,34 @@
             });
         }, observerOptions);
 
-        // Security Gatekeeper Logic
         function isToolPermitted(tool) {
-            if (typeof VaultGatekeeper !== 'undefined' && typeof VaultGatekeeper.isLocked === 'function') {
-                return !VaultGatekeeper.isLocked(tool.link);
-            }
-            if (tool.status === 'blocked' || tool.locked) {
-                return false;
-            }
-            return true;
+            if (typeof VaultGatekeeper !== 'undefined' && typeof VaultGatekeeper.isLocked === 'function') { return !VaultGatekeeper.isLocked(tool.link); }
+            return !(tool.status === 'blocked' || tool.locked);
         }
 
-        // Marquee Initialization Engine
         function initMarquee() {
             const track = document.getElementById('marquee-track');
             const section = document.getElementById('marquee-section');
-            let marqueeHtml = '';
-            let validToolsCount = 0;
-            
+            if(!track || !section) return;
+            let marqueeHtml = ''; let validToolsCount = 0;
             silenVaultTools.forEach(tool => {
                 if (!isToolPermitted(tool)) return;
-                
                 validToolsCount++;
-                marqueeHtml += `
-                    <div class="marquee-item" onclick="window.location.href='${tool.link}'">
-                        <div class="w-12 h-12 shrink-0 ${tool.iconColors} rounded-xl flex items-center justify-center border border-slate-700/50">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="${tool.iconPath.includes('stroke') ? 'none' : 'currentColor'}" viewBox="0 0 24 24" stroke="currentColor">${tool.iconPath}</svg>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <h4 class="text-sm font-bold text-slate-200 truncate">${tool.title}</h4>
-                            <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-0.5">${tool.category}</p>
-                        </div>
-                    </div>
-                `;
+                marqueeHtml += `<div class="marquee-item" onclick="window.location.href='${tool.link}'"><div class="w-12 h-12 shrink-0 ${tool.iconColors} rounded-xl flex items-center justify-center transition-all duration-300 border"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="${tool.iconPath.includes('stroke') ? 'none' : 'currentColor'}" viewBox="0 0 24 24" stroke="currentColor">${tool.iconPath}</svg></div><div class="flex-1 min-w-0"><h4 class="text-sm font-bold text-slate-200 truncate">${tool.title}</h4><p class="text-[10px] text-slate-500 uppercase tracking-widest mt-0.5">${tool.category}</p></div></div>`;
             });
-
-            if (validToolsCount > 0) {
-                track.innerHTML = marqueeHtml + marqueeHtml; 
-            } else {
-                section.style.display = 'none'; 
-            }
+            if (validToolsCount > 0) { track.innerHTML = marqueeHtml + marqueeHtml; } else { section.style.display = 'none'; }
         }
 
-        // Core Rendering Engine for Main Directory Grid
         function renderEngine() {
-            const queryRaw = document.getElementById('toolSearch').value;
+            const searchInput = document.getElementById('toolSearch');
+            if (!searchInput) return;
+            const queryRaw = searchInput.value;
             const query = queryRaw.toLowerCase().trim();
-            let totalFound = 0;
-            const filteredTools = { business: [], hardware: [], creator: [], dev: [] };
-
+            
+            let totalFound = 0; const filteredTools = { business: [], hardware: [], creator: [], dev: [] };
             silenVaultTools.forEach(tool => {
                 if (!query || tool.title.toLowerCase().includes(query) || tool.desc.toLowerCase().includes(query) || (tool.tag && tool.tag.toLowerCase().includes(query))) {
-                    if (filteredTools[tool.category]) {
-                        filteredTools[tool.category].push(tool);
-                        totalFound++;
-                    }
+                    if (filteredTools[tool.category]) { filteredTools[tool.category].push(tool); totalFound++; }
                 }
             });
 
@@ -317,30 +394,17 @@
                 if (!grid || !sec) return; 
 
                 if (filteredTools[category].length === 0) {
-                    sec.style.display = 'none';
-                    grid.innerHTML = ''; 
+                    sec.style.display = 'none'; grid.innerHTML = ''; 
                 } else {
-                    sec.style.display = 'block';
-                    let htmlBuffer = '';
-                    
+                    sec.style.display = 'block'; let htmlBuffer = '';
                     filteredTools[category].forEach((tool) => {
                         const permitted = isToolPermitted(tool);
-                        const lockIcon = !permitted ? `<div class="absolute top-4 right-4 text-slate-500"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg></div>` : '';
-                        const tagHTML = (tool.tag && permitted) ? `<div class="absolute top-4 right-4"><span class="bg-slate-800 text-slate-300 border border-slate-700 text-[9px] font-black px-2 py-1 rounded shadow-sm">${tool.tag}</span></div>` : '';
-                        
-                        const interactionClass = permitted ? 'group hover:border-blue-500 cursor-pointer' : 'opacity-50 cursor-not-allowed';
+                        const lockIcon = !permitted ? `<div class="absolute top-4 right-4 opacity-50 text-slate-500"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg></div>` : '';
+                        const tagHTML = (tool.tag && permitted) ? `<div class="absolute top-4 right-4"><span class="text-[9px] font-black px-2 py-1 rounded shadow-sm bg-[#020617] text-slate-400 border border-slate-700/50">${tool.tag}</span></div>` : '';
+                        const interactionClass = permitted ? 'group cursor-pointer' : 'opacity-50 cursor-not-allowed';
                         const linkAttr = permitted ? `href="${tool.link}"` : `onclick="alert('Access to this module is restricted.')"`;
 
-                        htmlBuffer += `
-                            <a ${linkAttr} class="tool-card block relative transition-all ${interactionClass}">
-                                <div class="w-12 h-12 ${tool.iconColors} rounded-xl flex items-center justify-center mb-5 transition-transform duration-300">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="${tool.iconPath.includes('stroke') ? 'none' : 'currentColor'}" viewBox="0 0 24 24" stroke="currentColor">${tool.iconPath}</svg>
-                                </div>
-                                ${lockIcon}
-                                ${tagHTML}
-                                <h3 class="text-lg font-bold text-white mb-2 font-mono tracking-tight ${permitted ? 'group-hover:text-blue-400' : ''} transition-colors">${tool.title}</h3>
-                                <p class="text-sm text-slate-400 leading-relaxed">${tool.desc}</p>
-                            </a>`;
+                        htmlBuffer += `<a ${linkAttr} class="tool-card relative transition-all ${interactionClass} glitch-target"><div class="w-12 h-12 ${tool.iconColors} rounded-xl flex items-center justify-center mb-5 transition-all duration-300 border"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="${tool.iconPath.includes('stroke') ? 'none' : 'currentColor'}" viewBox="0 0 24 24" stroke="currentColor">${tool.iconPath}</svg></div>${lockIcon} ${tagHTML}<h3 class="text-lg font-bold mb-2 font-mono tracking-tight transition-colors text-slate-100 card-title">${tool.title}</h3><p class="text-sm leading-relaxed text-slate-400">${tool.desc}</p></a>`;
                     });
                     grid.innerHTML = htmlBuffer; 
                 }
@@ -348,28 +412,288 @@
         }
 
         let searchDebounce;
-        function triggerSearch() {
-            clearTimeout(searchDebounce);
-            searchDebounce = setTimeout(renderEngine, 150);
+        function triggerSearch() { clearTimeout(searchDebounce); searchDebounce = setTimeout(renderEngine, 150); }
+
+        // ----------------------------------------------------
+        // VFX: VIRUS CORRUPTION, CYBER TERMINAL & MAGIC REBOOT
+        // ----------------------------------------------------
+        let scrollTicking = false;
+        let isTerminalActive = false;
+        let glitchCssIntervals = []; // Memory-safe interval storage
+
+        window.addEventListener('scroll', () => {
+            if (!scrollTicking && !isTerminalActive) {
+                window.requestAnimationFrame(() => {
+                    const abyssSection = document.getElementById('the-abyss');
+                    const abyssContent = document.getElementById('abyss-content');
+                    if (!abyssSection || !document.contains(abyssSection)) return;
+
+                    const docHeight = document.documentElement.scrollHeight;
+                    const winHeight = window.innerHeight;
+                    const scrollY = window.scrollY;
+                    
+                    if (scrollY > (docHeight - abyssSection.offsetHeight - winHeight + 50)) {
+                        abyssContent.style.opacity = '1';
+                    } else {
+                        abyssContent.style.opacity = '0';
+                    }
+                    scrollTicking = false;
+                });
+                scrollTicking = true;
+            }
+        });
+
+        let sClicked = false;
+        let vaultTimer;
+        const tombS = document.getElementById('tomb-s');
+        const tombV = document.getElementById('tomb-v');
+
+        if(tombS && tombV) {
+            tombS.addEventListener('click', () => {
+                if (isTerminalActive) return;
+                sClicked = true;
+                tombS.style.color = '#a855f7'; 
+                clearTimeout(vaultTimer);
+                vaultTimer = setTimeout(() => { sClicked = false; tombS.style.color = ''; }, 5000); 
+            });
+
+            tombV.addEventListener('click', () => {
+                if (sClicked && !isTerminalActive) {
+                    clearTimeout(vaultTimer);
+                    sClicked = false;
+                    tombV.style.color = '#ec4899'; 
+                    initiateVirusDecay();
+                }
+            });
         }
 
-        // Boot Sequence
+        function initiateVirusDecay() {
+            isTerminalActive = true;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            setTimeout(() => {
+                // Background color shift
+                document.body.classList.add('system-virus');
+
+                // Chaotic Random Chunk Decay applied to DOM elements
+                const elements = document.querySelectorAll('.glitch-target');
+                elements.forEach((el) => {
+                    // Random vector math for structural decay
+                    const transX = Math.random() * 200 - 100;
+                    const transY = Math.random() * 600 + 200;
+                    const rotZ = Math.random() * 90 - 45;
+                    const delay = Math.random() * 1.5;
+                    const duration = 1.5 + Math.random() * 2;
+                    
+                    el.style.transition = `all ${duration}s cubic-bezier(0.55, 0.085, 0.68, 0.53) ${delay}s`;
+                    
+                    // Scramble text randomly if it has text nodes
+                    if(el.children.length === 0 || el.tagName === 'H1' || el.tagName === 'P' || el.tagName === 'H3') {
+                        scrambleTextRandomly(el);
+                    }
+                    
+                    // Execute gravity drop on cards
+                    if (el.classList.contains('tool-card')) {
+                        setTimeout(() => {
+                            el.style.transform = `translate(${transX}px, ${transY}px) rotate(${rotZ}deg) scale(0.6)`;
+                            el.style.opacity = '0';
+                            el.style.filter = `blur(${Math.random() * 10 + 5}px)`;
+                        }, 50);
+                    }
+                });
+
+                // Drop Cyber Glass Terminal after chaos begins
+                setTimeout(triggerTerminal, 2000);
+            }, 800);
+        }
+
+        // Memory-Safe Random Scrambler
+        function scrambleTextRandomly(element) {
+            if(!element) return;
+            const originalText = element.innerText;
+            if(!originalText.trim()) return;
+            
+            element.dataset.original = originalText;
+            const chars = "!<>-_\\\\/[]{}—=+*^?#_01X";
+            let textArr = originalText.split('');
+            let corrupted = [...textArr];
+
+            let glitchId = setInterval(() => {
+                for(let i=0; i<2; i++) {
+                    let idx = Math.floor(Math.random() * corrupted.length);
+                    if(corrupted[idx] !== ' ' && corrupted[idx] !== '\n') {
+                        corrupted[idx] = chars[Math.floor(Math.random() * chars.length)];
+                    }
+                }
+                element.innerText = corrupted.join('');
+            }, 50);
+            
+            glitchCssIntervals.push({id: glitchId, el: element});
+        }
+
+        function triggerTerminal() {
+            const overlay = document.getElementById('terminal-overlay');
+            const termBody = document.getElementById('term-body');
+            const termActions = document.getElementById('term-actions');
+            
+            overlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            setTimeout(() => { 
+                overlay.style.opacity = '1'; 
+                document.body.classList.add('terminal-active');
+            }, 50);
+            
+            const typingSequence = [
+                { text: "> SYSTEM INTEGRITY COMPROMISED", class: "term-highlight" },
+                { text: "> UNAUTHORIZED DOM MANIPULATION DETECTED", class: "text-white" },
+                { text: "> MEMORY ALLOCATION FAILING...", class: "text-white" },
+                { text: "> INITIATING CRYPTO-DISSOLVE PROTOCOL", class: "term-cyan" },
+                { text: "> PROCEED TO THE FORGE? [Y/N]", class: "text-[#faf5ff] font-bold mt-4" }
+            ];
+            
+            termBody.innerHTML = '';
+            termActions.innerHTML = '';
+            let lineIdx = 0;
+            
+            function processNextLine() {
+                if(lineIdx >= typingSequence.length) {
+                    // Inject Interactive Buttons only when typing is finished
+                    termActions.innerHTML = `
+                        <div class="term-input-line">
+                            <button class="term-action-btn" onclick="executeWarp()">Authorize [Y]</button>
+                            <button class="term-action-btn abort" onclick="executeReboot()">Reboot [N]</button>
+                        </div>
+                    `;
+                    window.addEventListener('keydown', handleTerminalInput);
+                    return;
+                }
+                
+                let lineData = typingSequence[lineIdx];
+                let div = document.createElement('div');
+                div.className = lineData.class || '';
+                termBody.appendChild(div);
+                
+                let charIdx = 0;
+                function typeChar() {
+                    if(charIdx < lineData.text.length) {
+                        div.innerHTML += lineData.text.charAt(charIdx);
+                        charIdx++;
+                        setTimeout(typeChar, 10 + Math.random() * 20); // Fast typing
+                    } else {
+                        lineIdx++;
+                        setTimeout(processNextLine, 200); // Pause between lines
+                    }
+                }
+                typeChar();
+            }
+            
+            setTimeout(processNextLine, 600); // Initial delay before typing
+        }
+
+        function handleTerminalInput(e) {
+            const key = e.key.toLowerCase();
+            if (key === 'y' || key === 'n') {
+                window.removeEventListener('keydown', handleTerminalInput);
+                if (key === 'y') executeWarp();
+                else executeReboot();
+            }
+        }
+
+        // --- THE FAST STRUCTURAL REBOOT (MAGIC BUILDER) ---
+        function executeReboot() {
+            window.removeEventListener('keydown', handleTerminalInput);
+            
+            // 1. Wipe Memory (Clear Intervals instantly)
+            glitchCssIntervals.forEach(obj => clearInterval(obj.id));
+            glitchCssIntervals = [];
+
+            // 2. Hide Terminal
+            const overlay = document.getElementById('terminal-overlay');
+            overlay.style.opacity = '0';
+            setTimeout(() => { overlay.classList.add('hidden'); document.body.classList.remove('terminal-active'); }, 300);
+
+            // 3. CRT Snap Off
+            document.body.classList.add('crt-snap');
+            
+            setTimeout(() => {
+                // While screen is dead black, reset the DOM architecture
+                document.body.classList.remove('system-virus', 'crt-snap');
+                
+                const elements = document.querySelectorAll('.glitch-target');
+                elements.forEach((el) => {
+                    // Halt transitions and reset to default
+                    el.style.transition = 'none'; 
+                    el.style.transform = ''; 
+                    el.style.opacity = '1';
+                    el.style.filter = '';
+                    if (el.classList.contains('tool-card')) el.style.borderColor = '';
+                    
+                    // Instantly restore perfect text
+                    if(el.dataset.original) {
+                        el.innerText = el.dataset.original;
+                    }
+                });
+
+                isTerminalActive = false;
+                tombS.style.color = ''; tombV.style.color = '';
+                document.body.style.overflow = '';
+
+                // 4. CRT Snap On + Magic Build 3D Assembly
+                document.body.classList.add('crt-on');
+                document.body.classList.add('magic-build');
+                
+                setTimeout(() => {
+                    document.body.classList.remove('crt-on', 'magic-build');
+                }, 1500);
+
+            }, 300); // Very fast snap
+        }
+
+        function executeWarp() {
+            window.removeEventListener('keydown', handleTerminalInput);
+            document.getElementById('term-actions').innerHTML = ''; // Hide buttons
+            
+            // Change Terminal color to alert warp
+            document.querySelector('.cyber-window').style.borderColor = '#22d3ee';
+            
+            setTimeout(() => {
+                document.body.classList.add('tunnel-active');
+                
+                setTimeout(() => {
+                    const flash = document.getElementById('burnout-flash');
+                    flash.style.opacity = '1';
+                    
+                    // Clear all glitch intervals to free memory
+                    glitchCssIntervals.forEach(obj => clearInterval(obj.id));
+                    
+                    setTimeout(() => {
+                        // Safely Decrypt the Base64 Payload
+                        const decodedPayload = decodeURIComponent(atob(window.D2_ENCRYPTED_PAYLOAD));
+                        document.body.innerHTML = decodedPayload;
+                        document.body.appendChild(flash); // Re-attach flash to fade it out
+                        
+                        setTimeout(() => {
+                            flash.style.opacity = '0';
+                            setTimeout(() => flash.remove(), 500);
+                        }, 150);
+                    }, 150);
+                }, 700); 
+            }, 300); 
+        }
+
+        // Boot
         window.addEventListener('DOMContentLoaded', () => {
             if (typeof silenVaultTools !== 'undefined') {
                 setTimeout(() => {
-                    document.getElementById('skeleton-loader').style.display = 'none';
-                    document.getElementById('grid-container').classList.remove('hidden');
-                    
+                    const skel = document.getElementById('skeleton-loader');
+                    const grid = document.getElementById('grid-container');
+                    if(skel) skel.style.display = 'none';
+                    if(grid) grid.classList.remove('hidden');
                     renderEngine();
                     initMarquee();
-                    
-                    // Attach observers after rendering
-                    document.querySelectorAll('.reveal').forEach((el) => {
-                        observer.observe(el);
-                    });
+                    document.querySelectorAll('.reveal').forEach((el) => { observer.observe(el); });
                 }, 600);
-            } else {
-                console.error("Execution Halt: directory.js dependency null.");
             }
         });
     </script>
