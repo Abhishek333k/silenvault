@@ -69,6 +69,11 @@ class SVHeader extends HTMLElement {
 
         CoreManager.initializeAdNetwork();
 
+        // Check if we are currently on the index or about page to highlight the active link
+        const currentPath = window.location.pathname;
+        const isDirectory = currentPath.includes('index.html') || currentPath === '/' || currentPath === '';
+        const isDocs = currentPath.includes('about.html');
+
         this.innerHTML = `
             <nav class="border-b border-slate-800/80 bg-[#020617]/80 backdrop-blur-xl sticky top-0 z-50 transition-all duration-500">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-20 lg:h-24 flex items-center justify-between transition-all duration-500">
@@ -85,15 +90,15 @@ class SVHeader extends HTMLElement {
                                 <svg id="sv-nav-chevron" class="w-4 h-4 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </button>
 
-                            <div id="sv-nav-dropdown" class="absolute right-0 top-full mt-3 w-64 md:w-72 bg-[#0a0f1d]/95 backdrop-blur-2xl border border-slate-700/80 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] opacity-0 scale-95 pointer-events-none origin-top-right transition-all duration-300 ease-out z-[100] overflow-hidden">
+                            <div id="sv-nav-dropdown" class="absolute left-0 right-0 mt-3 md:left-auto md:right-0 w-full md:w-72 bg-[#0a0f1d]/95 backdrop-blur-2xl border border-slate-700/80 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] opacity-0 scale-95 pointer-events-none origin-top transition-all duration-300 ease-out z-[100] overflow-hidden">
                                 
                                 <div class="p-5 border-b border-slate-800/80">
                                     <h4 class="text-[10px] uppercase tracking-[0.2em] text-blue-500 font-bold mb-3 flex items-center gap-2">
                                         <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span> Core Platform
                                     </h4>
                                     <ul class="space-y-3 text-sm font-medium">
-                                        <li><a href="${basePath}/index.html#directory" class="flex items-center gap-2 text-slate-300 hover:text-white hover:translate-x-1 transition-all"><svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg> Utility Directory</a></li>
-                                        <li><a href="${basePath}/about.html" class="flex items-center gap-2 text-slate-300 hover:text-white hover:translate-x-1 transition-all"><svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Documentation</a></li>
+                                        <li><a href="${basePath}/index.html#directory" class="flex items-center gap-2 transition-all ${isDirectory ? 'text-blue-400 translate-x-1' : 'text-slate-300 hover:text-white hover:translate-x-1'}"><svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg> Utility Directory</a></li>
+                                        <li><a href="${basePath}/about.html" class="flex items-center gap-2 transition-all ${isDocs ? 'text-blue-400 translate-x-1' : 'text-slate-300 hover:text-white hover:translate-x-1'}"><svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Documentation</a></li>
                                     </ul>
                                 </div>
                                 
@@ -123,7 +128,6 @@ class SVHeader extends HTMLElement {
             </nav>
         `;
 
-        // Dropdown Logic Hook
         this.initializeDropdown();
     }
 
