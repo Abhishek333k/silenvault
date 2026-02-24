@@ -4,7 +4,6 @@
  */
 
 const CoreManager = {
-    // Dynamically resolves the absolute path based on the script's execution location
     getAssetPath() {
         const scripts = document.getElementsByTagName('script');
         for (let script of scripts) {
@@ -15,7 +14,6 @@ const CoreManager = {
         return '../assets/js'; 
     },
 
-    // Injects required JS dependencies safely into the DOM
     injectDependency(filename, id, target = document.head) {
         if (document.getElementById(id)) return;
         const script = document.createElement('script');
@@ -25,7 +23,6 @@ const CoreManager = {
         target.appendChild(script);
     },
 
-    // Standardized Analytics Router
     initializeAnalytics() {
         if (document.getElementById('ga-script')) return;
         const gtagScript = document.createElement('script');
@@ -44,7 +41,6 @@ const CoreManager = {
         document.head.appendChild(configScript);
     },
 
-    // Initializes Ad Network globally (Visibility managed by local DOM CSS)
     initializeAdNetwork() {
         if (!document.getElementById('sv-adsense')) {
             const adScript = document.createElement('script');
@@ -75,32 +71,101 @@ class SVHeader extends HTMLElement {
 
         this.innerHTML = `
             <nav class="border-b border-slate-800/80 bg-[#020617]/80 backdrop-blur-xl sticky top-0 z-50 transition-all duration-500">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-20 lg:h-24 flex items-center justify-between transition-all duration-500">
                     
-                    <a href="${basePath}/index.html" class="flex items-center gap-3 transition-transform hover:scale-105 shrink-0">
-                        <img src="${basePath}/assets/img/Banner_with_CREST.webp" alt="SilenVault" class="h-9 w-auto object-contain">
+                    <a href="${basePath}/index.html" class="flex items-center gap-3 transition-transform hover:scale-105 shrink-0 z-50">
+                        <img src="${basePath}/assets/img/Banner_with_CREST.webp" alt="SilenVault" class="h-8 md:h-10 lg:h-12 w-auto object-contain transition-all duration-500">
                     </a>
                     
-                    <div class="flex items-center gap-3 sm:gap-5">
-                        <div class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-400">
-                            <a href="${basePath}/about.html" class="hover:text-white transition-colors">Documentation</a>
-                            <a href="${basePath}/index.html#directory" class="hover:text-white transition-colors">Utility Directory</a>
+                    <div class="flex items-center gap-3 md:gap-5">
+                        
+                        <div class="relative" id="sv-global-nav">
+                            <button id="sv-nav-trigger" class="flex items-center gap-2 text-slate-300 hover:text-white text-sm md:text-base font-bold font-mono tracking-tight transition-all px-3 py-2 md:px-4 md:py-2.5 rounded-xl border border-transparent hover:border-slate-700 hover:bg-slate-800/50">
+                                <span>Menu</span>
+                                <svg id="sv-nav-chevron" class="w-4 h-4 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+
+                            <div id="sv-nav-dropdown" class="absolute right-0 top-full mt-3 w-64 md:w-72 bg-[#0a0f1d]/95 backdrop-blur-2xl border border-slate-700/80 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] opacity-0 scale-95 pointer-events-none origin-top-right transition-all duration-300 ease-out z-[100] overflow-hidden">
+                                
+                                <div class="p-5 border-b border-slate-800/80">
+                                    <h4 class="text-[10px] uppercase tracking-[0.2em] text-blue-500 font-bold mb-3 flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span> Core Platform
+                                    </h4>
+                                    <ul class="space-y-3 text-sm font-medium">
+                                        <li><a href="${basePath}/index.html#directory" class="flex items-center gap-2 text-slate-300 hover:text-white hover:translate-x-1 transition-all"><svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg> Utility Directory</a></li>
+                                        <li><a href="${basePath}/about.html" class="flex items-center gap-2 text-slate-300 hover:text-white hover:translate-x-1 transition-all"><svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Documentation</a></li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="p-5 bg-slate-900/30">
+                                    <h4 class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-3">Compliance</h4>
+                                    <ul class="space-y-3 text-xs font-medium">
+                                        <li><a href="${basePath}/policies/privacy.html" class="block text-slate-400 hover:text-purple-400 transition-colors">Privacy Policy</a></li>
+                                        <li><a href="${basePath}/policies/terms.html" class="block text-slate-400 hover:text-purple-400 transition-colors">Terms of Service</a></li>
+                                    </ul>
+                                </div>
+
+                            </div>
                         </div>
                         
-                        <div class="h-5 w-px bg-slate-800 hidden sm:block mx-1"></div>
+                        <div class="h-6 md:h-8 w-px bg-slate-800 hidden sm:block mx-1"></div>
                         
-                        <a href="${sponsorLink}" class="hidden sm:flex items-center gap-2 text-xs font-bold text-blue-400 border border-blue-500/30 bg-blue-500/10 px-3 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-[0_0_10px_rgba(59,130,246,0.15)]">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        <a href="${sponsorLink}" class="hidden lg:flex items-center gap-2 text-sm font-bold text-blue-400 border border-blue-500/30 bg-blue-500/10 px-5 py-2.5 rounded-xl hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-[0_0_15px_rgba(59,130,246,0.15)]">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                             Sponsor Platform
                         </a>
 
-                        <button onclick="bookmarkSite()" class="bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white p-2 rounded-lg border border-slate-700 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/50" title="Bookmark Application">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                        <button onclick="bookmarkSite()" class="bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white p-2 md:p-3 rounded-xl border border-slate-700 transition-all shadow-inner focus:outline-none focus:ring-2 focus:ring-blue-500/50" title="Bookmark Application">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
                         </button>
                     </div>
                 </div>
             </nav>
         `;
+
+        // Dropdown Logic Hook
+        this.initializeDropdown();
+    }
+
+    initializeDropdown() {
+        const trigger = this.querySelector('#sv-nav-trigger');
+        const dropdown = this.querySelector('#sv-nav-dropdown');
+        const chevron = this.querySelector('#sv-nav-chevron');
+        let isOpen = false;
+
+        const toggleMenu = () => {
+            isOpen = !isOpen;
+            if (isOpen) {
+                dropdown.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+                dropdown.classList.add('opacity-100', 'scale-100', 'pointer-events-auto');
+                chevron.classList.add('rotate-180');
+                trigger.classList.add('bg-slate-800/80', 'border-slate-700');
+            } else {
+                dropdown.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
+                dropdown.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
+                chevron.classList.remove('rotate-180');
+                trigger.classList.remove('bg-slate-800/80', 'border-slate-700');
+            }
+        };
+
+        trigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleMenu();
+        });
+
+        // Close when clicking outside
+        document.addEventListener('click', (e) => {
+            if (isOpen && !this.querySelector('#sv-global-nav').contains(e.target)) {
+                toggleMenu();
+            }
+        });
+
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isOpen) {
+                toggleMenu();
+            }
+        });
     }
 }
 
