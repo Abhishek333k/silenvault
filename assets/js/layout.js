@@ -44,16 +44,6 @@ const CoreManager = {
         document.head.appendChild(configScript);
     },
 
-    // Standardizes graphical tab icons
-    initializeFavicon(basePath) {
-        document.querySelectorAll("link[rel~='icon']").forEach(el => el.remove());
-        const favicon = document.createElement('link');
-        favicon.rel = 'icon';
-        favicon.type = 'image/png';
-        favicon.href = `${basePath}/assets/img/SILENVAULT_CREST.png`;
-        document.head.appendChild(favicon);
-    },
-
     // Initializes Ad Network globally (Visibility managed by local DOM CSS)
     initializeAdNetwork() {
         if (!document.getElementById('sv-adsense')) {
@@ -71,11 +61,6 @@ const CoreManager = {
 CoreManager.initializeAnalytics();
 CoreManager.injectDependency('vault_gatekeeper.js', 'sv-security-module');
 
-window.addEventListener('DOMContentLoaded', () => {
-    // Defer audio telemetry injection to prevent DOM render blocking
-    CoreManager.injectDependency('covert_beacon.js', 'sv-telemetry-module', document.body);
-});
-
 
 /* ==========================================================================
    WEB COMPONENTS (HEADER & FOOTER)
@@ -86,11 +71,10 @@ class SVHeader extends HTMLElement {
         const basePath = this.getAttribute('base-path') || '.';
         const sponsorLink = `${basePath}/donate.html`; 
 
-        CoreManager.initializeFavicon(basePath);
         CoreManager.initializeAdNetwork();
 
         this.innerHTML = `
-            <nav class="border-b border-slate-800/80 bg-[#020617]/80 backdrop-blur-xl sticky top-0 z-50">
+            <nav class="border-b border-slate-800/80 bg-[#020617]/80 backdrop-blur-xl sticky top-0 z-50 transition-all duration-500">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                     
                     <a href="${basePath}/index.html" class="flex items-center gap-3 transition-transform hover:scale-105 shrink-0">
@@ -153,7 +137,7 @@ class SVFooter extends HTMLElement {
                             <h4 class="text-white font-bold mb-5 text-sm uppercase tracking-wider">Infrastructure</h4>
                             <ul class="space-y-3 text-sm text-slate-500 font-medium">
                                 <li><a href="${basePath}/about.html" class="hover:text-blue-400 transition-colors">Documentation</a></li>
-                                <li><a href="${basePath}/index.html" class="hover:text-blue-400 transition-colors">Utility Directory</a></li>
+                                <li><a href="${basePath}/index.html#directory" class="hover:text-blue-400 transition-colors">Utility Directory</a></li>
                                 <li><a href="${sponsorLink}" class="hover:text-blue-400 transition-colors">Server Maintenance Fund</a></li>
                             </ul>
                         </div>
@@ -170,8 +154,6 @@ class SVFooter extends HTMLElement {
                     
                     <div class="border-t border-slate-800/50 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
                         <p class="text-slate-500 font-medium">&copy; ${new Date().getFullYear()} SilenVault. All rights reserved.</p>
-                        
-                        <p class="text-slate-400 italic font-serif text-sm">"Simplicity is the ultimate sophistication." — Leonardo da Vinci</p>
                         
                         <div class="flex items-center gap-2 text-slate-500 font-mono tracking-tight">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_#10b981]"></span>
@@ -191,7 +173,7 @@ customElements.define('sv-footer', SVFooter);
    GLOBAL UTILITIES
    ========================================================================== */
 
-// Smart Bookmark Interface
+// Smart Bookmark Interface (Hardware Accelerated Glass Toast)
 window.bookmarkSite = function() {
     const isMac = /Mac/i.test(navigator.userAgent);
     const hotkey = isMac ? 'Cmd + D' : 'Ctrl + D';
@@ -200,8 +182,7 @@ window.bookmarkSite = function() {
 
     const toast = document.createElement('div');
     toast.id = 'sv-toast';
-    toast.className = "fixed bottom-6 right-6 bg-slate-900 border border-slate-700 text-white px-5 py-4 rounded-xl shadow-2xl z-[100] flex items-center gap-4 cursor-pointer";
-    // Hardware-accelerated smooth slide in
+    toast.className = "fixed bottom-6 right-6 bg-slate-900/90 backdrop-blur-md border border-slate-700 text-white px-5 py-4 rounded-xl shadow-2xl z-[100] flex items-center gap-4 cursor-pointer";
     toast.style.transform = "translateY(100px)";
     toast.style.opacity = "0";
     toast.style.transition = "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
@@ -218,7 +199,6 @@ window.bookmarkSite = function() {
     
     document.body.appendChild(toast);
     
-    // Trigger animation frame
     requestAnimationFrame(() => {
         toast.style.transform = "translateY(0)";
         toast.style.opacity = "1";
@@ -234,14 +214,14 @@ window.bookmarkSite = function() {
     setTimeout(removeToast, 6000);
 };
 
-// Ad Network Visibility Controller (Hides empty slots natively)
+// Ad Network Visibility Controller
 document.addEventListener("DOMContentLoaded", () => {
     const adObserver = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             if (mutation.type === "attributes" && mutation.attributeName === "data-ad-status") {
                 const ins = mutation.target;
                 if (ins.getAttribute("data-ad-status") === "filled" || ins.innerHTML.includes('iframe')) {
-                    const container = ins.closest('#sidebar-ad-wrapper') || ins.closest('.smart-ad-unit');
+                    const container = ins.closest('.smart-ad-unit');
                     if (container) {
                         container.classList.remove('hidden');
                         setTimeout(() => container.classList.add('opacity-100'), 100);
@@ -252,7 +232,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.querySelectorAll('ins.adsbygoogle').forEach((ins) => {
-        const container = ins.closest('#sidebar-ad-wrapper') || ins.closest('.smart-ad-unit');
+        const container = ins.closest('.smart-ad-unit');
         if (container && !container.classList.contains('smart-ad-unit-initialized')) {
             container.classList.add('hidden', 'opacity-0', 'transition-opacity', 'duration-1000', 'smart-ad-unit-initialized');
         }
