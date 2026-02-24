@@ -70,7 +70,7 @@
             background: rgba(30, 41, 59, 0.3); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); 
             border: 1px solid rgba(51, 65, 85, 0.4); border-radius: 1rem; padding: 1.5rem; 
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            position: relative; overflow: hidden; display: flex; flex-direction: column;
+            position: relative; overflow: hidden; display: flex; flex-direction: column; height: 100%;
         }
         .tool-card::before {
             content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
@@ -108,6 +108,11 @@
 
         .skeleton { background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%); background-size: 200% 100%; animation: loadingPulse 1.5s infinite; border-radius: 0.5rem; }
         @keyframes loadingPulse { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* SEO Section Styling */
+        .seo-section h2 { font-size: 1.75rem; font-weight: 800; color: #f8fafc; margin-bottom: 1rem; border-bottom: 1px solid #1e293b; padding-bottom: 0.5rem; }
+        .seo-section h3 { font-size: 1.25rem; font-weight: 700; color: #e2e8f0; margin-top: 2rem; margin-bottom: 0.75rem; }
+        .seo-section p { color: #94a3b8; line-height: 1.7; margin-bottom: 1.25rem; }
     </style>
 </head>
 <body class="flex flex-col min-h-screen relative">
@@ -155,7 +160,7 @@
             </div>
         </section>
 
-        <section class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-20 relative z-10 flex-1" id="directory">
+        <section class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-20 relative z-10" id="directory">
             
             <div id="empty-state" class="hidden absolute inset-0 flex flex-col items-center mt-20 reveal">
                 <div class="w-16 h-16 bg-slate-900 border border-slate-700 rounded-2xl flex items-center justify-center mb-4 text-slate-500 shadow-inner">
@@ -166,13 +171,14 @@
                 <button onclick="document.getElementById('toolSearch').value=''; triggerSearch();" class="mt-6 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-lg border border-slate-600 transition-all">Clear Parameters</button>
             </div>
 
-            <div id="skeleton-loader" class="bento-grid">
-                <div class="tool-card"><div class="w-12 h-12 skeleton mb-4 rounded-xl"></div><div class="h-6 skeleton w-3/4 mb-3"></div><div class="h-4 skeleton w-full mb-1"></div><div class="h-4 skeleton w-5/6"></div></div>
-                <div class="tool-card"><div class="w-12 h-12 skeleton mb-4 rounded-xl"></div><div class="h-6 skeleton w-2/3 mb-3"></div><div class="h-4 skeleton w-full mb-1"></div><div class="h-4 skeleton w-4/5"></div></div>
-                <div class="tool-card"><div class="w-12 h-12 skeleton mb-4 rounded-xl"></div><div class="h-6 skeleton w-3/4 mb-3"></div><div class="h-4 skeleton w-full mb-1"></div><div class="h-4 skeleton w-5/6"></div></div>
+            <div id="skeleton-loader" class="bento-grid w-full">
+                <div class="tool-card w-full"><div class="w-12 h-12 skeleton mb-4 rounded-xl"></div><div class="h-6 skeleton w-3/4 mb-3"></div><div class="h-4 skeleton w-full mb-1"></div><div class="h-4 skeleton w-5/6"></div></div>
+                <div class="tool-card w-full"><div class="w-12 h-12 skeleton mb-4 rounded-xl"></div><div class="h-6 skeleton w-2/3 mb-3"></div><div class="h-4 skeleton w-full mb-1"></div><div class="h-4 skeleton w-4/5"></div></div>
+                <div class="tool-card w-full"><div class="w-12 h-12 skeleton mb-4 rounded-xl"></div><div class="h-6 skeleton w-3/4 mb-3"></div><div class="h-4 skeleton w-full mb-1"></div><div class="h-4 skeleton w-5/6"></div></div>
+                <div class="tool-card w-full"><div class="w-12 h-12 skeleton mb-4 rounded-xl"></div><div class="h-6 skeleton w-1/2 mb-3"></div><div class="h-4 skeleton w-full mb-1"></div><div class="h-4 skeleton w-3/4"></div></div>
             </div>
 
-            <div id="grid-container" class="hidden">
+            <div id="grid-container" class="hidden w-full">
                 <div class="mb-20 tool-section reveal" id="sec-business">
                     <h3 class="text-sm font-bold text-slate-300 flex items-center gap-3 uppercase tracking-widest mb-6 font-mono">
                         <span class="w-2 h-2 bg-emerald-500 rounded-sm shadow-[0_0_8px_#10b981]"></span> Administrative
@@ -200,6 +206,20 @@
                     </h3>
                     <div class="bento-grid" id="grid-dev"></div>
                 </div>
+            </div>
+        </section>
+
+        <section class="w-full bg-[#020617] border-t border-slate-800/50 py-16 reveal mt-auto">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <article class="bg-slate-900/30 border border-slate-800 p-8 md:p-12 rounded-3xl seo-content">
+                    <h2>The Standard in Client-Side Digital Operations</h2>
+                    <p>In the modern software landscape, data privacy is frequently compromised in exchange for cloud convenience. Standard web applications require users to transmit sensitive contact registries, internal network passphrases, and precise location coordinates to external servers simply to perform routine utility tasks.</p>
+                    <p><strong>SilenVault</strong> mitigates this security risk entirely. We engineer a comprehensive directory of web utilities that execute 100% on the client-side. Utilizing native HTML5 APIs, local JavaScript engines, and modern browser sandboxing, your data remains strictly within your device's active memory.</p>
+                    
+                    <h3>Static Architecture Implementation</h3>
+                    <p>Our featured modules, including the Enterprise Data Matrix (QR) Generator and Cryptographic Forges, highlight our structural philosophy. A majority of online generation tools utilize "Dynamic" routing architectures. They intercept the user's target parameters, append them to a proprietary tracking server, and generate an asset linked to that server. If the provider experiences downtime or cancels your subscription, the generated asset becomes functionally dead.</p>
+                    <p>SilenVault exclusively compiles <strong>Static Outputs</strong>. Data payloads are mathematically mapped directly into the structural output. This methodology requires zero server maintenance, circumvents third-party analytics tracking, and guarantees the permanent operational validity of your generated assets.</p>
+                </article>
             </div>
         </section>
 
@@ -231,11 +251,9 @@
 
         // Security Gatekeeper Logic
         function isToolPermitted(tool) {
-            // Check against Vault Gatekeeper if available
             if (typeof VaultGatekeeper !== 'undefined' && typeof VaultGatekeeper.isLocked === 'function') {
                 return !VaultGatekeeper.isLocked(tool.link);
             }
-            // Check inherent properties
             if (tool.status === 'blocked' || tool.locked) {
                 return false;
             }
@@ -250,7 +268,6 @@
             let validToolsCount = 0;
             
             silenVaultTools.forEach(tool => {
-                // Do not display blocked tools in the scroller
                 if (!isToolPermitted(tool)) return;
                 
                 validToolsCount++;
@@ -268,9 +285,9 @@
             });
 
             if (validToolsCount > 0) {
-                track.innerHTML = marqueeHtml + marqueeHtml; // Duplicate for seamless infinite scroll
+                track.innerHTML = marqueeHtml + marqueeHtml; 
             } else {
-                section.style.display = 'none'; // Hide entirely if everything is blocked
+                section.style.display = 'none'; 
             }
         }
 
@@ -316,7 +333,7 @@
 
                         htmlBuffer += `
                             <a ${linkAttr} class="tool-card block relative transition-all ${interactionClass}">
-                                <div class="w-12 h-12 ${tool.iconColors} rounded-xl flex items-center justify-center mb-5 border border-slate-700/50 ${permitted ? 'group-hover:scale-110' : ''} transition-transform duration-300">
+                                <div class="w-12 h-12 ${tool.iconColors} rounded-xl flex items-center justify-center mb-5 transition-transform duration-300">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="${tool.iconPath.includes('stroke') ? 'none' : 'currentColor'}" viewBox="0 0 24 24" stroke="currentColor">${tool.iconPath}</svg>
                                 </div>
                                 ${lockIcon}
