@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Code Generator | Free & Private | SilenVault</title>
-    <meta name="description" content="Generate high-resolution, static QR codes locally. Create QR codes for URLs, Wi-Fi networks, vCard contacts, WhatsApp, and exact map locations.">
+    <title>QR Code Generator | Static & Private</title>
+    <meta name="description" content="Generate high-resolution, static QR codes locally. Encode URLs, Wi-Fi, Events, Crypto, and Locations with custom frames, gradients, and strict privacy.">
+    <meta name="keywords" content="qr code generator, free qr code maker, wifi qr code, event qr code, crypto qr code, qr code with frame, qr gradient, static qr code, vcard generator">
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5449371042798610" crossorigin="anonymous"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <script src="../assets/js/layout.js" defer></script>
     
     <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
@@ -28,23 +29,22 @@
         select.input-sv { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em; padding-right: 2.5rem; cursor: pointer; }
         select.input-sv option { background-color: #0f172a; color: #f8fafc; }
 
-        .tab-btn { flex: 1 1 calc(25% - 0.5rem); min-width: 80px; padding: 0.75rem; font-size: 0.75rem; font-weight: 600; text-align: center; border-radius: 0.5rem; transition: all 0.2s; color: #64748b; border: 1px solid #1e293b; background: #0f172a; cursor: pointer; }
+        /* Responsive Tab Grid */
+        .tab-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 0.5rem; }
+        .tab-btn { padding: 0.6rem; font-size: 0.7rem; font-weight: 700; text-align: center; border-radius: 0.5rem; transition: all 0.2s; color: #64748b; border: 1px solid #1e293b; background: #0f172a; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; }
         .tab-btn:hover { background: #1e293b; color: #94a3b8; }
         .tab-btn.active { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.3); }
 
-        .theme-btn { font-size: 0.65rem; font-weight: 700; padding: 0.4rem 0.8rem; border-radius: 0.25rem; background: #1e293b; color: #cbd5e1; transition: all 0.2s; cursor: pointer; border: 1px solid #334155; text-transform: uppercase; letter-spacing: 0.05em; }
+        .theme-btn { font-size: 0.65rem; font-weight: 700; padding: 0.4rem 0.8rem; border-radius: 0.25rem; background: #1e293b; color: #cbd5e1; transition: all 0.2s; cursor: pointer; border: 1px solid #334155; text-transform: uppercase; letter-spacing: 0.05em; flex: 1; text-align: center; }
         .theme-btn:hover { border-color: #3b82f6; color: #f8fafc; }
 
-        input[type="color"] { -webkit-appearance: none; border: none; width: 40px; height: 40px; border-radius: 8px; cursor: pointer; background: none; padding: 0; }
+        input[type="color"] { -webkit-appearance: none; border: none; width: 36px; height: 36px; border-radius: 6px; cursor: pointer; background: none; padding: 0; }
         input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-        input[type="color"]::-webkit-color-swatch { border: 1px solid #334155; border-radius: 8px; }
+        input[type="color"]::-webkit-color-swatch { border: 1px solid #334155; border-radius: 6px; }
         
-        /* * FIX 1: Flawless QR Canvas constraints. 
-         * Forces the generated canvas to fit naturally without leaking or adding harsh white boxes. 
-         */
-        #qr-container { display: flex; align-items: center; justify-content: center; width: 280px; height: 280px; margin: 0 auto; border-radius: 1rem; overflow: hidden; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); }
-        #qr-container canvas { width: 100% !important; height: 100% !important; display: block; }
-        
+        /* Flawless Canvas Logic */
+        #qr-container { display: flex; align-items: center; justify-content: center; width: 100%; aspect-ratio: 1/1; overflow: hidden; border-radius: 0.5rem; background: #ffffff; }
+        #qr-container canvas { width: 100% !important; height: 100% !important; display: block; object-fit: contain; }
         .density-bar { transition: width 0.3s ease, background-color 0.3s ease; }
         
         /* Leaflet Map Overrides */
@@ -52,8 +52,6 @@
         .leaflet-control-zoom a, .leaflet-control-layers { background: #0f172a !important; color: #94a3b8 !important; border: 1px solid #334155 !important; border-radius: 0.5rem !important; }
         .leaflet-control-zoom a:hover { color: #f8fafc !important; background: #1e293b !important; }
         .leaflet-control-layers-expanded { padding: 10px !important; background: #0f172a !important; color: #cbd5e1 !important; border: 1px solid #334155 !important; border-radius: 0.5rem !important; }
-        
-        /* FIX 2: Brutal override to permanently hide the map attribution text */
         .leaflet-bottom { display: none !important; }
 
         /* Search Autocomplete */
@@ -62,132 +60,168 @@
         .suggestion-item:last-child { border-bottom: none; }
         .suggestion-item:hover { background: #1e293b; color: #3b82f6; }
         .suggestion-loading { padding: 0.75rem 1rem; font-size: 0.75rem; color: #64748b; font-style: italic; }
+
+        /* Deep SEO Styling */
+        .seo-section h2 { color: #f8fafc; font-size: 2rem; font-weight: 800; margin-bottom: 1.5rem; letter-spacing: -0.025em; border-bottom: 1px solid #1e293b; padding-bottom: 0.75rem; }
+        .seo-section h3 { color: #e2e8f0; font-size: 1.25rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem; }
+        .seo-section p { color: #94a3b8; line-height: 1.7; margin-bottom: 1rem; font-size: 0.95rem; }
+        .seo-section ul, .seo-section ol { color: #94a3b8; margin-left: 1.5rem; margin-bottom: 1.5rem; line-height: 1.7; font-size: 0.95rem; }
+        .seo-section li { margin-bottom: 0.75rem; }
+        .seo-section strong { color: #cbd5e1; font-weight: 600; }
+        .seo-card { background: rgba(15, 23, 42, 0.4); border: 1px solid #1e293b; border-radius: 1rem; padding: 2rem; margin-bottom: 1.5rem; }
+        .seo-card dt { font-weight: 700; color: #f8fafc; margin-top: 1rem; }
+        .seo-card dd { margin-left: 1rem; margin-top: 0.25rem; color: #94a3b8; line-height: 1.6; }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
 
     <sv-header base-path=".."></sv-header>
 
-    <main class="flex-1 w-full px-4 md:px-8 py-10 max-w-6xl mx-auto">
+    <main class="flex-1 w-full px-4 md:px-8 py-10 max-w-7xl mx-auto">
         
         <header class="mb-8">
             <h1 class="text-3xl font-bold text-white tracking-tight">QR Code Generator</h1>
-            <p class="text-sm text-slate-400 mt-2">Generate codes for standard data types locally in your browser.</p>
+            <p class="text-sm text-slate-400 mt-2">Generate standard data matrices and composite frames locally.</p>
         </header>
 
         <div class="grid lg:grid-cols-12 gap-8">
             <div class="lg:col-span-8 space-y-6">
                 
                 <div class="glass-panel p-4 rounded-2xl shadow-xl">
-                    <label class="label-sv mb-3 uppercase tracking-wider text-xs">Select Encoding Method</label>
-                    <div class="flex flex-wrap gap-2">
-                        <button onclick="setMode('url')" id="btn-url" class="tab-btn active">Link / URL</button>
+                    <label class="label-sv mb-3 uppercase tracking-wider text-xs">Encoding Protocol</label>
+                    <div class="tab-grid">
+                        <button onclick="setMode('url')" id="btn-url" class="tab-btn active">URL</button>
                         <button onclick="setMode('text')" id="btn-text" class="tab-btn">Text</button>
                         <button onclick="setMode('wifi')" id="btn-wifi" class="tab-btn">Wi-Fi</button>
                         <button onclick="setMode('vcard')" id="btn-vcard" class="tab-btn">Contact</button>
                         <button onclick="setMode('whatsapp')" id="btn-whatsapp" class="tab-btn">WhatsApp</button>
                         <button onclick="setMode('email')" id="btn-email" class="tab-btn">Email</button>
                         <button onclick="setMode('sms')" id="btn-sms" class="tab-btn">SMS</button>
-                        <button onclick="setMode('geo')" id="btn-geo" class="tab-btn">Location Map</button>
+                        <button onclick="setMode('geo')" id="btn-geo" class="tab-btn">Location</button>
+                        <button onclick="setMode('event')" id="btn-event" class="tab-btn text-emerald-400 border-emerald-500/20">Event</button>
+                        <button onclick="setMode('crypto')" id="btn-crypto" class="tab-btn text-orange-400 border-orange-500/20">Crypto</button>
                     </div>
                 </div>
 
                 <div class="glass-panel rounded-2xl p-6 shadow-xl border-slate-700 min-h-[220px]">
+                    
                     <div id="panel-url" class="data-panel">
-                        <label class="label-sv">Website URL</label>
+                        <label class="label-sv">URI Destination</label>
                         <input type="url" id="in-url" class="input-sv font-mono" placeholder="https://www.example.com">
-                        <span class="helper-sv">Standard web link. Scanning opens the device's default web browser.</span>
                     </div>
 
                     <div id="panel-text" class="data-panel hidden">
-                        <label class="label-sv">Plain Text Data</label>
-                        <textarea id="in-text" class="input-sv min-h-[120px]" placeholder="Type notes, serial numbers, or data here..."></textarea>
-                        <span class="helper-sv">Standard text encoding. Scanning displays the text on the user's screen.</span>
+                        <label class="label-sv">Plain Text Payload</label>
+                        <textarea id="in-text" class="input-sv min-h-[120px]" placeholder="Enter string data..."></textarea>
                     </div>
 
                     <div id="panel-wifi" class="data-panel hidden grid md:grid-cols-2 gap-5">
-                        <div class="md:col-span-2"><label class="label-sv">Network Name (SSID)</label><input type="text" id="in-wifi-ssid" class="input-sv" placeholder="Your Wi-Fi Name"></div>
-                        <div><label class="label-sv">Password</label><input type="text" id="in-wifi-pass" class="input-sv font-mono" placeholder="Network Password"></div>
-                        <div><label class="label-sv">Security Protocol</label><select id="in-wifi-type" class="input-sv"><option value="WPA">WPA / WPA2 (Most Common)</option><option value="WEP">WEP</option><option value="nopass">None</option></select></div>
-                        <div class="md:col-span-2 flex items-center gap-2 mt-1"><input type="checkbox" id="in-wifi-hidden" class="w-4 h-4 rounded bg-[#020617] border-slate-600 focus:ring-blue-500"><label for="in-wifi-hidden" class="text-xs text-slate-300">Hidden Network (SSID Broadcast Disabled)</label></div>
+                        <div class="md:col-span-2"><label class="label-sv">Network SSID</label><input type="text" id="in-wifi-ssid" class="input-sv" placeholder="Network Name"></div>
+                        <div><label class="label-sv">Network Password</label><input type="text" id="in-wifi-pass" class="input-sv font-mono" placeholder="Password"></div>
+                        <div><label class="label-sv">Authentication Layer</label><select id="in-wifi-type" class="input-sv"><option value="WPA">WPA / WPA2</option><option value="WEP">WEP</option><option value="nopass">None</option></select></div>
+                        <div class="md:col-span-2 flex items-center gap-2 mt-1"><input type="checkbox" id="in-wifi-hidden" class="w-4 h-4 rounded bg-[#020617] border-slate-600 focus:ring-blue-500"><label for="in-wifi-hidden" class="text-xs text-slate-300">Disable SSID Broadcast (Hidden Network)</label></div>
                     </div>
 
                     <div id="panel-vcard" class="data-panel hidden grid md:grid-cols-2 gap-5">
-                        <div><label class="label-sv">First Name</label><input type="text" id="in-vc-fn" class="input-sv" placeholder="Jane"></div>
-                        <div><label class="label-sv">Last Name</label><input type="text" id="in-vc-ln" class="input-sv" placeholder="Doe"></div>
-                        <div><label class="label-sv">Company</label><input type="text" id="in-vc-org" class="input-sv" placeholder="Company Name"></div>
-                        <div><label class="label-sv">Job Title</label><input type="text" id="in-vc-title" class="input-sv" placeholder="Title"></div>
-                        <div><label class="label-sv">Phone Number</label><input type="tel" id="in-vc-tel" class="input-sv font-mono" placeholder="+1 (555) 000-0000"></div>
-                        <div><label class="label-sv">Email Address</label><input type="email" id="in-vc-em" class="input-sv font-mono" placeholder="jane@example.com"></div>
-                        <div class="md:col-span-2"><label class="label-sv">Website URL</label><input type="url" id="in-vc-url" class="input-sv font-mono" placeholder="https://example.com"></div>
+                        <div><label class="label-sv">First Name</label><input type="text" id="in-vc-fn" class="input-sv"></div>
+                        <div><label class="label-sv">Last Name</label><input type="text" id="in-vc-ln" class="input-sv"></div>
+                        <div><label class="label-sv">Organization</label><input type="text" id="in-vc-org" class="input-sv"></div>
+                        <div><label class="label-sv">Job Title</label><input type="text" id="in-vc-title" class="input-sv"></div>
+                        <div><label class="label-sv">Phone Number</label><input type="tel" id="in-vc-tel" class="input-sv font-mono"></div>
+                        <div><label class="label-sv">Email Address</label><input type="email" id="in-vc-em" class="input-sv font-mono"></div>
+                        <div class="md:col-span-2"><label class="label-sv">Website URI</label><input type="url" id="in-vc-url" class="input-sv font-mono"></div>
                     </div>
 
                     <div id="panel-whatsapp" class="data-panel hidden space-y-4">
-                        <div><label class="label-sv">WhatsApp Phone Number</label><input type="tel" id="in-wa-phone" class="input-sv font-mono" placeholder="+1234567890 (Include country code)"></div>
-                        <div><label class="label-sv">Pre-filled Message (Optional)</label><textarea id="in-wa-msg" class="input-sv min-h-[80px]" placeholder="Hello, I'm interested in your services."></textarea></div>
+                        <div><label class="label-sv">WhatsApp Identifier</label><input type="tel" id="in-wa-phone" class="input-sv font-mono" placeholder="+1234567890"></div>
+                        <div><label class="label-sv">Message Parameter</label><textarea id="in-wa-msg" class="input-sv min-h-[80px]"></textarea></div>
                     </div>
 
                     <div id="panel-email" class="data-panel hidden space-y-4">
-                        <div><label class="label-sv">Recipient Email</label><input type="email" id="in-em-to" class="input-sv font-mono" placeholder="support@example.com"></div>
-                        <div><label class="label-sv">Subject Line</label><input type="text" id="in-em-sub" class="input-sv" placeholder="Support Inquiry"></div>
+                        <div><label class="label-sv">Recipient Target</label><input type="email" id="in-em-to" class="input-sv font-mono"></div>
+                        <div><label class="label-sv">Subject String</label><input type="text" id="in-em-sub" class="input-sv"></div>
                     </div>
 
                     <div id="panel-sms" class="data-panel hidden space-y-4">
-                        <div><label class="label-sv">Phone Number</label><input type="tel" id="in-sms-to" class="input-sv font-mono" placeholder="+1234567890"></div>
-                        <div><label class="label-sv">Message Text</label><textarea id="in-sms-msg" class="input-sv min-h-[80px]" placeholder="Type message..."></textarea></div>
+                        <div><label class="label-sv">Phone Number Target</label><input type="tel" id="in-sms-to" class="input-sv font-mono" placeholder="+1234567890"></div>
+                        <div><label class="label-sv">Message Body String</label><textarea id="in-sms-msg" class="input-sv min-h-[80px]"></textarea></div>
                     </div>
 
                     <div id="panel-geo" class="data-panel hidden space-y-4 relative">
                         <div class="flex justify-between items-end mb-1">
-                            <label class="label-sv m-0">Search Location (Address or Business)</label>
-                            <button onclick="getUserLocation()" id="btn-locate" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-[10px] uppercase font-bold tracking-wider px-3 py-1.5 rounded flex items-center gap-1 transition-colors">
-                                <svg class="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.242-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Locate Me
-                            </button>
+                            <label class="label-sv m-0">Coordinate Mapping</label>
+                            <button onclick="getUserLocation()" id="btn-locate" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-[10px] uppercase font-bold tracking-wider px-3 py-1.5 rounded flex items-center gap-1 transition-colors">Poll Device Sensor</button>
                         </div>
-                        <div class="relative">
-                            <input type="text" id="in-geo-search" class="input-sv" placeholder="e.g., Central Park, NY">
-                            <ul id="geo-suggestions" class="suggestion-list"></ul>
-                        </div>
+                        <div class="relative"><input type="text" id="in-geo-search" class="input-sv" placeholder="Query Address..."><ul id="geo-suggestions" class="suggestion-list"></ul></div>
                         <div class="w-full h-[250px] border border-slate-700 relative z-0" id="map-container"></div>
                         <div class="grid grid-cols-2 gap-4">
-                            <div><label class="label-sv">Latitude</label><input type="number" id="in-geo-lat" class="input-sv font-mono text-xs" step="0.000001" value="40.7128"></div>
-                            <div><label class="label-sv">Longitude</label><input type="number" id="in-geo-lng" class="input-sv font-mono text-xs" step="0.000001" value="-74.0060"></div>
+                            <div><label class="label-sv">Latitude (Y)</label><input type="number" id="in-geo-lat" class="input-sv font-mono text-xs" step="0.000001" value="40.7128"></div>
+                            <div><label class="label-sv">Longitude (X)</label><input type="number" id="in-geo-lng" class="input-sv font-mono text-xs" step="0.000001" value="-74.0060"></div>
                         </div>
                     </div>
+
+                    <div id="panel-event" class="data-panel hidden grid md:grid-cols-2 gap-5">
+                        <div class="md:col-span-2"><label class="label-sv text-emerald-400">Event Summary</label><input type="text" id="in-ev-title" class="input-sv"></div>
+                        <div><label class="label-sv text-emerald-400">Start Timestamp</label><input type="datetime-local" id="in-ev-start" class="input-sv text-slate-300"></div>
+                        <div><label class="label-sv text-emerald-400">End Timestamp</label><input type="datetime-local" id="in-ev-end" class="input-sv text-slate-300"></div>
+                        <div class="md:col-span-2"><label class="label-sv text-emerald-400">Location String</label><input type="text" id="in-ev-loc" class="input-sv"></div>
+                    </div>
+
+                    <div id="panel-crypto" class="data-panel hidden grid md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="label-sv text-orange-400">Ledger Protocol</label>
+                            <select id="in-cr-type" class="input-sv">
+                                <option value="bitcoin">Bitcoin (BTC)</option>
+                                <option value="ethereum">Ethereum (ETH)</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2"><label class="label-sv text-orange-400">Wallet Public Address</label><input type="text" id="in-cr-addr" class="input-sv font-mono text-sm"></div>
+                        <div><label class="label-sv text-orange-400">Amount Request (Optional)</label><input type="number" id="in-cr-amt" class="input-sv font-mono" step="0.0001"></div>
+                    </div>
+
                 </div>
 
                 <div class="glass-panel rounded-2xl p-6 shadow-xl border-slate-700">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 border-b border-slate-800 pb-4 gap-4">
-                        <label class="label-sv m-0 uppercase tracking-wider text-xs">Visual Configuration</label>
-                        <div class="flex flex-wrap gap-2">
-                            <button onclick="applyTheme('standard')" class="theme-btn">Minimal</button>
-                            <button onclick="applyTheme('corporate')" class="theme-btn text-blue-300 border-blue-500/30">Corporate</button>
-                            <button onclick="applyTheme('darkmode')" class="theme-btn text-yellow-400 border-yellow-500/30">Dark Mode</button>
-                            <button onclick="applyTheme('soft')" class="theme-btn text-pink-400 border-pink-500/30">Soft</button>
+                        <label class="label-sv m-0 uppercase tracking-wider text-xs text-blue-400">Matrix Configuration & Styling</label>
+                        <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                            <button onclick="applyTheme('standard')" class="theme-btn">Standard</button>
+                            <button onclick="applyTheme('blue')" class="theme-btn text-blue-300 border-blue-500/30">Rounded Blue</button>
+                            <button onclick="applyTheme('gradient')" class="theme-btn text-purple-400 border-purple-500/30">Gradient Map</button>
+                            <button onclick="applyTheme('high-contrast')" class="theme-btn text-rose-400 border-rose-500/30">High Contrast</button>
                         </div>
                     </div>
 
-                    <div class="grid md:grid-cols-3 gap-6">
+                    <div class="grid md:grid-cols-3 gap-8">
                         <div class="space-y-4">
                             <div>
-                                <label class="text-[10px] text-slate-500 font-bold mb-1 block">Data Color (Pixels)</label>
-                                <div class="flex items-center gap-3 bg-[#020617] p-1.5 rounded-lg border border-slate-800">
-                                    <input type="color" id="cfg-fg" value="#000000">
-                                    <span id="hex-fg" class="text-xs font-mono text-slate-300">#000000</span>
-                                </div>
+                                <label class="text-[10px] text-slate-500 font-bold mb-1 block">Module Fill Mode</label>
+                                <select id="cfg-color-mode" class="input-sv py-2 text-xs">
+                                    <option value="solid">Solid Hex Color</option>
+                                    <option value="gradient">Linear Gradient</option>
+                                </select>
                             </div>
-                            <div>
-                                <label class="text-[10px] text-slate-500 font-bold mb-1 block">Background Color</label>
-                                <div class="flex items-center gap-3 bg-[#020617] p-1.5 rounded-lg border border-slate-800">
-                                    <input type="color" id="cfg-bg" value="#ffffff">
-                                    <span id="hex-bg" class="text-xs font-mono text-slate-300">#FFFFFF</span>
-                                </div>
+                            
+                            <div id="wrap-solid" class="flex items-center gap-3 bg-[#020617] p-2 rounded-lg border border-slate-800">
+                                <input type="color" id="cfg-fg" value="#000000">
+                                <span class="text-[10px] font-bold text-slate-400">Module Color</span>
+                            </div>
+
+                            <div id="wrap-grad" class="hidden flex items-center justify-between gap-2 bg-[#020617] p-2 rounded-lg border border-slate-800">
+                                <input type="color" id="cfg-fg-start" value="#3b82f6">
+                                <span class="text-xs text-slate-500 font-bold">→</span>
+                                <input type="color" id="cfg-fg-end" value="#8b5cf6">
+                            </div>
+
+                            <div class="flex items-center gap-3 bg-[#020617] p-2 rounded-lg border border-slate-800">
+                                <input type="color" id="cfg-bg" value="#ffffff">
+                                <span class="text-[10px] font-bold text-slate-400">Background Color</span>
                             </div>
                         </div>
 
                         <div class="space-y-4">
                             <div>
-                                <label class="text-[10px] text-slate-500 font-bold mb-1 block">Matrix Pattern</label>
+                                <label class="text-[10px] text-slate-500 font-bold mb-1 block">Data Module Shape</label>
                                 <select id="cfg-dots" class="input-sv py-2 text-xs">
                                     <option value="square">Standard Squares</option>
                                     <option value="dots">Dots</option>
@@ -196,7 +230,7 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="text-[10px] text-slate-500 font-bold mb-1 block">Corner Markers</label>
+                                <label class="text-[10px] text-slate-500 font-bold mb-1 block">Position Marker Shape</label>
                                 <select id="cfg-corners" class="input-sv py-2 text-xs">
                                     <option value="square">Square</option>
                                     <option value="dot">Circular</option>
@@ -206,139 +240,190 @@
                         </div>
 
                         <div class="flex flex-col h-full">
-                            <label class="text-[10px] text-slate-500 font-bold mb-1 block">Center Logo Upload</label>
-                            <div class="border-2 border-dashed border-slate-600 rounded-xl p-3 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-500/5 transition-all relative overflow-hidden flex-1 flex items-center justify-center bg-[#020617] min-h-[80px]" id="logo-drop">
+                            <label class="text-[10px] text-slate-500 font-bold mb-1 block">Center Image Overlay</label>
+                            <div class="border-2 border-dashed border-slate-600 rounded-xl p-3 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-500/5 transition-all relative overflow-hidden flex-1 flex items-center justify-center bg-[#020617] min-h-[70px]" id="logo-drop">
                                 <div class="z-10 flex flex-col items-center gap-1" id="logo-text">
                                     <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                                    <span class="text-[10px] text-slate-400 font-medium">Drop Image</span>
+                                    <span class="text-[10px] text-slate-400 font-medium">Upload File</span>
                                 </div>
                                 <input type="file" id="logo-input" accept="image/png, image/jpeg, image/svg+xml" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
                                 <img id="logo-preview" class="absolute inset-0 w-full h-full object-contain p-2 hidden z-10 bg-[#020617]" />
                             </div>
-                            <button id="clear-logo" class="text-[10px] text-rose-500 hover:text-rose-400 mt-2 hidden uppercase tracking-widest font-bold w-full text-center">✕ Remove Logo</button>
+                            <div id="logo-options" class="hidden mt-2 flex items-center justify-between">
+                                <div class="flex items-center gap-1">
+                                    <input type="checkbox" id="cfg-logo-mask" checked class="w-3 h-3 rounded bg-[#020617] border-slate-600">
+                                    <label for="cfg-logo-mask" class="text-[9px] text-slate-400">Clear Space Behind Logo</label>
+                                </div>
+                                <button id="clear-logo" class="text-[9px] text-rose-500 hover:text-rose-400 uppercase tracking-widest font-bold">Remove</button>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="glass-panel rounded-2xl p-6 shadow-xl border-slate-700">
-                    <label class="label-sv uppercase tracking-wider text-xs mb-4">Export Parameters</label>
-                    <div class="grid grid-cols-2 gap-6">
+                    <div class="mt-6 pt-6 border-t border-slate-800">
+                        <label class="label-sv uppercase tracking-wider text-xs mb-3 text-purple-400">Canvas Frame Compositing</label>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label class="text-[10px] text-slate-500 font-bold mb-1 block">Frame Alignment</label>
+                                <select id="cfg-frame" class="input-sv py-2 text-xs">
+                                    <option value="none">No Frame Overlay</option>
+                                    <option value="bottom">Text Bottom Append</option>
+                                    <option value="top">Text Top Append</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-500 font-bold mb-1 block">Action Text String</label>
+                                <input type="text" id="cfg-frame-text" class="input-sv py-2 text-xs font-bold" value="SCAN ME">
+                            </div>
+                            <div class="flex gap-2">
+                                <div class="flex-1">
+                                    <label class="text-[10px] text-slate-500 font-bold mb-1 block">Frame Color</label>
+                                    <input type="color" id="cfg-frame-bg" value="#3b82f6" class="w-full h-[34px] rounded border border-slate-700">
+                                </div>
+                                <div class="flex-1">
+                                    <label class="text-[10px] text-slate-500 font-bold mb-1 block">Text Color</label>
+                                    <input type="color" id="cfg-frame-fg" value="#ffffff" class="w-full h-[34px] rounded border border-slate-700">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-6 border-t border-slate-800 grid grid-cols-2 gap-6">
                         <div>
-                            <label class="text-[10px] text-slate-500 font-bold mb-1 block">Target Resolution</label>
+                            <label class="text-[10px] text-slate-500 font-bold mb-1 block">Export Render Resolution</label>
                             <select id="cfg-size" class="input-sv py-2 text-xs">
-                                <option value="500">500px (Web Embedded)</option>
-                                <option value="1000" selected>1000px (Standard Print)</option>
-                                <option value="2000">2000px (Large Format)</option>
-                                <option value="4000">4000px (Billboard)</option>
+                                <option value="500">500px (Screen Standard)</option>
+                                <option value="1000" selected>1000px (Print Standard)</option>
+                                <option value="2000">2000px (High Density Print)</option>
+                                <option value="4000">4000px (Large Format / Billboard)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="text-[10px] text-slate-500 font-bold mb-1 block">Error Correction Level</label>
+                            <label class="text-[10px] text-slate-500 font-bold mb-1 block">Reed-Solomon Error Correction Level</label>
                             <select id="cfg-level" class="input-sv py-2 text-xs">
-                                <option value="L">Low (Best for simple links)</option>
-                                <option value="M">Medium (Standard durability)</option>
-                                <option value="Q">High (Recommended if using a Logo)</option>
-                                <option value="H" selected>Maximum (For dense data or rough prints)</option>
+                                <option value="L">Level L (7% Data Recovery)</option>
+                                <option value="M">Level M (15% Data Recovery)</option>
+                                <option value="Q">Level Q (25% Data Recovery)</option>
+                                <option value="H" selected>Level H (30% Data Recovery)</option>
                             </select>
                         </div>
                     </div>
                 </div>
-
             </div>
 
             <div class="lg:col-span-4 space-y-6">
                 <div class="glass-panel p-6 rounded-2xl border-slate-700 flex flex-col items-center shadow-2xl lg:sticky lg:top-6">
-                    <label class="label-sv w-full mb-6 border-b border-slate-800 pb-3 uppercase tracking-wider">Output Render</label>
+                    <label class="label-sv w-full mb-4 border-b border-slate-800 pb-3 uppercase tracking-wider">Canvas Preview</label>
                     
-                    <div class="mb-8 w-full flex justify-center">
-                        <div id="qr-container"></div>
+                    <div class="mb-6 w-full flex justify-center">
+                        <div id="qr-frame-wrapper" class="p-3 rounded-2xl flex flex-col items-center justify-center transition-all duration-300 w-full max-w-[280px]">
+                            <div id="frame-text-top" class="hidden font-black text-center tracking-widest uppercase mb-3 text-sm">SCAN ME</div>
+                            <div id="qr-container" class="shadow-lg"></div>
+                            <div id="frame-text-bottom" class="hidden font-black text-center tracking-widest uppercase mt-3 text-sm">SCAN ME</div>
+                        </div>
+                    </div>
+
+                    <div id="validation-warning" class="w-full hidden mb-4 bg-rose-500/10 border border-rose-500/50 rounded-lg p-3 text-xs text-rose-400 font-medium flex gap-2">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        <span id="validation-text">Validation Warning</span>
                     </div>
 
                     <div class="w-full mb-6 bg-[#020617] p-3 rounded-lg border border-slate-800">
                         <div class="flex justify-between items-end mb-1.5">
-                            <label class="text-[10px] font-bold text-slate-400">Data Complexity</label>
+                            <label class="text-[10px] font-bold text-slate-400">Data Matrix Density</label>
                             <span id="density-label" class="text-[10px] font-mono text-emerald-500">Optimal</span>
                         </div>
                         <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
                             <div id="density-bar" class="density-bar h-full bg-emerald-500 w-[5%]"></div>
                         </div>
-                        <p id="density-helper" class="text-[9px] text-slate-500 mt-2 leading-relaxed">Lower complexity ensures instant scanning on older phones.</p>
                     </div>
 
-                    <button onclick="downloadImage()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-sm tracking-wide">
+                    <button onclick="downloadCompositeImage()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-sm tracking-wide">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                        Download High-Res PNG
+                        Export PNG Payload
                     </button>
                 </div>
             </div>
         </div>
 
-        <article class="mt-20 glass-panel rounded-2xl p-8 md:p-12 border-slate-800 text-slate-300">
-            <header class="mb-10 text-center md:text-left border-b border-slate-800 pb-6">
-                <h2 class="text-3xl font-bold text-white mb-3">How to Use the Free QR Code Generator</h2>
-                <p class="text-slate-400 leading-relaxed max-w-3xl">
-                    Welcome to the definitive tool for generating secure, static QR codes. This application operates entirely within your web browser, ensuring absolute privacy for your sensitive data. Below is a comprehensive guide on how to configure and deploy QR codes for your business, printed materials, or personal use.
-                </p>
-            </header>
+        <article class="mt-20 seo-section">
+            <h2>The Ultimate Guide to QR Code Generation & Technical Standards</h2>
+            
+            <p>Welcome to the definitive platform for building professional, enterprise-grade Data Matrix Codes (QR codes) without hidden subscription fees or tracking redirects. Our <strong>static QR code generator</strong> runs the encoding and drawing pipeline entirely within your local browser using HTML5 Canvas APIs. This ensures your sensitive business data, personal contact information, and cryptographic addresses are never processed by external servers.</p>
 
-            <div class="grid md:grid-cols-2 gap-12 text-sm leading-relaxed">
-                <div>
-                    <h3 class="text-xl font-bold text-slate-100 mb-4 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                        Step-by-Step Instructions
-                    </h3>
-                    <ol class="list-decimal list-outside ml-4 space-y-4 text-slate-400">
-                        <li><strong class="text-slate-200">Select an Encoding Method:</strong> Choose the type of data you want to share from the top navigation tabs. Options include basic website links, Wi-Fi login credentials, digital business cards (vCard), or map locations.</li>
-                        <li><strong class="text-slate-200">Input Your Data:</strong> Fill out the required fields in the input panel. As you type, the QR code on the right will update instantaneously.</li>
-                        <li><strong class="text-slate-200">Customize the Design:</strong> Adjust the QR Pixel Color, Matrix Patterns, and Center Logo to match your brand guidelines. Ensure high contrast between the foreground and background.</li>
-                        <li><strong class="text-slate-200">Set Output Parameters:</strong> Select your desired export resolution. Use <code class="bg-slate-900 px-1 rounded text-blue-400">1000px</code> for standard printing, or <code class="bg-slate-900 px-1 rounded text-blue-400">500px</code> for digital embedding.</li>
-                        <li><strong class="text-slate-200">Download:</strong> Click the "Download High-Res PNG" button to securely save the finalized image to your device.</li>
-                    </ol>
+            <div class="grid md:grid-cols-2 gap-8 mt-10">
+                <div class="seo-card">
+                    <h3>Understanding QR Code Anatomy</h3>
+                    <p>A Quick Response (QR) code is a two-dimensional barcode. To generate highly scannable assets, it is crucial to understand the structural components that optical smartphone sensors look for.</p>
+                    
+                    
+                    
+                    <dl class="mt-4 space-y-4">
+                        <dt>Position Markers (Finder Patterns)</dt>
+                        <dd>The three large squares located at the corners of the code. These inform the scanning camera about the orientation and boundaries of the matrix, allowing codes to be scanned upside down or at steep angles.</dd>
+                        
+                        <dt>Alignment Patterns</dt>
+                        <dd>Smaller squares scattered throughout larger codes. They help the scanner compensate for physical distortions, such as scanning a code printed on a curved bottle or folded fabric.</dd>
+                        
+                        <dt>Data Modules</dt>
+                        <dd>The individual pixels (dots or squares) that encode the binary payload.</dd>
+                        
+                        <dt>The Quiet Zone</dt>
+                        <dd>A mandatory blank margin surrounding the entire matrix. Without this empty space, a scanner cannot differentiate the QR code from surrounding graphics or text on a printed page. Our engine automatically pads every export with standard-compliant quiet zones.</dd>
+                    </dl>
                 </div>
 
-                <div>
-                    <h3 class="text-xl font-bold text-slate-100 mb-4 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
-                        Understanding Data Protocols
-                    </h3>
-                    <p class="mb-4 text-slate-400">When a smartphone scans a QR matrix, it looks for specific text strings (URIs) to trigger native applications. Here is how our generator formats your data:</p>
-                    <ul class="space-y-4 text-slate-400">
-                        <li class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
-                            <strong class="text-white block mb-1">Wi-Fi Networks</strong>
-                            Encodes the <code class="text-xs text-blue-400">WIFI:T:WPA;S:Network;P:Pass;;</code> protocol to automatically join routers.
-                        </li>
-                        <li class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
-                            <strong class="text-white block mb-1">Location / Maps</strong>
-                            Uses the interactive mapping engine to extract Latitude and Longitude, formatting it so scanning opens Google Maps or Apple Maps with a dropped pin.
-                        </li>
-                        <li class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
-                            <strong class="text-white block mb-1">Contact (vCard)</strong>
-                            Generates a <code class="text-xs text-blue-400">BEGIN:VCARD</code> payload. Scanning populates the user's address book instantly.
-                        </li>
+                <div class="seo-card">
+                    <h3>The Mathematics of Error Correction</h3>
+                    <p>QR codes utilize the <strong>Reed-Solomon Error Correction Algorithm</strong>, a mathematical system originally developed for deep-space communication. This adds redundant data layers to the matrix, allowing a scanner to reconstruct the original payload even if the physical print is severely damaged, torn, or obstructed by a center logo.</p>
+                    
+                    
+                    
+                    <ul class="mt-4">
+                        <li><strong>Level L (7% Recovery):</strong> Ideal for minimal payloads (like short URLs). Creates a highly sparse, clean-looking matrix that is very fast to scan but highly vulnerable to physical damage.</li>
+                        <li><strong>Level M (15% Recovery):</strong> The baseline standard for digital displays and general marketing collateral.</li>
+                        <li><strong>Level Q (25% Recovery):</strong> Recommended for industrial environments where the print may be exposed to weathering or minor smudging.</li>
+                        <li><strong>Level H (30% Recovery):</strong> The maximum redundancy tier. This level is absolutely mandatory if you are injecting a custom graphic overlay (Logo) into the center of the code, as the logo physically destroys the data modules beneath it.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="seo-card">
+                    <h3>Detailed Data Protocol Specifications</h3>
+                    <p>While standard barcodes only store serial numbers, 2D QR matrices support complex Uniform Resource Identifiers (URIs). When formatted correctly, scanning triggers deep-linked native applications on iOS and Android devices.</p>
+                    <ul>
+                        <li><strong>Wi-Fi Networks:</strong> Implements the <code>WIFI:T:WPA;S:[SSID];P:[PASS];;</code> protocol. Bypasses the need for users to manually enter complex WPA2 passwords.</li>
+                        <li><strong>vCard (RFC 6350):</strong> Encodes a standard <code>BEGIN:VCARD</code> data block containing metadata for Name, Title, Organization, and Telephony routing. Triggers a direct "Save Contact" prompt on mobile OS address books.</li>
+                        <li><strong>iCalendar (RFC 5545):</strong> Structures a <code>BEGIN:VCALENDAR</code> event payload. Parses DateTime strings allowing users to seamlessly add conference sessions or appointments to their native scheduling applications.</li>
+                        <li><strong>Geolocation (geo: URI):</strong> Connects directly to satellite and commercial POI databases. Encodes exact Latitude/Longitude strings to drop highly accurate location pins in Google Maps or Apple Maps.</li>
+                        <li><strong>Cryptocurrency (BIP 21):</strong> Adheres to standard blockchain URI structures (e.g., <code>bitcoin:</code>) to automatically populate digital wallet applications, preventing catastrophic manual entry errors during ledger transfers.</li>
                     </ul>
                 </div>
 
-                <div>
-                    <h3 class="text-xl font-bold text-slate-100 mb-4 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                        Privacy & "Static" Code Guarantee
-                    </h3>
-                    <p class="text-slate-400 mb-4">A major hazard in the industry is the use of <strong>Dynamic QR Codes</strong>. Many free generators intercept your target link, replace it with their own tracking URL, and hold your code hostage behind a monthly subscription fee.</p>
-                    <p class="text-slate-400 p-4 border-l-2 border-purple-500 bg-purple-500/5 rounded-r-lg">
-                        This tool generates <strong>100% Static QR Codes</strong>. Because there are no external tracking servers involved, the codes generated here will <strong>never expire</strong> and cost absolutely nothing to maintain. Generation happens locally in your HTML5 Canvas, ensuring complete data privacy.
-                    </p>
+                <div class="seo-card">
+                    <h3>Static Architectures vs. Dynamic Tracking</h3>
+                    <p>When selecting a QR generation platform for business, the distinction between Static and Dynamic encoding is critical for compliance and privacy.</p>
+                    
+                    <h4 class="text-white mt-4 mb-2 font-bold">The "Dynamic" Subscription Trap</h4>
+                    <p>Many commercial generators deploy <em>Dynamic QR Codes</em>. Instead of encoding your target data, they encode a proprietary short-link (e.g., <code>qr.tracker.com/1a2b</code>) hosted on their servers. When a user scans the code, they hit the provider's server, allowing the provider to log their IP, location, and device type before redirecting to your actual destination.</p>
+                    <p>While useful for marketing analytics, this introduces massive risk. If your subscription to the provider lapses, or their servers suffer an outage, the redirect breaks, and every physical asset you have printed becomes a dead link.</p>
+                    
+                    <h4 class="text-white mt-4 mb-2 font-bold">The Static Guarantee</h4>
+                    <p>This generator exclusively engineers <strong>Static QR Codes</strong>. Your raw data payload is mapped directly into the binary matrix pattern. Because the routing requires no intermediary servers, the asset functions identically to a standard barcode. Static codes process instantly, guarantee complete user privacy, require zero server maintenance, and will mathematically never expire.</p>
                 </div>
-
-                <div>
-                    <h3 class="text-xl font-bold text-slate-100 mb-4 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                        Scannability & Data Density
-                    </h3>
-                    <p class="text-slate-400 mb-4">Pay attention to the <strong>Data Complexity Meter</strong>. The more text or data you put into the code (such as a full vCard), the smaller the individual pixels must become to fit inside the square.</p>
-                    <p class="text-slate-400">
-                        <strong>Pro Tip:</strong> Use the <strong>Error Correction</strong> dropdown to increase reliability. Setting Error Correction to "Maximum" adds redundant mathematical data to the matrix. This allows the code to still be read even if up to 30% of the image is torn, covered by a logo, or printed on a rough surface.
-                    </p>
-                </div>
+            </div>
+            
+            <div class="seo-card mt-8">
+                <h3 class="mt-0">Professional Printing & Scannability Guidelines</h3>
+                <p>Ensure your exported graphical assets perform flawlessly in the physical world by adhering to these technical pre-press guidelines:</p>
+                
+                
+                
+                <ul class="mt-4">
+                    <li><strong>Contrast Ratios:</strong> Optical scanners require high contrast between the background and the data modules. Always utilize dark modules on a light background. Inverting this (light pixels on a dark background) will cause failure on a majority of legacy scanning hardware.</li>
+                    <li><strong>Minimum Sizing:</strong> Do not print a QR code smaller than 1 x 1 inch (2.5 x 2.5 cm). If encoding high-density data (such as a complete vCard payload), the minimum print size must be increased proportionally to prevent pixel bleeding during the CMYK printing process.</li>
+                    <li><strong>Canvas Compositing:</strong> Our integrated Frame Composer utilizes HTML5 Canvas math to render your CTA ("Call to Action") frame simultaneously with the code generation. This ensures that the typography, quiet zones, and matrix scale synchronously without rasterization artifacts during export.</li>
+                </ul>
             </div>
         </article>
 
@@ -351,11 +436,16 @@
             panels: document.querySelectorAll('.data-panel'),
             tabs: document.querySelectorAll('.tab-btn'),
             container: document.getElementById('qr-container'),
-            density: { bar: document.getElementById('density-bar'), label: document.getElementById('density-label'), helper: document.getElementById('density-helper') },
+            density: { bar: document.getElementById('density-bar'), label: document.getElementById('density-label') },
+            validation: { box: document.getElementById('validation-warning'), text: document.getElementById('validation-text') },
+            frame: { wrap: document.getElementById('qr-frame-wrapper'), top: document.getElementById('frame-text-top'), bot: document.getElementById('frame-text-bottom') },
             cfg: { 
-                fg: document.getElementById('cfg-fg'), bg: document.getElementById('cfg-bg'), 
+                mode: document.getElementById('cfg-color-mode'),
+                fg: document.getElementById('cfg-fg'), fgStart: document.getElementById('cfg-fg-start'), fgEnd: document.getElementById('cfg-fg-end'), bg: document.getElementById('cfg-bg'), 
                 size: document.getElementById('cfg-size'), level: document.getElementById('cfg-level'),
-                dots: document.getElementById('cfg-dots'), corners: document.getElementById('cfg-corners')
+                dots: document.getElementById('cfg-dots'), corners: document.getElementById('cfg-corners'),
+                fMode: document.getElementById('cfg-frame'), fText: document.getElementById('cfg-frame-text'), fBk: document.getElementById('cfg-frame-bg'), fFg: document.getElementById('cfg-frame-fg'),
+                logoMask: document.getElementById('cfg-logo-mask')
             },
             fields: {
                 url: document.getElementById('in-url'), text: document.getElementById('in-text'),
@@ -364,7 +454,9 @@
                 wa_phone: document.getElementById('in-wa-phone'), wa_msg: document.getElementById('in-wa-msg'),
                 em_to: document.getElementById('in-em-to'), em_sub: document.getElementById('in-em-sub'),
                 sms_to: document.getElementById('in-sms-to'), sms_msg: document.getElementById('in-sms-msg'),
-                geo_lat: document.getElementById('in-geo-lat'), geo_lng: document.getElementById('in-geo-lng')
+                geo_lat: document.getElementById('in-geo-lat'), geo_lng: document.getElementById('in-geo-lng'),
+                ev_title: document.getElementById('in-ev-title'), ev_start: document.getElementById('in-ev-start'), ev_end: document.getElementById('in-ev-end'), ev_loc: document.getElementById('in-ev-loc'),
+                cr_type: document.getElementById('in-cr-type'), cr_addr: document.getElementById('in-cr-addr'), cr_amt: document.getElementById('in-cr-amt')
             }
         };
 
@@ -372,39 +464,27 @@
         let uploadedLogo = "";
         let map, marker;
         
-        // FIX 1: Exact UI matching canvas size to prevent "Massive Eye" cropping bug
-        const qrEngine = new QRCodeStyling({
-            width: 280, 
-            height: 280, 
-            type: "canvas", 
-            data: "https://silenvault.com",
-            margin: 10, // Natural quiet zone padding
-            imageOptions: { crossOrigin: "anonymous", margin: 8, imageSize: 0.3 }
-        });
+        const qrEngine = new QRCodeStyling({ width: 260, height: 260, type: "canvas", data: "https://www.example.com", margin: 10, imageOptions: { crossOrigin: "anonymous", margin: 8, imageSize: 0.3, hideBackgroundDots: true }});
         qrEngine.append(DOM.container);
+
+        DOM.cfg.mode.addEventListener('change', (e) => {
+            if(e.target.value === 'solid') { document.getElementById('wrap-solid').classList.remove('hidden'); document.getElementById('wrap-grad').classList.add('hidden'); }
+            else { document.getElementById('wrap-solid').classList.add('hidden'); document.getElementById('wrap-grad').classList.remove('hidden'); document.getElementById('wrap-grad').style.display = 'flex'; }
+            debouncedRender();
+        });
 
         // --- MAP ENGINE ---
         function initMap() {
             if (map) { map.invalidateSize(); return; }
-            
             map = L.map('map-container', { attributionControl: false }).setView([40.7128, -74.0060], 13);
-            
             const satelliteImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 });
             const satelliteLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 });
-            const satelliteHybrid = L.layerGroup([satelliteImagery, satelliteLabels]);
+            const satelliteHybrid = L.layerGroup([satelliteImagery, satelliteLabels]).addTo(map);
             const standardLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 });
             const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 });
-
-            satelliteHybrid.addTo(map);
-
-            L.control.layers({
-                "Satellite Map": satelliteHybrid,
-                "Standard Map": standardLayer,
-                "Dark Mode": darkLayer
-            }, null, {position: 'topright'}).addTo(map);
+            L.control.layers({ "Satellite (Default)": satelliteHybrid, "Standard Map": standardLayer, "Dark Mode": darkLayer }, null, {position: 'topright'}).addTo(map);
 
             marker = L.marker([40.7128, -74.0060], {draggable: true}).addTo(map);
-
             marker.on('dragend', () => { const p = marker.getLatLng(); DOM.fields.geo_lat.value = p.lat.toFixed(6); DOM.fields.geo_lng.value = p.lng.toFixed(6); debouncedRender(); });
             map.on('click', (e) => { marker.setLatLng(e.latlng); DOM.fields.geo_lat.value = e.latlng.lat.toFixed(6); DOM.fields.geo_lng.value = e.latlng.lng.toFixed(6); debouncedRender(); });
         }
@@ -420,10 +500,10 @@
             }
         }
 
+        // --- GEOCODING ENGINE ---
         const searchInput = document.getElementById('in-geo-search');
         const suggestionsList = document.getElementById('geo-suggestions');
         let searchTimeout;
-
         searchInput.addEventListener('input', (e) => {
             clearTimeout(searchTimeout); const query = e.target.value.trim();
             if(query.length < 4) { suggestionsList.style.display = 'none'; return; }
@@ -460,47 +540,40 @@
         });
         document.addEventListener('click', (e) => { if(e.target !== searchInput) suggestionsList.style.display = 'none'; });
 
-        // --- THEME ENGINE ---
+        // --- PRESET ENGINE ---
         function applyTheme(theme) {
             const presets = {
-                standard: { fg: "#000000", bg: "#ffffff", dots: "square", corners: "square" },
-                corporate: { fg: "#1e3a8a", bg: "#f8fafc", dots: "rounded", corners: "extra-rounded" },
-                darkmode: { fg: "#fde047", bg: "#09090b", dots: "classy", corners: "square" },
-                soft: { fg: "#ec4899", bg: "#fdf2f8", dots: "dots", corners: "dot" }
+                standard: { m: 'solid', fg: "#000000", bg: "#ffffff", dots: "square", corners: "square" },
+                blue: { m: 'solid', fg: "#1e3a8a", bg: "#f8fafc", dots: "rounded", corners: "extra-rounded" },
+                gradient: { m: 'gradient', fStart: '#38bdf8', fEnd: '#a855f7', bg: "#020617", dots: "classy", corners: "dot" },
+                'high-contrast': { m: 'solid', fg: "#e11d48", bg: "#ffffff", dots: "dots", corners: "dot" }
             };
-            const config = presets[theme];
-            DOM.cfg.fg.value = config.fg;
-            DOM.cfg.bg.value = config.bg;
-            DOM.cfg.dots.value = config.dots;
-            DOM.cfg.corners.value = config.corners;
+            const c = presets[theme];
+            DOM.cfg.mode.value = c.m;
+            if(c.m === 'solid') { DOM.cfg.fg.value = c.fg; } else { DOM.cfg.fgStart.value = c.fStart; DOM.cfg.fgEnd.value = c.fEnd; }
+            DOM.cfg.bg.value = c.bg; DOM.cfg.dots.value = c.dots; DOM.cfg.corners.value = c.corners;
+            DOM.cfg.mode.dispatchEvent(new Event('change'));
             debouncedRender();
         }
 
         // --- LOGO ENGINE ---
-        const logoInput = document.getElementById('logo-input');
-        const logoPreview = document.getElementById('logo-preview');
-        const logoText = document.getElementById('logo-text');
-        const clearLogoBtn = document.getElementById('clear-logo');
-
+        const logoInput = document.getElementById('logo-input'); const logoPreview = document.getElementById('logo-preview'); const logoText = document.getElementById('logo-text'); const clearLogoBtn = document.getElementById('clear-logo');
         logoInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+            const file = e.target.files[0]; if (!file) return;
             if (file.size > 2 * 1024 * 1024) { alert("File exceeds 2MB limit."); logoInput.value = ""; return; }
             const reader = new FileReader();
             reader.onload = function(event) {
-                uploadedLogo = event.target.result;
-                logoPreview.src = uploadedLogo; logoPreview.classList.remove('hidden');
-                logoText.classList.add('hidden'); clearLogoBtn.classList.remove('hidden');
-                DOM.cfg.level.value = 'H'; // Force High EC when logo is added
+                uploadedLogo = event.target.result; logoPreview.src = uploadedLogo; logoPreview.classList.remove('hidden');
+                logoText.classList.add('hidden'); clearLogoBtn.classList.remove('hidden'); 
+                document.getElementById('logo-options').classList.remove('hidden');
+                DOM.cfg.level.value = 'H'; 
                 debouncedRender();
-            };
-            reader.readAsDataURL(file);
+            }; reader.readAsDataURL(file);
         });
-
-        clearLogoBtn.addEventListener('click', () => {
-            uploadedLogo = ""; logoInput.value = ""; 
-            logoPreview.classList.add('hidden'); logoText.classList.remove('hidden'); clearLogoBtn.classList.add('hidden');
-            debouncedRender();
+        clearLogoBtn.addEventListener('click', () => { 
+            uploadedLogo = ""; logoInput.value = ""; logoPreview.classList.add('hidden'); logoText.classList.remove('hidden'); 
+            document.getElementById('logo-options').classList.add('hidden');
+            debouncedRender(); 
         });
 
         // --- CORE LOGIC ---
@@ -512,79 +585,136 @@
             debouncedRender();
         }
 
+        function formatICalDate(dStr) { if(!dStr) return ''; const d = new Date(dStr); return d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'; }
+
         function extractDataString() {
             switch(currentMode) {
-                case 'url': return DOM.fields.url.value.trim() || 'https://silenvault.com';
-                case 'text': return DOM.fields.text.value || 'Your text here';
+                case 'url': return DOM.fields.url.value.trim() || 'https://www.example.com';
+                case 'text': return DOM.fields.text.value || 'Your text payload';
                 case 'wifi': const hidden = DOM.fields.wifi_h.checked ? 'true' : 'false'; return `WIFI:T:${DOM.fields.wifi_t.value};S:${DOM.fields.wifi_s.value};P:${DOM.fields.wifi_p.value};H:${hidden};;`;
                 case 'vcard': return `BEGIN:VCARD\nVERSION:3.0\nN:${DOM.fields.vc_ln.value};${DOM.fields.vc_fn.value};;;\nFN:${DOM.fields.vc_fn.value} ${DOM.fields.vc_ln.value}\nORG:${DOM.fields.vc_org.value}\nTITLE:${DOM.fields.vc_title.value}\nTEL;TYPE=CELL:${DOM.fields.vc_tel.value}\nEMAIL:${DOM.fields.vc_em.value}\nURL:${DOM.fields.vc_url.value}\nEND:VCARD`;
                 case 'whatsapp': const cleanPhone = DOM.fields.wa_phone.value.replace(/\D/g, ''); return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(DOM.fields.wa_msg.value)}`;
                 case 'email': return `mailto:${DOM.fields.em_to.value}?subject=${encodeURIComponent(DOM.fields.em_sub.value)}`;
                 case 'sms': return `smsto:${DOM.fields.sms_to.value}:${DOM.fields.sms_msg.value}`;
-                case 'geo': return `http://maps.google.com/maps?q=${DOM.fields.geo_lat.value},${DOM.fields.geo_lng.value}`;
+                case 'geo': return `geo:${DOM.fields.geo_lat.value},${DOM.fields.geo_lng.value}`;
+                case 'event': return `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${DOM.fields.ev_title.value}\nDTSTART:${formatICalDate(DOM.fields.ev_start.value)}\nDTEND:${formatICalDate(DOM.fields.ev_end.value)}\nLOCATION:${DOM.fields.ev_loc.value}\nEND:VEVENT\nEND:VCALENDAR`;
+                case 'crypto': const amt = DOM.fields.cr_amt.value; return amt ? `${DOM.fields.cr_type.value}:${DOM.fields.cr_addr.value}?amount=${amt}` : `${DOM.fields.cr_type.value}:${DOM.fields.cr_addr.value}`;
                 default: return '';
             }
         }
 
-        function evaluateDensity(dataLength) {
-            let p = (dataLength / 300) * 100; 
-            if (p > 100) p = 100; if (p < 5) p = 5;
-            DOM.density.bar.style.width = `${p}%`;
-            if (p < 40) { DOM.density.bar.className = 'density-bar h-full bg-emerald-500'; DOM.density.label.innerText = 'Optimal'; DOM.density.label.className = 'text-[10px] font-mono text-emerald-500'; DOM.density.helper.innerText = 'Low complexity. Easily scannable from a distance.'; }
-            else if (p < 80) { DOM.density.bar.className = 'density-bar h-full bg-amber-400'; DOM.density.label.innerText = 'Moderate'; DOM.density.label.className = 'text-[10px] font-mono text-amber-400'; DOM.density.helper.innerText = 'Average complexity. Ensure print size is at least 2 inches.'; }
-            else { DOM.density.bar.className = 'density-bar h-full bg-rose-500'; DOM.density.label.innerText = 'Dense'; DOM.density.label.className = 'text-[10px] font-mono text-rose-500 font-bold'; DOM.density.helper.innerText = 'High complexity. Set Error Correction to Maximum for best results.'; }
+        function validateInput() {
+            let err = null;
+            if(currentMode === 'wifi' && DOM.fields.wifi_t.value.includes('WPA') && DOM.fields.wifi_p.value.length > 0 && DOM.fields.wifi_p.value.length < 8) {
+                err = "WPA2 networks require a password of at least 8 characters.";
+            } else if (currentMode === 'event' && DOM.fields.ev_start.value && DOM.fields.ev_end.value) {
+                if(new Date(DOM.fields.ev_start.value) > new Date(DOM.fields.ev_end.value)) err = "Event End Time cannot precede Start Time.";
+            } else if (currentMode === 'crypto' && !DOM.fields.cr_addr.value && DOM.fields.cr_amt.value) {
+                err = "Provide a public wallet address before assigning a transfer parameter.";
+            }
+
+            if(err) { DOM.validation.text.innerText = err; DOM.validation.box.classList.remove('hidden'); }
+            else { DOM.validation.box.classList.add('hidden'); }
         }
 
         function updateCanvas() {
+            validateInput();
             const dataPayload = extractDataString();
-            evaluateDensity(dataPayload.length);
+            
+            // Density calculation
+            let p = (dataPayload.length / 300) * 100; if (p > 100) p = 100; if (p < 5) p = 5;
+            DOM.density.bar.style.width = `${p}%`;
+            if (p < 40) { DOM.density.bar.className = 'density-bar h-full bg-emerald-500'; DOM.density.label.className = 'text-[10px] font-mono text-emerald-500'; }
+            else if (p < 80) { DOM.density.bar.className = 'density-bar h-full bg-amber-400'; DOM.density.label.className = 'text-[10px] font-mono text-amber-400'; }
+            else { DOM.density.bar.className = 'density-bar h-full bg-rose-500'; DOM.density.label.className = 'text-[10px] font-mono text-rose-500 font-bold'; }
 
-            const fg = DOM.cfg.fg.value; const bg = DOM.cfg.bg.value;
-            const dots = DOM.cfg.dots.value; const corners = DOM.cfg.corners.value;
+            // Frame Visual Logic
+            const fm = DOM.cfg.fMode.value; const fbg = DOM.cfg.fBk.value; const ffg = DOM.cfg.fFg.value;
+            if(fm === 'none') {
+                DOM.frame.wrap.style.backgroundColor = 'transparent';
+                DOM.frame.top.classList.add('hidden'); DOM.frame.bot.classList.add('hidden');
+                DOM.container.classList.remove('p-2');
+            } else {
+                DOM.frame.wrap.style.backgroundColor = fbg;
+                DOM.frame.top.style.color = ffg; DOM.frame.bot.style.color = ffg;
+                DOM.frame.top.innerText = DOM.cfg.fText.value; DOM.frame.bot.innerText = DOM.cfg.fText.value;
+                DOM.container.classList.add('p-2');
+                if(fm === 'top') { DOM.frame.top.classList.remove('hidden'); DOM.frame.bot.classList.add('hidden'); }
+                else { DOM.frame.top.classList.add('hidden'); DOM.frame.bot.classList.remove('hidden'); }
+            }
 
-            document.getElementById('hex-fg').innerText = fg.toUpperCase();
-            document.getElementById('hex-bg').innerText = bg.toUpperCase();
+            // Engine Config
+            const bg = DOM.cfg.bg.value; DOM.container.style.backgroundColor = bg;
+            const hideDots = DOM.cfg.logoMask.checked;
 
-            // Match border color of container to QR background for a seamless look
-            DOM.container.style.backgroundColor = bg;
-
-            qrEngine.update({
-                data: dataPayload,
-                image: uploadedLogo,
-                dotsOptions: { color: fg, type: dots },
+            let options = {
+                data: dataPayload, 
+                image: uploadedLogo, 
                 backgroundOptions: { color: bg },
-                cornersSquareOptions: { type: corners, color: fg },
-                cornersDotOptions: { type: corners === 'extra-rounded' ? 'dot' : corners, color: fg },
-                qrOptions: { errorCorrectionLevel: DOM.cfg.level.value }
-            });
+                cornersSquareOptions: { type: DOM.cfg.corners.value },
+                cornersDotOptions: { type: DOM.cfg.corners.value === 'extra-rounded' ? 'dot' : DOM.cfg.corners.value },
+                qrOptions: { errorCorrectionLevel: DOM.cfg.level.value },
+                imageOptions: { crossOrigin: "anonymous", margin: 8, imageSize: 0.3, hideBackgroundDots: hideDots }
+            };
+
+            if(DOM.cfg.mode.value === 'solid') {
+                options.dotsOptions = { color: DOM.cfg.fg.value, type: DOM.cfg.dots.value };
+                options.cornersSquareOptions.color = DOM.cfg.fg.value; options.cornersDotOptions.color = DOM.cfg.fg.value;
+            } else {
+                options.dotsOptions = { type: DOM.cfg.dots.value, gradient: { type: 'linear', rotation: Math.PI / 4, colorStops: [{ offset: 0, color: DOM.cfg.fgStart.value }, { offset: 1, color: DOM.cfg.fgEnd.value }] } };
+            }
+
+            qrEngine.update(options);
         }
 
         let debounceTimer;
         function debouncedRender() { clearTimeout(debounceTimer); debounceTimer = setTimeout(updateCanvas, 150); }
 
-        // FIX 3: Background Off-Screen Rendering for Downloads
-        // This ensures the user gets a massive 2000px file without the UI stuttering
-        function downloadImage() {
+        // --- COMPOSITE DOWNLOAD ENGINE ---
+        async function downloadCompositeImage() {
             const targetSize = parseInt(DOM.cfg.size.value);
-            const fg = DOM.cfg.fg.value; const bg = DOM.cfg.bg.value;
-            const dots = DOM.cfg.dots.value; const corners = DOM.cfg.corners.value;
+            const fm = DOM.cfg.fMode.value; const fbg = DOM.cfg.fBk.value; const ffg = DOM.cfg.fFg.value;
+            const hideDots = DOM.cfg.logoMask.checked;
+
+            let tempOptions = { 
+                width: targetSize, height: targetSize, type: "canvas", data: extractDataString(), image: uploadedLogo, margin: targetSize * 0.05, 
+                backgroundOptions: { color: DOM.cfg.bg.value }, 
+                cornersSquareOptions: { type: DOM.cfg.corners.value }, 
+                cornersDotOptions: { type: DOM.cfg.corners.value === 'extra-rounded' ? 'dot' : DOM.cfg.corners.value }, 
+                qrOptions: { errorCorrectionLevel: DOM.cfg.level.value }, 
+                imageOptions: { crossOrigin: "anonymous", margin: targetSize * 0.03, imageSize: 0.3, hideBackgroundDots: hideDots } 
+            };
+            if(DOM.cfg.mode.value === 'solid') { tempOptions.dotsOptions = { color: DOM.cfg.fg.value, type: DOM.cfg.dots.value }; tempOptions.cornersSquareOptions.color = DOM.cfg.fg.value; tempOptions.cornersDotOptions.color = DOM.cfg.fg.value; } else { tempOptions.dotsOptions = { type: DOM.cfg.dots.value, gradient: { type: 'linear', rotation: Math.PI / 4, colorStops: [{ offset: 0, color: DOM.cfg.fgStart.value }, { offset: 1, color: DOM.cfg.fgEnd.value }] } }; }
             
-            const tempEngine = new QRCodeStyling({
-                width: targetSize,
-                height: targetSize,
-                type: "canvas",
-                data: extractDataString(),
-                image: uploadedLogo,
-                margin: Math.max(20, targetSize * 0.05), // Scales margin cleanly for massive exports
-                dotsOptions: { color: fg, type: dots },
-                backgroundOptions: { color: bg },
-                cornersSquareOptions: { type: corners, color: fg },
-                cornersDotOptions: { type: corners === 'extra-rounded' ? 'dot' : corners, color: fg },
-                qrOptions: { errorCorrectionLevel: DOM.cfg.level.value },
-                imageOptions: { crossOrigin: "anonymous", margin: targetSize * 0.03, imageSize: 0.3 }
-            });
-            
-            tempEngine.download({ name: `SilenVault_QR_${currentMode}_${Date.now()}`, extension: 'png' });
+            const tempEngine = new QRCodeStyling(tempOptions);
+
+            if(fm === 'none') {
+                tempEngine.download({ name: `QR_Code_${currentMode}_${Date.now()}`, extension: 'png' });
+            } else {
+                const blob = await tempEngine.getRawData("png");
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    const pad = targetSize * 0.15; 
+                    canvas.width = targetSize + (pad * 2); canvas.height = targetSize + (pad * 2) + pad; 
+                    
+                    ctx.fillStyle = fbg; ctx.beginPath(); ctx.roundRect(0, 0, canvas.width, canvas.height, targetSize * 0.08); ctx.fill();
+                    
+                    const innerPad = pad * 0.4;
+                    const innerSize = targetSize + (innerPad * 2);
+                    let imgY = fm === 'top' ? pad + pad : pad;
+                    ctx.fillStyle = DOM.cfg.bg.value; ctx.beginPath(); ctx.roundRect(pad - innerPad, imgY - innerPad, innerSize, innerSize, targetSize * 0.04); ctx.fill();
+                    
+                    ctx.fillStyle = ffg; ctx.font = `900 ${pad * 0.5}px Inter, sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    let textY = fm === 'top' ? (pad * 1.1) : canvas.height - (pad * 1.1);
+                    ctx.fillText(DOM.cfg.fText.value, canvas.width / 2, textY);
+                    
+                    ctx.drawImage(img, pad, imgY, targetSize, targetSize);
+                    
+                    const link = document.createElement('a'); link.download = `Framed_QR_Code_${Date.now()}.png`; link.href = canvas.toDataURL('image/png'); link.click();
+                };
+                img.src = URL.createObjectURL(blob);
+            }
         }
 
         document.querySelectorAll('input, textarea, select').forEach(el => { el.addEventListener('input', debouncedRender); });
