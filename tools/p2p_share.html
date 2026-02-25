@@ -7,9 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* Mobile-first viewport constraints */
-        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; margin: 0; min-height: 100dvh; display: flex; flex-direction: column; overflow-x: hidden; }
-        .bg-grid { background-image: radial-gradient(rgba(59, 130, 246, 0.15) 1px, transparent 1px); background-size: 24px 24px; }
+        /* Base application constraints */
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; margin: 0; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+        .bg-grid { background-image: radial-gradient(rgba(59, 130, 246, 0.15) 1px, transparent 1px); background-size: 24px 24px; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: -1; pointer-events: none; }
         
         .glass-panel { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(51, 65, 85, 0.6); border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; }
         .mono { font-family: 'Fira Code', monospace; }
@@ -28,78 +28,83 @@
     
     <script src="../assets/js/layout.js" defer></script>
 </head>
-<body class="bg-grid p-2 md:p-6 lg:p-8">
+<body class="flex flex-col min-h-screen">
 
+    <div class="bg-grid"></div>
     <div id="toast-container" class="fixed top-4 right-4 z-[10000] flex flex-col gap-3 pointer-events-none w-[calc(100%-2rem)] md:w-auto"></div>
 
-    <header class="w-full max-w-7xl mx-auto flex justify-between items-center mb-4 md:mb-6 shrink-0 px-2 md:px-0">
-        <div>
-            <h1 class="text-xl md:text-3xl font-black text-white tracking-tight drop-shadow-md">SilenVault <span class="text-blue-500">P2P</span></h1>
-        </div>
-        <div class="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-slate-900/80 border border-slate-700 text-slate-300 text-[10px] md:text-xs font-bold mono uppercase tracking-widest rounded-lg shadow-inner">
-            <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_#ef4444]" id="status-indicator"></span> 
-            <span id="status-text">Disconnected</span>
-        </div>
-    </header>
+    <sv-header base-path=".."></sv-header>
 
-    <main class="w-full max-w-7xl mx-auto grid lg:grid-cols-[350px_1fr] gap-4 md:gap-6 flex-1 h-[calc(100dvh-90px)] md:h-[80vh] min-h-[500px]">
+    <main id="main-content" class="flex-1 flex flex-col items-center p-2 md:p-6 lg:p-8 pt-24 transition-opacity duration-500">
         
-        <div id="handshake-panel" class="glass-panel relative overflow-hidden h-full flex flex-col transition-all duration-300">
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
-            <div class="p-4 md:p-6 border-b border-slate-800/80 shrink-0">
-                <div class="flex gap-2 p-1 bg-slate-950 rounded-lg border border-slate-800">
-                    <button id="btn-host" class="flex-1 py-2 text-xs font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded transition-all" onclick="P2PEngine.setMode('host')">Host Node</button>
-                    <button id="btn-guest" class="flex-1 py-2 text-xs font-bold text-slate-500 hover:text-white transition-all" onclick="P2PEngine.setMode('guest')">Guest Node</button>
-                </div>
+        <header class="w-full max-w-7xl mx-auto flex justify-between items-center mb-4 md:mb-6 shrink-0 px-2 md:px-0">
+            <div>
+                <h1 class="text-xl md:text-3xl font-black text-white tracking-tight drop-shadow-md">SilenVault <span class="text-blue-500">P2P</span></h1>
             </div>
-            <div id="handshake-ui" class="p-4 md:p-6 space-y-4 md:space-y-6 flex-1 overflow-y-auto custom-scrollbar"></div>
-        </div>
-
-        <div class="glass-panel relative overflow-hidden h-full flex flex-col">
-            <div id="room-overlay" class="absolute inset-0 bg-[#020617]/95 backdrop-blur-md z-20 flex flex-col items-center justify-center p-6 text-center transition-opacity duration-500">
-                <div class="w-16 h-16 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center mb-5 shadow-inner">
-                    <svg class="w-8 h-8 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                </div>
-                <h3 class="text-lg md:text-xl font-bold text-white mb-2">Awaiting Peer Connection</h3>
-                <p class="text-xs md:text-sm text-slate-500 max-w-sm">Execute the cryptographic handshake to unlock the direct memory channel.</p>
+            <div class="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-slate-900/80 border border-slate-700 text-slate-300 text-[10px] md:text-xs font-bold mono uppercase tracking-widest rounded-lg shadow-inner">
+                <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_#ef4444]" id="status-indicator"></span> 
+                <span id="status-text">Disconnected</span>
             </div>
+        </header>
 
-            <div class="bg-slate-900/90 p-3 md:p-4 border-b border-slate-800 flex justify-between items-center shrink-0 z-10">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-inner shrink-0">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                    </div>
-                    <div>
-                        <p class="text-sm font-bold text-white leading-tight">Encrypted Channel</p>
-                        <p class="text-[10px] mono text-emerald-400 mt-0.5" id="remote-identity">Waiting for handshake...</p>
+        <div class="w-full max-w-7xl mx-auto grid lg:grid-cols-[350px_1fr] gap-4 md:gap-6 w-full h-[calc(100dvh-150px)] md:h-[75vh] min-h-[500px] mb-12">
+            
+            <div id="handshake-panel" class="glass-panel relative overflow-hidden h-full flex flex-col transition-all duration-300">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+                <div class="p-4 md:p-6 border-b border-slate-800/80 shrink-0">
+                    <div class="flex gap-2 p-1 bg-slate-950 rounded-lg border border-slate-800">
+                        <button id="btn-host" class="flex-1 py-2 text-xs font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded transition-all" onclick="P2PEngine.setMode('host')">Host Node</button>
+                        <button id="btn-guest" class="flex-1 py-2 text-xs font-bold text-slate-500 hover:text-white transition-all" onclick="P2PEngine.setMode('guest')">Guest Node</button>
                     </div>
                 </div>
-                <button onclick="location.reload()" class="lg:hidden p-2 bg-red-950/50 text-red-400 rounded-lg border border-red-900/50 text-xs font-bold hidden" id="mobile-disconnect-btn">Disconnect</button>
+                <div id="handshake-ui" class="p-4 md:p-6 space-y-4 md:space-y-6 flex-1 overflow-y-auto custom-scrollbar"></div>
             </div>
 
-            <div id="chat-log" class="flex-1 p-4 md:p-6 overflow-y-auto custom-scrollbar space-y-4 md:space-y-6 bg-transparent relative scroll-smooth flex flex-col z-0">
+            <div class="glass-panel relative overflow-hidden h-full flex flex-col">
+                <div id="room-overlay" class="absolute inset-0 bg-[#020617]/95 backdrop-blur-md z-20 flex flex-col items-center justify-center p-6 text-center transition-opacity duration-500">
+                    <div class="w-16 h-16 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center mb-5 shadow-inner">
+                        <svg class="w-8 h-8 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                    </div>
+                    <h3 class="text-lg md:text-xl font-bold text-white mb-2">Awaiting Peer Connection</h3>
+                    <p class="text-xs md:text-sm text-slate-500 max-w-sm">Execute the cryptographic handshake to unlock the direct memory channel.</p>
                 </div>
 
-            <div id="typing-indicator" class="hidden px-6 py-2 bg-gradient-to-t from-slate-900/90 to-transparent text-[10px] mono text-blue-400 uppercase tracking-widest animate-pulse shrink-0 z-10">
-                Peer is typing...
-            </div>
+                <div class="bg-slate-900/90 p-3 md:p-4 border-b border-slate-800 flex justify-between items-center shrink-0 z-10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-inner shrink-0">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-white leading-tight">Encrypted Channel</p>
+                            <p class="text-[10px] mono text-emerald-400 mt-0.5" id="remote-identity">Waiting for handshake...</p>
+                        </div>
+                    </div>
+                    <button onclick="location.reload()" class="lg:hidden p-2 bg-red-950/50 text-red-400 rounded-lg border border-red-900/50 text-xs font-bold hidden" id="mobile-disconnect-btn">Disconnect</button>
+                </div>
 
-            <div class="p-3 md:p-4 bg-slate-900/95 border-t border-slate-800 shrink-0 z-10">
-                <div class="flex items-end gap-2 md:gap-3 relative">
-                    <input type="file" id="file-input" class="hidden">
-                    <button id="btn-attach" class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl border border-slate-700 transition-all outline-none shrink-0">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
-                    </button>
-                    <textarea id="chat-input" placeholder="Secure message..." class="flex-1 min-h-[40px] md:min-h-[48px] max-h-[120px] bg-[#020617] border border-slate-700 rounded-xl px-4 py-2.5 md:py-3 text-sm text-white focus:outline-none focus:border-blue-500 shadow-inner mono resize-none custom-scrollbar leading-tight"></textarea>
-                    <button id="btn-send" class="h-10 px-4 md:h-12 md:px-6 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-[0_0_15px_rgba(59,130,246,0.4)] transition-all shrink-0 outline-none flex items-center gap-2">
-                        <span class="hidden md:inline">TX</span>
-                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
-                    </button>
+                <div id="chat-log" class="flex-1 p-4 md:p-6 overflow-y-auto custom-scrollbar space-y-4 md:space-y-6 bg-transparent relative scroll-smooth flex flex-col z-0"></div>
+
+                <div id="typing-indicator" class="hidden px-6 py-2 bg-gradient-to-t from-slate-900/90 to-transparent text-[10px] mono text-blue-400 uppercase tracking-widest animate-pulse shrink-0 z-10">
+                    Peer is typing...
+                </div>
+
+                <div class="p-3 md:p-4 bg-slate-900/95 border-t border-slate-800 shrink-0 z-10">
+                    <div class="flex items-end gap-2 md:gap-3 relative">
+                        <input type="file" id="file-input" class="hidden">
+                        <button id="btn-attach" class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl border border-slate-700 transition-all outline-none shrink-0">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                        </button>
+                        <textarea id="chat-input" placeholder="Secure message..." class="flex-1 min-h-[40px] md:min-h-[48px] max-h-[120px] bg-[#020617] border border-slate-700 rounded-xl px-4 py-2.5 md:py-3 text-sm text-white focus:outline-none focus:border-blue-500 shadow-inner mono resize-none custom-scrollbar leading-tight"></textarea>
+                        <button id="btn-send" class="h-10 px-4 md:h-12 md:px-6 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-[0_0_15px_rgba(59,130,246,0.4)] transition-all shrink-0 outline-none flex items-center gap-2">
+                            <span class="hidden md:inline">TX</span>
+                            <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </main>
-    <section class="w-full max-w-5xl mx-auto text-slate-300 mt-12 px-4 pb-24 shrink-0">
+
+        <section class="w-full max-w-5xl mx-auto text-slate-300 px-4 pb-12 shrink-0">
             <div class="mb-12 border-b border-slate-800 pb-8">
                 <h2 class="text-2xl md:text-3xl font-bold text-white mb-4">How to Establish a Secure Link</h2>
                 <p class="text-sm leading-relaxed mb-8 text-slate-400">This utility utilizes <strong>WebRTC Data Channels</strong> to forge a direct, end-to-end encrypted connection between two browsers. Because SilenVault operates with a strict zero-server policy, there are no backend signaling databases. Connection keys must be exchanged manually.</p>
@@ -145,6 +150,11 @@
                 </div>
             </div>
         </section>
+
+    </main>
+
+    <sv-footer base-path=".."></sv-footer>
+
     <div id="media-lightbox" class="fixed inset-0 z-[9999] bg-[#020617]/95 backdrop-blur-xl hidden flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <button onclick="P2PEngine.closeLightbox()" class="absolute top-6 right-6 p-3 bg-slate-800 text-slate-300 rounded-xl transition-all shadow-lg">
             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -207,7 +217,6 @@
                 document.getElementById('btn-attach').addEventListener('click', () => fileInput.click());
                 fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
 
-                // Instantly notify peer if user closes tab
                 window.addEventListener('beforeunload', () => {
                     if (this.channel && this.channel.readyState === 'open') {
                         this.channel.close();
@@ -274,7 +283,6 @@
                 `;
             },
 
-            // --- SIGNALING CORE ---
             generateHostOffer: async function() {
                 const btn = document.getElementById('btn-gen-host');
                 btn.innerText = "Gathering Topology..."; btn.classList.add('animate-pulse');
@@ -339,7 +347,6 @@
                 } catch(e) { this.showToast("Invalid or corrupted Return Key."); }
             },
 
-            // --- CONNECTION STATE MONITORING ---
             setupConnectionListeners: function() {
                 this.connection.oniceconnectionstatechange = () => {
                     if (this.connection.iceConnectionState === 'disconnected' || 
@@ -351,30 +358,26 @@
             },
 
             handleDisconnect: function() {
-                if(!this.isConnected) return; // Prevent duplicate triggers
+                if(!this.isConnected) return;
                 this.isConnected = false;
                 
-                // Update UI Status
                 document.getElementById('status-text').innerText = "Disconnected";
                 document.getElementById('status-indicator').classList.replace('bg-emerald-500', 'bg-red-500');
                 document.getElementById('status-indicator').classList.replace('shadow-[0_0_8px_#10b981]', 'shadow-[0_0_8px_#ef4444]');
                 document.getElementById('remote-identity').innerText = "Peer offline.";
                 document.getElementById('remote-identity').classList.replace('text-emerald-400', 'text-red-400');
                 
-                // Inject System Message
                 const log = document.getElementById('chat-log');
                 const html = `<div class="flex justify-center my-4 opacity-80 shrink-0 w-full animate-[fade-in_0.3s_ease-out]"><span class="text-[10px] text-red-400 mono uppercase tracking-widest bg-red-950/30 px-4 py-2 rounded-xl border border-red-900/50 shadow-inner">Peer Disconnected. Link Severed.</span></div>`;
                 log.insertAdjacentHTML('beforeend', html);
                 this.scrollToBottom();
 
-                // Re-show handshake on mobile
                 document.getElementById('handshake-panel').classList.remove('hidden', 'lg:flex');
                 document.getElementById('mobile-disconnect-btn').classList.add('hidden');
                 
                 this.showToast("Secure connection lost. Peer dropped.", "warning");
             },
 
-            // --- DATA CHANNEL ROUTER ---
             setupChannelListeners: function() {
                 this.channel.binaryType = "arraybuffer";
                 this.channel.bufferedAmountLowThreshold = 512 * 1024; 
@@ -384,7 +387,6 @@
                     document.getElementById('room-overlay').style.opacity = '0';
                     setTimeout(() => document.getElementById('room-overlay').style.display = 'none', 500);
                     
-                    // MOBILE UX: Hide left panel entirely when connected to give chat full height
                     document.getElementById('handshake-panel').classList.add('hidden', 'lg:flex');
                     document.getElementById('mobile-disconnect-btn').classList.remove('hidden');
                     
@@ -526,7 +528,6 @@
                 requestAnimationFrame(() => { log.scrollTop = log.scrollHeight; });
             },
 
-            // --- ANONYMOUS UI RENDERERS ---
             appendMessage: function(text, sender) {
                 const log = document.getElementById('chat-log');
                 const isLocal = sender === 'local';
