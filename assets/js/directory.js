@@ -49,7 +49,7 @@ const silenVaultTools = [
     {
         category: "dev", id: "ide",
         title: "HTML/JS Sandbox", desc: "Professional sandboxed HTML/CSS/JS editor with real-time compilation.",
-        link: "tools/web_idel", tag: "Code",
+        link: "tools/web_ide", tag: "Code",
         iconColors: "bg-purple-500/10 text-purple-400 border border-purple-500/20 group-hover:bg-purple-400 group-hover:text-[#020617] group-hover:border-transparent transition-all",
         iconPath: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />`
     },
@@ -133,9 +133,9 @@ const silenVaultTools = [
         iconPath: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />`
     },
     {
-        category: "hardware", id: "webcam_tester",
-        title: "Camera Diagnostics", desc: "Studio viewfinder to analyze webcam resolution, framerate, and lens clarity.",
-        link: "tools/webcam_tester", tag: "Video",
+        category: "hardware", id: "cam_tester",
+        title: "Camera Diagnostics", desc: "Studio viewfinder to analyze cam resolution, framerate, and lens clarity.",
+        link: "tools/cam_tester", tag: "Video",
         iconColors: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group-hover:bg-emerald-400 group-hover:text-[#020617] group-hover:border-transparent transition-all",
         iconPath: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />`
     },
@@ -180,7 +180,7 @@ const silenVaultTools = [
     },
     {
         category: "creator", id: "image_converter",
-        title: "Image Converter", desc: "Convert between WebP, AVIF, PNG, and JPG locally and instantly.",
+        title: "Image Converter", desc: "Convert between P, AVIF, PNG, and JPG locally and instantly.",
         link: "tools/image_converter", tag: "Media",
         iconColors: "bg-blue-500/10 text-blue-400 border border-blue-500/20 group-hover:bg-blue-400 group-hover:text-[#020617] group-hover:border-transparent transition-all",
         iconPath: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />`
