@@ -46,13 +46,23 @@ const silenVaultTools = [
     },
 
     // --- DEVELOPER UTILITIES (dev) ---
+    // --- DEVELOPER UTILITIES (dev) ---
     {
+        category: "dev", id: "academic_vault",
+        title: "Academic Vault", 
+        desc: "Laboratory index & smart viewer. Read code, PDFs, and media directly from academic repositories without local software.",
+        link: "tools/academic_vault", 
+        tag: "Education",
+        iconColors: "bg-amber-500/10 text-amber-400 border border-amber-500/20 group-hover:bg-amber-400 group-hover:text-[#020617] group-hover:border-transparent transition-all",
+        iconPath: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477-4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />`
+    },
+    {
+        category: "dev",
         title: "Secure P2P Share",
         desc: "Establish a direct, end-to-end encrypted WebRTC data channel between two browsers. Send massive files and messages with zero server interception.",
-        iconPath: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />`,
         iconColors: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-        link: "tools/p2p_share.html",
-        category: "dev",
+        link: "tools/p2p_share",
+        iconPath: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />`,
         tag: "NEW"
     },
     {
