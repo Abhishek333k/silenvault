@@ -73,151 +73,22 @@ class SVHeader extends HTMLElement {
             <nav class="border-b border-slate-800/80 bg-[#020617]/80 backdrop-blur-xl sticky top-0 z-50 transition-all duration-500">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-20 lg:h-24 flex items-center justify-between transition-all duration-500">
                     
-                    <a href="${basePath}/index.html" class="flex items-center gap-3 transition-transform hover:scale-105 shrink-0 z-50">
+                    <a href="${basePath}/index.html" class="flex items-center gap-3 transition-transform hover:scale-105 shrink-0 z-50" title="Return to Directory">
                         <img src="${basePath}/assets/img/Banner_with_CREST.webp" alt="SilenVault" class="h-8 md:h-10 lg:h-12 w-auto object-contain transition-all duration-500">
                     </a>
                     
                     <div class="flex items-center gap-3 md:gap-5">
-                        
-                        <div class="relative" id="sv-global-nav">
-                            <button id="sv-nav-trigger" class="flex items-center gap-2 text-slate-300 hover:text-white text-sm md:text-base font-bold font-mono tracking-tight transition-all px-3 py-2 md:px-4 md:py-2.5 rounded-xl border border-transparent hover:border-slate-700 hover:bg-slate-800/50">
-                                <span>Directory</span>
-                                <svg id="sv-nav-chevron" class="w-4 h-4 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            </button>
-
-                            <div id="sv-nav-dropdown" class="absolute left-0 right-0 mt-3 lg:right-0 lg:left-auto w-full lg:w-[800px] max-h-[85vh] overflow-y-auto bg-[#0a0f1d]/95 backdrop-blur-2xl border border-slate-700/80 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] opacity-0 scale-95 pointer-events-none origin-top lg:origin-top-right transition-all duration-300 ease-out z-[100] custom-scrollbar">
-                                <div id="sv-mega-menu-content">
-                                    </div>
-                            </div>
-                        </div>
-                        
-                        <div class="h-6 md:h-8 w-px bg-slate-800 hidden sm:block mx-1"></div>
-                        
-                        <a href="${sponsorLink}" class="hidden lg:flex items-center gap-2 text-sm font-bold text-blue-400 border border-blue-500/30 bg-blue-500/10 px-5 py-2.5 rounded-xl hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-[0_0_15px_rgba(59,130,246,0.15)]">
+                        <a href="${sponsorLink}" class="flex items-center gap-2 text-xs md:text-sm font-bold text-blue-400 border border-blue-500/30 bg-blue-500/10 px-4 py-2 md:px-5 md:py-2.5 rounded-xl hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-[0_0_15px_rgba(59,130,246,0.15)]">
                             Donate
                         </a>
 
-                        <button onclick="bookmarkSite()" class="bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white p-2 md:p-3 rounded-xl border border-slate-700 transition-all shadow-inner focus:outline-none focus:ring-2 focus:ring-blue-500/50" title="Bookmark Application">
+                        <button onclick="bookmarkSite()" class="bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white p-2.5 md:p-3 rounded-xl border border-slate-700 transition-all shadow-inner focus:outline-none focus:ring-2 focus:ring-blue-500/50" title="Bookmark Application">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
                         </button>
                     </div>
                 </div>
             </nav>
         `;
-
-        this.initializeDropdown();
-    }
-
-    // Constructs the Mega Menu based on directory.js data
-    buildMegaMenu(basePath) {
-        if (typeof silenVaultTools === 'undefined') {
-            return `<div class="p-8 text-center text-slate-400 font-mono text-sm">Initializing Directory Architecture...</div>`;
-        }
-
-        const categories = {
-            business: { title: "Administrative", color: "text-emerald-400", bg: "bg-emerald-500", tools: [] },
-            hardware: { title: "Hardware", color: "text-purple-400", bg: "bg-purple-500", tools: [] },
-            creator: { title: "Media Ops", color: "text-red-400", bg: "bg-red-500", tools: [] },
-            dev: { title: "Dev Utilities", color: "text-blue-400", bg: "bg-blue-500", tools: [] }
-        };
-
-        silenVaultTools.forEach(tool => {
-            if (categories[tool.category] && tool.status !== 'blocked' && !tool.locked) {
-                categories[tool.category].tools.push(tool);
-            }
-        });
-
-        let html = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-6">`;
-        
-        Object.values(categories).forEach(cat => {
-            if(cat.tools.length === 0) return;
-            html += `<div>`;
-            html += `<h4 class="text-[10px] font-bold ${cat.color} uppercase tracking-[0.15em] mb-4 flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full ${cat.bg}"></span> ${cat.title}</h4>`;
-            html += `<ul class="space-y-3">`;
-            
-            // Limit to top 6 tools per category to keep the menu clean
-            const visibleTools = cat.tools.slice(0, 6);
-            
-            visibleTools.forEach(tool => {
-                let linkPath = tool.link.startsWith('./') ? tool.link.substring(2) : tool.link;
-                html += `<li>
-                    <a href="${basePath}/${linkPath}" class="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors group">
-                        <span class="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-current transition-colors"></span>
-                        <span class="truncate">${tool.title}</span>
-                    </a>
-                </li>`;
-            });
-            
-            if (cat.tools.length > 6) {
-                html += `<li><a href="${basePath}/index.html#sec-${Object.keys(categories).find(key => categories[key] === cat)}" class="text-xs font-mono italic text-slate-500 hover:text-slate-300 transition-colors">+ View ${cat.tools.length - 6} more</a></li>`;
-            }
-            
-            html += `</ul></div>`;
-        });
-        
-        html += `</div>`;
-        
-        // Bottom Action Bar
-        html += `
-        <div class="bg-slate-900/50 p-4 border-t border-slate-800/80 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <a href="${basePath}/index.html#directory" class="text-xs font-mono text-slate-400 hover:text-white transition-colors border border-slate-700 px-3 py-1.5 rounded bg-slate-800">Browse Full Directory -></a>
-            <div class="flex gap-4">
-                <a href="${basePath}/about.html" class="text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors uppercase tracking-widest">About</a>
-                <a href="${basePath}/donate.html" class="text-xs font-bold text-blue-500 hover:text-blue-400 transition-colors uppercase tracking-widest lg:hidden">Donate</a>
-            </div>
-        </div>
-        `;
-
-        return html;
-    }
-
-    initializeDropdown() {
-        const trigger = this.querySelector('#sv-nav-trigger');
-        const dropdown = this.querySelector('#sv-nav-dropdown');
-        const chevron = this.querySelector('#sv-nav-chevron');
-        const contentArea = this.querySelector('#sv-mega-menu-content');
-        const basePath = this.getAttribute('base-path') || '.';
-        
-        let isOpen = false;
-        let isLoaded = false;
-
-        const toggleMenu = () => {
-            // Lazy load the menu content on first click to ensure directory.js is fully loaded
-            if (!isLoaded) {
-                contentArea.innerHTML = this.buildMegaMenu(basePath);
-                isLoaded = true;
-            }
-
-            isOpen = !isOpen;
-            if (isOpen) {
-                dropdown.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
-                dropdown.classList.add('opacity-100', 'scale-100', 'pointer-events-auto');
-                chevron.classList.add('rotate-180');
-                trigger.classList.add('bg-slate-800/80', 'border-slate-700');
-            } else {
-                dropdown.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
-                dropdown.classList.remove('opacity-100', 'scale-100', 'pointer-events-auto');
-                chevron.classList.remove('rotate-180');
-                trigger.classList.remove('bg-slate-800/80', 'border-slate-700');
-            }
-        };
-
-        trigger.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleMenu();
-        });
-
-        document.addEventListener('click', (e) => {
-            if (isOpen && !this.querySelector('#sv-global-nav').contains(e.target)) {
-                toggleMenu();
-            }
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && isOpen) {
-                toggleMenu();
-            }
-        });
     }
 }
 
@@ -290,8 +161,6 @@ customElements.define('sv-footer', SVFooter);
    GLOBAL UTILITIES
    ========================================================================== */
 
-// Browser Security Note: Browsers explicitly block JS from silently modifying user bookmarks. 
-// The industry standard is to prompt the user with their OS-specific shortcut.
 window.bookmarkSite = function() {
     const isMac = /Mac/i.test(navigator.userAgent);
     const hotkey = isMac ? 'Cmd + D' : 'Ctrl + D';
@@ -331,16 +200,6 @@ window.bookmarkSite = function() {
     toast.onclick = removeToast;
     setTimeout(removeToast, 5000);
 };
-
-// CSS injection for the custom scrollbar in the mega-menu
-const scrollStyle = document.createElement('style');
-scrollStyle.innerHTML = `
-    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(51, 65, 85, 0.5); border-radius: 10px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(71, 85, 105, 0.8); }
-`;
-document.head.appendChild(scrollStyle);
 
 document.addEventListener("DOMContentLoaded", () => {
     const adObserver = new MutationObserver((mutations) => {
