@@ -65,8 +65,28 @@
 
     // Global router function available to buttons inside D2
     window.navigateD2 = function(route) {
-        if(D2_ROUTES[route]) {
-            document.body.innerHTML = decodeURIComponent(atob(D2_ROUTES[route]));
+        if (route === 'home') {
+            // Load the Base64 Main Menu
+            document.body.innerHTML = decodeURIComponent(atob(D2_ROUTES['home']));
+        } 
+        else if (route === 'market') {
+            // JS MODULE METHOD: Dynamically fetch the script, then execute it
+            document.body.innerHTML = `<div class="fixed inset-0 bg-[#06010a] flex items-center justify-center text-[#ec4899] font-mono text-sm uppercase tracking-widest animate-pulse">Establishing Secure Uplink...</div>`;
+            
+            if (!document.getElementById('forge-market-script')) {
+                const script = document.createElement('script');
+                script.id = 'forge-market-script';
+                script.src = 'assets/js/forge/black_market.js';
+                script.onload = () => window.ForgeBlackMarket.mount(); // Run it once loaded
+                document.head.appendChild(script);
+            } else {
+                // If it was already loaded previously, just mount it instantly
+                window.ForgeBlackMarket.mount();
+            }
+        }
+        else if (route === 'architect') {
+            // You will build architect.js exactly like black_market.js later!
+            document.body.innerHTML = `<div class="fixed inset-0 bg-[#06010a] flex items-center justify-center text-[#22d3ee] font-mono">> ARCHITECT OFFLINE.</div><button class="fixed top-8 left-8 text-white font-mono border p-2" onclick="window.navigateD2('home')">Back</button>`;
         }
     };
 
