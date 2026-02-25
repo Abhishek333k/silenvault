@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SilenVault | Academic Vault</title>
+    <title>SilenVault | Academic Laboratory Vault</title>
+    <meta name="description" content="Access, read, and download university laboratory experiment files, manuals, and source code directly from the browser with syntax highlighting and smart viewers.">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
     
@@ -13,6 +14,7 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; margin: 0; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
         
+        /* Professional Blueprint Theme */
         .bg-blueprint {
             background-color: #020617;
             background-image: 
@@ -38,8 +40,6 @@
         pre code.hljs { background: transparent !important; padding: 0 0 0 16px !important; margin: 0; }
         
         .zen-mode-active { position: fixed !important; inset: 0 !important; z-index: 9999 !important; border-radius: 0 !important; height: 100dvh !important; max-width: none !important; }
-        
-        /* Smooth Zoom Transitions */
         #image-display { transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); transform-origin: center center; }
     </style>
 
@@ -54,55 +54,55 @@
 
     <main id="main-content" class="flex-1 flex flex-col items-center p-2 md:p-6 lg:p-8 pt-24 transition-opacity duration-500">
         
-        <header class="w-full max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 shrink-0 px-2 md:px-0 gap-4">
+        <header class="w-full max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 shrink-0 px-2 md:px-0 gap-4 relative z-[60]">
             <div>
                 <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight drop-shadow-md">Academic <span class="text-blue-500">Vault</span></h1>
-                <p class="text-slate-400 text-xs mt-1 mono uppercase tracking-widest">Lab Repository Explorer</p>
+                <p class="text-slate-400 text-xs mt-1 mono uppercase tracking-widest">Laboratory Index & Resource Viewer</p>
             </div>
 
-            <div class="flex items-center gap-3 w-full md:w-auto">
-                <div class="p-2 bg-slate-900/80 border border-slate-700 rounded-lg shadow-inner flex items-center gap-2 flex-1 md:flex-none">
-                    <svg class="w-4 h-4 text-slate-400 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-                    <select id="repo-selector" class="bg-transparent text-sm text-slate-300 focus:outline-none mono w-full cursor-pointer" onchange="RepoEngine.changeRepo(this.value)">
-                        <option value="Abhishek333k/SCILAB" class="bg-slate-900">SCILAB (Signals & Systems)</option>
-                        <option value="Abhishek333k/WMC-LAB" class="bg-slate-900">WMC-LAB (Wireless Comm)</option>
-                        <option value="Abhishek333k/IoT-LAB" class="bg-slate-900">IoT-LAB (Internet of Things)</option>
-                    </select>
+            <div class="relative w-full md:w-auto" id="custom-dropdown">
+                <button onclick="RepoEngine.toggleDropdown()" class="w-full md:w-72 p-3 bg-slate-900/80 backdrop-blur-md border border-slate-700 rounded-xl shadow-inner flex items-center justify-between text-sm text-slate-200 mono hover:border-blue-500 transition-colors focus:outline-none">
+                    <span id="dropdown-selected" class="truncate font-bold">SCILAB (Signals & Systems)</span>
+                    <svg class="w-4 h-4 text-slate-500 shrink-0 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </button>
+                
+                <div id="dropdown-menu" class="hidden absolute top-full left-0 mt-2 w-full glass-panel overflow-hidden z-[100] shadow-2xl origin-top">
+                    <div class="flex flex-col w-full">
+                        <button onclick="RepoEngine.selectRepo('Abhishek333k/SCILAB', 'SCILAB (Signals & Systems)')" class="text-left px-5 py-3.5 text-sm text-slate-300 hover:bg-blue-500/20 hover:text-blue-400 border-b border-slate-800/50 mono transition-colors w-full truncate">SCILAB (Signals & Systems)</button>
+                        <button onclick="RepoEngine.selectRepo('Abhishek333k/WMC-LAB', 'WMC-LAB (Wireless Comm)')" class="text-left px-5 py-3.5 text-sm text-slate-300 hover:bg-blue-500/20 hover:text-blue-400 border-b border-slate-800/50 mono transition-colors w-full truncate">WMC-LAB (Wireless Comm)</button>
+                        <button onclick="RepoEngine.selectRepo('Abhishek333k/IoT-LAB', 'IoT-LAB (Internet of Things)')" class="text-left px-5 py-3.5 text-sm text-slate-300 hover:bg-blue-500/20 hover:text-blue-400 mono transition-colors w-full truncate">IoT-LAB (Internet of Things)</button>
+                    </div>
                 </div>
             </div>
         </header>
 
-        <div id="ide-workspace" class="w-full max-w-7xl mx-auto flex lg:grid lg:grid-cols-[320px_1fr] gap-4 md:gap-6 h-[calc(100dvh-180px)] md:h-[75vh] min-h-[500px] mb-12 transition-all duration-300">
+        <div id="ide-workspace" class="w-full max-w-7xl mx-auto flex lg:grid lg:grid-cols-[320px_1fr] gap-4 md:gap-6 h-[calc(100dvh-180px)] md:h-[75vh] min-h-[500px] mb-12 transition-all duration-300 relative z-10">
             
             <div id="sidebar-panel" class="glass-panel flex flex-col overflow-hidden h-full w-full lg:w-auto transition-all duration-300">
                 
                 <div class="p-3 bg-slate-900/80 border-b border-slate-800 flex flex-col gap-2 shrink-0">
                     <div class="relative">
                         <svg class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                        <input type="text" id="file-search" oninput="RepoEngine.filterFiles(this.value)" placeholder="Search directory..." class="w-full bg-[#020617] border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 mono transition-all">
+                        <input type="text" id="file-search" oninput="RepoEngine.filterFiles(this.value)" placeholder="Search index..." class="w-full bg-[#020617] border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 mono transition-all">
                     </div>
                     <div class="text-[10px] font-bold text-slate-400 mono flex items-center gap-2 overflow-x-auto custom-scrollbar whitespace-nowrap mt-1" id="breadcrumb-container"></div>
                 </div>
                 
                 <ul id="file-list" class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1"></ul>
 
-                <div class="p-2 border-t border-slate-800 bg-slate-900/50 shrink-0 hidden md:block">
-                    <p class="text-[9px] text-slate-500 mono uppercase tracking-widest text-center mb-1 opacity-50">Sponsor</p>
-                    <div id="dynamic-ad-slot" class="w-full h-[50px] bg-slate-800/50 rounded flex items-center justify-center border border-slate-700/50">
-                        </div>
-                </div>
+                <div id="ad-wrapper" class="p-2 border-t border-slate-800 bg-slate-900/50 shrink-0 hidden md:block min-h-[60px] flex items-center justify-center">
+                    </div>
             </div>
 
             <div id="editor-panel" class="glass-panel hidden lg:flex flex-col overflow-hidden h-full w-full relative transition-all duration-300">
                 
                 <div id="code-overlay" class="absolute inset-0 bg-[#020617]/90 backdrop-blur-md z-20 flex flex-col items-center justify-center p-6 text-center transition-opacity duration-300">
-                    <svg class="w-12 h-12 text-slate-700 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
-                    <h3 class="text-lg font-bold text-white mb-2">No File Selected</h3>
-                    <p class="text-xs text-slate-500 max-w-xs">Select a document from the repository to initialize the viewer.</p>
+                    <svg class="w-12 h-12 text-slate-700 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    <h3 class="text-lg font-bold text-white mb-2">No Document Selected</h3>
+                    <p class="text-xs text-slate-500 max-w-xs">Select a laboratory file from the index to initialize the smart viewer.</p>
                 </div>
 
                 <div class="bg-slate-900/90 p-2 md:p-3 border-b border-slate-800 flex justify-between items-center shrink-0 z-30">
-                    
                     <div class="flex items-center gap-3 overflow-hidden">
                         <button onclick="RepoEngine.showMobileSidebar()" class="lg:hidden p-1.5 bg-slate-800 text-white rounded border border-slate-700 flex items-center">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
@@ -116,9 +116,7 @@
                     </div>
                     
                     <div class="flex gap-2 shrink-0 items-center">
-                        
-                        <div id="viewer-controls" class="flex gap-1 border-r border-slate-700 pr-2 mr-1">
-                            </div>
+                        <div id="viewer-controls" class="flex gap-1 border-r border-slate-700 pr-2 mr-1"></div>
 
                         <button onclick="RepoEngine.toggleZenMode()" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-lg border border-slate-700 transition-all hidden md:block" title="Zen Mode">
                             <svg id="icon-zen" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
@@ -137,7 +135,6 @@
                 </div>
 
                 <div id="viewer-container" class="flex-1 bg-[#0d1117] relative w-full h-full flex flex-col overflow-hidden">
-                    
                     <div id="view-code" class="hidden w-full h-full relative flex-row overflow-hidden">
                         <div id="line-numbers" class="h-full overflow-hidden mono py-4 w-12 shrink-0 hidden md:block" style="font-size: 14px;"></div>
                         <div id="code-scroll-area" class="flex-1 h-full overflow-auto custom-scrollbar p-4" onscroll="RepoEngine.syncScroll(this)">
@@ -152,37 +149,37 @@
                     <div id="view-doc" class="hidden w-full h-full">
                         <iframe id="doc-display" src="" class="w-full h-full border-none bg-[#e2e8f0]"></iframe>
                     </div>
-
                 </div>
             </div>
         </div>
 
         <section class="w-full max-w-5xl mx-auto text-slate-300 px-4 pb-12 shrink-0 mt-8">
-            <div class="mb-12 border-b border-slate-800 pb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div class="mb-10 border-b border-slate-800 pb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
-                    <h2 class="text-2xl font-bold text-white mb-2">Academic Operations Manual</h2>
-                    <p class="text-sm text-slate-400 max-w-2xl">This interface bridges directly to isolated academic GitHub repositories. It decodes raw source code, compiles PDF manuals, and renders binary images purely through client-side API requests. No middle-server tracking.</p>
+                    <h2 class="text-2xl font-bold text-white mb-2">Laboratory Resource Overview</h2>
+                    <p class="text-sm text-slate-400 max-w-2xl leading-relaxed">This centralized index allows engineering and computer science students to access, inspect, and download laboratory experiment files. The Smart Viewer securely compiles code, documentation, and media formats dynamically via client-side rendering—eliminating the need to install specific software suites just to view materials.</p>
                 </div>
-                <button onclick="RepoEngine.reportIssue()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shrink-0 shadow-lg">
-                    <svg class="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                    Report Error / Contribute
-                </button>
+                
+               <a href="mailto:silenvault@gmail.com?subject=Laboratory%20Curriculum%20Update%20Request&body=Please%20describe%20the%20error%20or%20attach%20the%20updated%20files%20below:%0A%0A" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shrink-0 shadow-lg group">
+                    <svg class="w-5 h-5 text-blue-400 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                    Contact Maintainer
+                </a>
             </div>
 
             <div class="grid md:grid-cols-2 gap-8">
                 <div class="bg-slate-900/40 p-6 rounded-xl border border-slate-800">
-                    <h3 class="text-blue-400 font-black mb-3 uppercase tracking-widest text-xs flex items-center gap-2"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg> Supported Architectures</h3>
-                    <ul class="space-y-2 text-sm text-slate-400 list-disc list-inside">
-                        <li><strong>SCILAB:</strong> Native `.sce` and `.sci` syntax highlighting.</li>
-                        <li><strong>Embedded:</strong> C, C++, and `.ino` parsing.</li>
-                        <li><strong>Documents:</strong> Native PDF and Word document rendering via embedded iFrames.</li>
-                        <li><strong>Raw Media:</strong> PNG, JPG, WEBP viewing with vector zoom capabilities.</li>
+                    <h3 class="text-blue-400 font-black mb-3 uppercase tracking-widest text-xs">Supported Architectures</h3>
+                    <ul class="space-y-3 text-sm text-slate-400 list-disc list-inside">
+                        <li><strong>SCILAB Simulation:</strong> Native `.sce` and `.sci` syntax highlighting for signal processing files.</li>
+                        <li><strong>Embedded Systems:</strong> Real-time C, C++, and `.ino` code parsing.</li>
+                        <li><strong>Academic Documentation:</strong> Embedded viewing algorithms for PDF and Word Documents.</li>
+                        <li><strong>Raw Media Analysis:</strong> Dedicated vector-zoom viewing for PNG, JPG, and WEBP formats.</li>
                     </ul>
                 </div>
                 <div class="bg-slate-900/40 p-6 rounded-xl border border-slate-800">
-                    <h3 class="text-emerald-400 font-black mb-3 uppercase tracking-widest text-xs flex items-center gap-2"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg> Developer Telemetry</h3>
-                    <p class="text-sm text-slate-400 leading-relaxed mb-3">To preserve system memory and bypass GitHub's strict API rate limits (60 requests/hr), this environment utilizes <strong>SessionStorage DOM Caching</strong>. Once a directory is loaded, navigating backwards costs 0 API requests and executes instantly.</p>
-                    <p class="text-xs font-mono text-slate-500">Links shared from this app will dynamically mount the exact file for the receiver.</p>
+                    <h3 class="text-emerald-400 font-black mb-3 uppercase tracking-widest text-xs">System Performance & Contributions</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed mb-4">To ensure rapid load times and reduce network latency, this interface utilizes <strong>SessionStorage Memory Caching</strong>. Navigating back through previously loaded directories is completely instantaneous and costs zero external data requests.</p>
+                    <p class="text-sm text-slate-400 leading-relaxed"><strong>Curriculum Updates:</strong> If you notice a mathematical discrepancy in an experiment, or wish to contribute an updated version of a laboratory file, please utilize the <em>Contact Maintainer</em> button above to submit your revisions.</p>
                 </div>
             </div>
         </section>
@@ -190,6 +187,16 @@
     </main>
 
     <sv-footer base-path=".."></sv-footer>
+
+    <script>
+        document.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('custom-dropdown');
+            const menu = document.getElementById('dropdown-menu');
+            if (dropdown && !dropdown.contains(e.target) && !menu.classList.contains('hidden')) {
+                menu.classList.add('hidden');
+            }
+        });
+    </script>
 
     <script>
         const RepoEngine = {
@@ -224,16 +231,42 @@
                 return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
             },
 
+            // Custom Dropdown Logic
+            toggleDropdown: function() {
+                const menu = document.getElementById('dropdown-menu');
+                menu.classList.toggle('hidden');
+            },
+
+            selectRepo: function(repoValue, repoName) {
+                document.getElementById('dropdown-selected').innerText = repoName;
+                document.getElementById('dropdown-menu').classList.add('hidden');
+                
+                document.getElementById('code-overlay').style.display = 'flex';
+                document.getElementById('code-overlay').style.opacity = '1';
+                this.showMobileSidebar();
+                this.initLoad(repoValue);
+            },
+
             parseHash: function() {
+                // Default Boot setup
+                const defaultRepo = 'Abhishek333k/SCILAB';
+                const defaultName = 'SCILAB (Signals & Systems)';
+
                 if (window.location.hash) {
                     const hashParams = new URLSearchParams(window.location.hash.substring(1));
                     const repo = hashParams.get('repo');
                     const file = hashParams.get('file');
                     
                     if (repo) {
-                        document.getElementById('repo-selector').value = repo;
                         this.currentRepo = repo;
+                        // Attempt to update the dropdown name visually if possible
+                        if(repo.includes('WMC')) document.getElementById('dropdown-selected').innerText = 'WMC-LAB (Wireless Comm)';
+                        else if(repo.includes('IoT')) document.getElementById('dropdown-selected').innerText = 'IoT-LAB (Internet of Things)';
+                        else document.getElementById('dropdown-selected').innerText = 'SCILAB (Signals & Systems)';
+                    } else {
+                        this.currentRepo = defaultRepo;
                     }
+
                     if (file) {
                         const pathParts = file.split('/');
                         const fileName = pathParts.pop();
@@ -247,39 +280,58 @@
                         });
                         return;
                     }
+                } else {
+                    this.currentRepo = defaultRepo;
+                    document.getElementById('dropdown-selected').innerText = defaultName;
                 }
-                this.initLoad(document.getElementById('repo-selector').value);
+                
+                this.initLoad(this.currentRepo);
             },
 
-            initLoad: function(repoName) {
-                this.currentRepo = repoName;
+            initLoad: function(repoValue) {
+                this.currentRepo = repoValue;
                 this.apiCache = {}; 
-                window.location.hash = `repo=${repoName}`;
+                window.location.hash = `repo=${repoValue}`;
                 this.fetchDirectory('');
             },
 
-            changeRepo: function(repoName) {
-                document.getElementById('code-overlay').style.display = 'flex';
-                document.getElementById('code-overlay').style.opacity = '1';
-                this.showMobileSidebar();
-                this.initLoad(repoName);
-            },
-
-            // --- SPA AD REFRESH LOGIC ---
+            // --- SMART SPA AD LOGIC ---
             refreshAdSlot: function() {
-                const slot = document.getElementById('dynamic-ad-slot');
-                if(!slot) return;
+                const wrapper = document.getElementById('ad-wrapper');
+                if(!wrapper) return;
                 
-                // Note: Replace data-ad-client and data-ad-slot with your actual AdSense publisher details when deploying
-                slot.innerHTML = `
-                    <ins class="adsbygoogle"
-                         style="display:block; width:100%; height:50px;"
-                         data-ad-client="ca-pub-5449371042798610"
-                         data-ad-slot="YOUR_SLOT_ID_HERE"></ins>
+                // Clear existing ad completely
+                wrapper.innerHTML = '';
+                
+                // Inject new ad container utilizing layout.js classes
+                // smart-ad-unit keeps it hidden until filled
+                const adHtml = `
+                    <div class="smart-ad-unit hidden opacity-0 transition-opacity duration-1000 w-full flex justify-center">
+                        <ins class="adsbygoogle"
+                             style="display:block; width:100%; height:50px;"
+                             data-ad-client="ca-pub-5449371042798610"
+                             data-ad-slot="YOUR_SLOT_ID_HERE"></ins>
+                    </div>
                 `;
+                wrapper.innerHTML = adHtml;
+
                 try {
                     (adsbygoogle = window.adsbygoogle || []).push({});
-                } catch(e) { /* Ad blocker caught it, fail silently */ }
+                    
+                    // Local Observer since DOMContentLoaded already fired in layout.js
+                    const ins = wrapper.querySelector('ins');
+                    const unit = wrapper.querySelector('.smart-ad-unit');
+                    const observer = new MutationObserver((mutations) => {
+                        mutations.forEach((mutation) => {
+                            if (ins.getAttribute("data-ad-status") === "filled" || ins.innerHTML.includes('iframe')) {
+                                unit.classList.remove('hidden');
+                                setTimeout(() => unit.classList.add('opacity-100'), 100);
+                                observer.disconnect();
+                            }
+                        });
+                    });
+                    observer.observe(ins, { attributes: true, childList: true });
+                } catch(e) { /* Ad Blocker safety */ }
             },
 
             fetchDirectory: async function(path) {
@@ -295,7 +347,7 @@
                     return;
                 }
 
-                list.innerHTML = `<li class="p-4 text-center text-blue-400 text-xs animate-pulse mono">Querying Github Node...</li>`;
+                list.innerHTML = `<li class="p-4 text-center text-blue-400 text-xs animate-pulse mono">Synchronizing Directory...</li>`;
                 
                 try {
                     const url = `https://api.github.com/repos/${this.currentRepo}/contents/${path}`;
@@ -306,7 +358,7 @@
                     this.apiCache[cacheKey] = data; 
                     this.renderDirectory(data, path);
                 } catch (error) {
-                    list.innerHTML = `<li class="p-4 text-center text-red-400 text-xs mono">API Rate Limit Exceeded. Try again later.</li>`;
+                    list.innerHTML = `<li class="p-4 text-center text-red-400 text-xs mono">Network Rate Limit Exceeded. Please try again shortly.</li>`;
                 }
             },
 
@@ -359,7 +411,6 @@
                             document.querySelectorAll('.file-item').forEach(el => el.classList.remove('bg-blue-500/20', 'border-l-2', 'border-blue-500', 'pl-2'));
                             li.classList.add('bg-blue-500/20', 'border-l-2', 'border-blue-500', 'pl-2');
                             
-                            // Mobile UX Logic
                             if (window.innerWidth < 1024) {
                                 document.getElementById('sidebar-panel').classList.add('hidden');
                                 document.getElementById('editor-panel').classList.remove('hidden');
@@ -402,14 +453,14 @@
             },
 
             fetchFile: async function(fileItem) {
-                // SPA Ad Refresh Trigger
+                // Refresh Ad on new file click (Increases Impressions)
                 this.refreshAdSlot();
 
                 window.location.hash = `repo=${this.currentRepo}&file=${fileItem.path}`;
 
                 const overlay = document.getElementById('code-overlay');
                 overlay.style.display = 'flex';
-                overlay.innerHTML = `<p class="text-blue-400 mono text-sm animate-pulse">Decrypting ${fileItem.name}...</p>`;
+                overlay.innerHTML = `<p class="text-blue-400 mono text-sm animate-pulse">Initializing Viewer for ${fileItem.name}...</p>`;
                 
                 this.activeFileName = fileItem.name;
                 this.activeFileUrl = fileItem.download_url;
@@ -428,7 +479,7 @@
                 viewCode.classList.add('hidden'); viewCode.classList.remove('flex');
                 viewImage.classList.add('hidden');
                 viewDoc.classList.add('hidden');
-                controlPanel.innerHTML = ''; // Reset tool controls
+                controlPanel.innerHTML = '';
 
                 const ext = fileItem.name.includes('.') ? fileItem.name.split('.').pop().toLowerCase() : 'txt';
                 const imageExts = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'];
@@ -440,7 +491,6 @@
                         this.imageZoom = 1;
                         document.getElementById('image-display').style.transform = `scale(1)`;
                         
-                        // Add Image Controls
                         controlPanel.innerHTML = `
                             <button onclick="RepoEngine.adjustZoom(0.2)" class="p-1 text-slate-400 hover:text-white transition-colors" title="Zoom In"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg></button>
                             <button onclick="RepoEngine.adjustZoom(-0.2)" class="p-1 text-slate-400 hover:text-white transition-colors" title="Zoom Out"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"/></svg></button>
@@ -466,7 +516,6 @@
                         codeBlock.textContent = this.rawCode;
                         btnCopy.style.opacity = '1'; btnCopy.style.pointerEvents = 'auto';
                         
-                        // Add Code Typography Controls
                         controlPanel.innerHTML = `
                             <button onclick="RepoEngine.adjustFontSize(2)" class="p-1 text-slate-400 hover:text-white font-bold text-xs font-mono transition-colors" title="Increase Font">A+</button>
                             <button onclick="RepoEngine.adjustFontSize(-2)" class="p-1 text-slate-400 hover:text-white font-bold text-xs font-mono transition-colors" title="Decrease Font">A-</button>
@@ -490,12 +539,11 @@
                         overlay.style.opacity = '0'; setTimeout(() => overlay.style.display = 'none', 300);
                     }
                 } catch (e) {
-                    this.showToast("Failed to read file.", "error");
+                    this.showToast("Failed to read file format.", "error");
                     overlay.innerHTML = `<p class="text-red-400 mono text-sm">Read Error.</p>`;
                 }
             },
 
-            // --- UI ADJUSTMENT ENGINES ---
             adjustFontSize: function(delta) {
                 this.fontSize = Math.max(10, Math.min(24, this.fontSize + delta));
                 this.applyFontSize();
@@ -504,7 +552,6 @@
             applyFontSize: function() {
                 document.getElementById('code-display').style.fontSize = `${this.fontSize}px`;
                 document.getElementById('line-numbers').style.fontSize = `${this.fontSize}px`;
-                // Recalculate line heights if syntax highlighter altered them
                 this.updateLineNumbers(); 
             },
 
@@ -528,7 +575,7 @@
             },
 
             copyCode: async function() {
-                if(!this.rawCode) return this.showToast("Cannot copy binary files.", "error");
+                if(!this.rawCode) return this.showToast("Cannot copy binary formats.", "error");
                 try {
                     await navigator.clipboard.writeText(this.rawCode);
                     this.showToast("Source code copied to clipboard!");
@@ -538,7 +585,7 @@
             },
 
             downloadCode: function() {
-                if(!this.activeFileUrl) return this.showToast("No file selected.", "error");
+                if(!this.activeFileUrl) return this.showToast("No document selected.", "error");
                 const a = document.createElement('a');
                 a.href = this.activeFileUrl;
                 a.target = '_blank';
@@ -562,11 +609,6 @@
                     editorPanel.classList.remove('zen-mode-active');
                     icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />`;
                 }
-            },
-
-            reportIssue: function() {
-                if(!this.currentRepo) return;
-                window.open(`https://github.com/${this.currentRepo}/issues/new`, '_blank');
             }
         };
 
