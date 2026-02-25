@@ -2,126 +2,117 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SilenVault | Secure P2P Node</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* Viewport Unlocked for scrolling */
-        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; margin: 0; min-height: 100vh; overflow-x: hidden; }
+        /* Mobile-first viewport constraints */
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; margin: 0; min-height: 100dvh; display: flex; flex-direction: column; overflow-x: hidden; }
         .bg-grid { background-image: radial-gradient(rgba(59, 130, 246, 0.15) 1px, transparent 1px); background-size: 24px 24px; }
         
         .glass-panel { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(51, 65, 85, 0.6); border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; }
         .mono { font-family: 'Fira Code', monospace; }
         
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.3); border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.6); }
         
-        .chat-bubble-wrapper { width: fit-content; max-width: 85%; min-width: 100px; display: flex; flex-direction: column; }
+        .chat-bubble-wrapper { width: fit-content; max-width: 88%; min-width: 80px; display: flex; flex-direction: column; }
         .chat-text { word-wrap: break-word; white-space: pre-wrap; overflow-wrap: break-word; line-height: 1.5; }
         
         .media-thumbnail { max-width: 100%; max-height: 200px; object-fit: contain; border-radius: 0.5rem; cursor: zoom-in; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.1); background: #000; }
-        .media-thumbnail:hover { transform: scale(1.02); box-shadow: 0 10px 25px rgba(59,130,246,0.3); border-color: rgba(59,130,246,0.5); }
-        
         .progress-bar-bg { background: rgba(0, 0, 0, 0.5); border-radius: 99px; height: 5px; overflow: hidden; width: 100%; margin-top: 8px; border: 1px solid rgba(255,255,255,0.1); }
         .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #8b5cf6); width: 0%; transition: width 0.1s linear; box-shadow: 0 0 10px #3b82f6; }
     </style>
 </head>
-<body class="bg-grid">
+<body class="bg-grid p-2 md:p-6 lg:p-8">
 
-    <div id="toast-container" class="fixed top-6 right-6 z-[10000] flex flex-col gap-3 pointer-events-none"></div>
+    <div id="toast-container" class="fixed top-4 right-4 z-[10000] flex flex-col gap-3 pointer-events-none w-[calc(100%-2rem)] md:w-auto"></div>
 
-    <div class="p-4 md:p-6 lg:p-8 flex flex-col items-center">
-        <header class="w-full max-w-7xl flex justify-between items-center mb-6 shrink-0">
-            <div>
-                <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight drop-shadow-md">SilenVault <span class="text-blue-500">P2P</span></h1>
-                <p class="text-slate-400 text-xs mt-1 mono uppercase tracking-widest">End-to-End Encrypted Data Node</p>
-            </div>
-            <div class="inline-flex items-center gap-2 px-4 py-2 bg-slate-900/80 border border-slate-700 text-slate-300 text-xs font-bold mono uppercase tracking-widest rounded-lg shadow-inner">
-                <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_#ef4444]" id="status-indicator"></span> 
-                <span id="status-text">Disconnected</span>
-            </div>
-        </header>
+    <header class="w-full max-w-7xl mx-auto flex justify-between items-center mb-4 md:mb-6 shrink-0 px-2 md:px-0">
+        <div>
+            <h1 class="text-xl md:text-3xl font-black text-white tracking-tight drop-shadow-md">SilenVault <span class="text-blue-500">P2P</span></h1>
+        </div>
+        <div class="inline-flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-slate-900/80 border border-slate-700 text-slate-300 text-[10px] md:text-xs font-bold mono uppercase tracking-widest rounded-lg shadow-inner">
+            <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_#ef4444]" id="status-indicator"></span> 
+            <span id="status-text">Disconnected</span>
+        </div>
+    </header>
 
-        <main class="w-full max-w-7xl grid lg:grid-cols-[400px_1fr] gap-6 h-[75vh] min-h-[600px] mb-16">
-            
-            <div class="glass-panel relative overflow-hidden h-full">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
-                <div class="p-6 border-b border-slate-800/80 shrink-0">
-                    <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
-                        Cryptographic Handshake
-                    </h2>
-                    <div class="flex gap-2 p-1 bg-slate-950 rounded-lg border border-slate-800">
-                        <button id="btn-host" class="flex-1 py-2 text-xs font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded transition-all" onclick="P2PEngine.setMode('host')">Host Node</button>
-                        <button id="btn-guest" class="flex-1 py-2 text-xs font-bold text-slate-500 hover:text-white transition-all" onclick="P2PEngine.setMode('guest')">Guest Node</button>
-                    </div>
-                </div>
-                <div id="handshake-ui" class="p-6 space-y-6 flex-1 overflow-y-auto custom-scrollbar"></div>
-            </div>
-
-            <div class="glass-panel relative overflow-hidden h-full">
-                <div id="room-overlay" class="absolute inset-0 bg-[#020617]/95 backdrop-blur-md z-20 flex flex-col items-center justify-center p-6 text-center transition-opacity duration-500">
-                    <div class="w-16 h-16 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center mb-5 shadow-inner">
-                        <svg class="w-8 h-8 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-white mb-2">Awaiting Peer Connection</h3>
-                    <p class="text-sm text-slate-500 max-w-sm">Execute the cryptographic handshake on the left to unlock the direct memory channel.</p>
-                </div>
-
-                <div class="bg-slate-900/90 p-4 border-b border-slate-800 flex justify-between items-center shrink-0 z-10">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 mono text-sm font-bold shadow-inner" id="local-avatar">H</div>
-                        <div>
-                            <p class="text-sm font-bold text-white leading-tight">Encrypted Channel</p>
-                            <p class="text-[10px] mono text-emerald-400 mt-0.5" id="remote-identity">Waiting for peer...</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="chat-log" class="flex-1 p-6 overflow-y-auto custom-scrollbar space-y-6 bg-transparent relative scroll-smooth flex flex-col z-0">
-                    <div class="flex justify-center my-2 opacity-50 shrink-0 w-full">
-                        <span class="text-[10px] text-slate-400 mono uppercase tracking-widest bg-slate-900 px-4 py-1.5 rounded-full border border-slate-800 shadow-inner">Secure Link Established</span>
-                    </div>
-                </div>
-
-                <div id="typing-indicator" class="hidden px-6 py-2 bg-gradient-to-t from-slate-900/90 to-transparent text-[10px] mono text-blue-400 uppercase tracking-widest animate-pulse shrink-0 z-10">
-                    <span id="typist-name">Remote</span> is typing...
-                </div>
-
-                <div class="p-4 bg-slate-900/95 border-t border-slate-800 shrink-0 z-10">
-                    <div class="flex items-center gap-3 relative">
-                        <input type="file" id="file-input" class="hidden">
-                        <button id="btn-attach" class="w-12 h-12 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl border border-slate-700 transition-all focus:ring-2 focus:ring-blue-500/50 outline-none shrink-0" title="Send Large File (Max 500MB)">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
-                        </button>
-                        <textarea id="chat-input" placeholder="Transmit secure message..." class="flex-1 h-12 bg-[#020617] border border-slate-700 rounded-xl px-5 py-3 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-inner mono transition-all resize-none custom-scrollbar min-h-[48px] max-h-[120px] leading-tight"></textarea>
-                        <button id="btn-send" class="h-12 px-6 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-[0_0_15px_rgba(59,130,246,0.4)] transition-all shrink-0 focus:ring-2 focus:ring-blue-400 outline-none flex items-center gap-2">
-                            TX <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
-                        </button>
-                    </div>
+    <main class="w-full max-w-7xl mx-auto grid lg:grid-cols-[350px_1fr] gap-4 md:gap-6 flex-1 h-[calc(100dvh-90px)] md:h-[80vh] min-h-[500px]">
+        
+        <div id="handshake-panel" class="glass-panel relative overflow-hidden h-full flex flex-col transition-all duration-300">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+            <div class="p-4 md:p-6 border-b border-slate-800/80 shrink-0">
+                <div class="flex gap-2 p-1 bg-slate-950 rounded-lg border border-slate-800">
+                    <button id="btn-host" class="flex-1 py-2 text-xs font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded transition-all" onclick="P2PEngine.setMode('host')">Host Node</button>
+                    <button id="btn-guest" class="flex-1 py-2 text-xs font-bold text-slate-500 hover:text-white transition-all" onclick="P2PEngine.setMode('guest')">Guest Node</button>
                 </div>
             </div>
-        </main>
+            <div id="handshake-ui" class="p-4 md:p-6 space-y-4 md:space-y-6 flex-1 overflow-y-auto custom-scrollbar"></div>
+        </div>
 
-        <section class="w-full max-w-5xl mx-auto text-slate-300 mt-10 px-4 pb-20">
+        <div class="glass-panel relative overflow-hidden h-full flex flex-col">
+            <div id="room-overlay" class="absolute inset-0 bg-[#020617]/95 backdrop-blur-md z-20 flex flex-col items-center justify-center p-6 text-center transition-opacity duration-500">
+                <div class="w-16 h-16 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center mb-5 shadow-inner">
+                    <svg class="w-8 h-8 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                </div>
+                <h3 class="text-lg md:text-xl font-bold text-white mb-2">Awaiting Peer Connection</h3>
+                <p class="text-xs md:text-sm text-slate-500 max-w-sm">Execute the cryptographic handshake to unlock the direct memory channel.</p>
+            </div>
+
+            <div class="bg-slate-900/90 p-3 md:p-4 border-b border-slate-800 flex justify-between items-center shrink-0 z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-inner shrink-0">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-white leading-tight">Encrypted Channel</p>
+                        <p class="text-[10px] mono text-emerald-400 mt-0.5" id="remote-identity">Waiting for handshake...</p>
+                    </div>
+                </div>
+                <button onclick="location.reload()" class="lg:hidden p-2 bg-red-950/50 text-red-400 rounded-lg border border-red-900/50 text-xs font-bold hidden" id="mobile-disconnect-btn">Disconnect</button>
+            </div>
+
+            <div id="chat-log" class="flex-1 p-4 md:p-6 overflow-y-auto custom-scrollbar space-y-4 md:space-y-6 bg-transparent relative scroll-smooth flex flex-col z-0">
+                </div>
+
+            <div id="typing-indicator" class="hidden px-6 py-2 bg-gradient-to-t from-slate-900/90 to-transparent text-[10px] mono text-blue-400 uppercase tracking-widest animate-pulse shrink-0 z-10">
+                Peer is typing...
+            </div>
+
+            <div class="p-3 md:p-4 bg-slate-900/95 border-t border-slate-800 shrink-0 z-10">
+                <div class="flex items-end gap-2 md:gap-3 relative">
+                    <input type="file" id="file-input" class="hidden">
+                    <button id="btn-attach" class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl border border-slate-700 transition-all outline-none shrink-0">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                    </button>
+                    <textarea id="chat-input" placeholder="Secure message..." class="flex-1 min-h-[40px] md:min-h-[48px] max-h-[120px] bg-[#020617] border border-slate-700 rounded-xl px-4 py-2.5 md:py-3 text-sm text-white focus:outline-none focus:border-blue-500 shadow-inner mono resize-none custom-scrollbar leading-tight"></textarea>
+                    <button id="btn-send" class="h-10 px-4 md:h-12 md:px-6 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-[0_0_15px_rgba(59,130,246,0.4)] transition-all shrink-0 outline-none flex items-center gap-2">
+                        <span class="hidden md:inline">TX</span>
+                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+    <section class="w-full max-w-5xl mx-auto text-slate-300 mt-12 px-4 pb-24 shrink-0">
             <div class="mb-12 border-b border-slate-800 pb-8">
-                <h2 class="text-2xl font-bold text-white mb-4">How to Establish a Secure Link</h2>
-                <p class="text-sm leading-relaxed mb-6">This utility utilizes WebRTC Data Channels to forge a direct, end-to-end encrypted connection between two browsers. Because SilenVault operates without backend signaling servers, connection keys must be exchanged manually.</p>
+                <h2 class="text-2xl md:text-3xl font-bold text-white mb-4">How to Establish a Secure Link</h2>
+                <p class="text-sm leading-relaxed mb-8 text-slate-400">This utility utilizes <strong>WebRTC Data Channels</strong> to forge a direct, end-to-end encrypted connection between two browsers. Because SilenVault operates with a strict zero-server policy, there are no backend signaling databases. Connection keys must be exchanged manually.</p>
                 <div class="grid md:grid-cols-3 gap-6">
-                    <div class="bg-slate-900/50 p-5 rounded-xl border border-slate-800">
-                        <span class="text-blue-400 font-black text-xl mb-2 block">01. Generate</span>
-                        <p class="text-xs">The <strong>Host</strong> clicks "Generate Link Key", copies the cryptographic string, and sends it to the Guest via a secure messenger.</p>
+                    <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-800 shadow-lg">
+                        <span class="text-blue-400 font-black text-2xl mb-2 block">01. Generate</span>
+                        <p class="text-xs leading-relaxed text-slate-400">The <strong>Host</strong> clicks "Create Link Key", copies the resulting cryptographic string, and securely sends it to the Guest (via WhatsApp, Signal, etc).</p>
                     </div>
-                    <div class="bg-slate-900/50 p-5 rounded-xl border border-slate-800">
-                        <span class="text-purple-400 font-black text-xl mb-2 block">02. Respond</span>
-                        <p class="text-xs">The <strong>Guest</strong> pastes the Host Key, generates a Return Key, and sends it back to the Host.</p>
+                    <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-800 shadow-lg">
+                        <span class="text-purple-400 font-black text-2xl mb-2 block">02. Respond</span>
+                        <p class="text-xs leading-relaxed text-slate-400">The <strong>Guest</strong> pastes the Host's Key into their panel, clicks "Generate Return Key", and sends the new string back to the Host.</p>
                     </div>
-                    <div class="bg-slate-900/50 p-5 rounded-xl border border-slate-800">
-                        <span class="text-emerald-400 font-black text-xl mb-2 block">03. Establish</span>
-                        <p class="text-xs">The <strong>Host</strong> pastes the Return Key. The browsers negotiate network traversal and establish a direct lock.</p>
+                    <div class="bg-slate-900/50 p-6 rounded-xl border border-slate-800 shadow-lg">
+                        <span class="text-emerald-400 font-black text-2xl mb-2 block">03. Establish</span>
+                        <p class="text-xs leading-relaxed text-slate-400">The <strong>Host</strong> pastes the Return Key. The browsers negotiate network traversal, bypass servers entirely, and establish a direct P2P lock.</p>
                     </div>
                 </div>
             </div>
@@ -132,37 +123,34 @@
                         <svg class="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                         Technical Limitations
                     </h3>
-                    <ul class="space-y-3 text-sm list-disc list-inside text-slate-400 pl-2">
-                        <li><strong>Volatile Memory:</strong> If either party refreshes the page, closes the tab, or loses internet connection, the P2P link is permanently severed. All chat history is instantly wiped from memory.</li>
-                        <li><strong>File Size Constraints:</strong> While the engine utilizes binary chunking and network backpressure, passing files larger than <span class="text-blue-400 font-bold">500MB</span> may cause browser memory overflow depending on your hardware.</li>
-                        <li><strong>Network Firewalls:</strong> Highly restrictive corporate firewalls or strict NATs may block direct P2P routing without a TURN relay server.</li>
+                    <ul class="space-y-4 text-sm list-none text-slate-400">
+                        <li class="flex gap-3"><span class="text-red-500 font-bold">×</span> <div><strong>Volatile Memory:</strong> If either peer refreshes the page, closes the tab, or loses internet, the connection is permanently severed. All chat history is instantly wiped from RAM.</div></li>
+                        <li class="flex gap-3"><span class="text-red-500 font-bold">×</span> <div><strong>File Size Constraints:</strong> The engine utilizes binary chunking and network backpressure. However, transferring files larger than <span class="text-blue-400 font-bold">500MB</span> may cause browser memory limits to trigger, depending on device hardware.</div></li>
+                        <li class="flex gap-3"><span class="text-red-500 font-bold">×</span> <div><strong>Symmetric NATs:</strong> Highly restrictive corporate firewalls or symmetric NAT networks may block direct P2P routing without a TURN relay server (which we do not use, to ensure privacy).</div></li>
                     </ul>
                 </div>
                 <div>
                     <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
                         <svg class="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                        Security & Privacy
+                        Security & Privacy Standards
                     </h3>
-                    <p class="text-sm leading-relaxed mb-4 text-slate-400">All data transferred through this channel is secured using mandated <strong>DTLS (Datagram Transport Layer Security)</strong>. Because there is no intermediary server processing your data, man-in-the-middle attacks by the host provider (SilenVault) are physically impossible.</p>
-                    <div class="p-4 bg-red-950/30 border border-red-900/50 rounded-lg">
-                        <p class="text-xs text-red-400 font-bold uppercase tracking-wider mb-1">Warning</p>
-                        <p class="text-xs text-slate-400">While the transmission pipeline is perfectly secure, the endpoints are human. <strong>Never transmit unencrypted crypto seed phrases, SSNs, or master passwords.</strong> The peer on the other side can take screenshots, and compromised browser extensions can still read DOM output.</p>
+                    <p class="text-sm leading-relaxed mb-5 text-slate-400">All data transferred through this channel is secured using mandated <strong>DTLS (Datagram Transport Layer Security)</strong> protocols. Because there is no intermediary server processing or relaying your packets, man-in-the-middle attacks by the host provider (SilenVault) are physically impossible. The connection exists purely between the two IP addresses involved.</p>
+                    
+                    <div class="p-4 bg-red-950/30 border border-red-900/50 rounded-lg shadow-inner">
+                        <p class="text-[10px] text-red-400 font-bold uppercase tracking-widest mb-2 flex items-center gap-1"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Security Disclaimer</p>
+                        <p class="text-xs text-slate-300 leading-relaxed">While the transmission pipeline is perfectly secure, the endpoints are human. <strong>Never transmit unencrypted crypto seed phrases, SSNs, or master passwords.</strong> The peer on the other side can take screenshots, and compromised browser extensions on either device can still read DOM output.</p>
                     </div>
                 </div>
             </div>
         </section>
-    </div>
-
     <div id="media-lightbox" class="fixed inset-0 z-[9999] bg-[#020617]/95 backdrop-blur-xl hidden flex-col items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <button onclick="P2PEngine.closeLightbox()" class="absolute top-6 right-6 p-3 bg-slate-800 hover:bg-red-500/20 text-slate-300 hover:text-red-400 border border-slate-700 hover:border-red-500/50 rounded-xl transition-all shadow-lg">
+        <button onclick="P2PEngine.closeLightbox()" class="absolute top-6 right-6 p-3 bg-slate-800 text-slate-300 rounded-xl transition-all shadow-lg">
             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
         <div id="lightbox-content" class="max-w-6xl max-h-[75vh] w-full flex justify-center items-center relative rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)] border border-slate-700/50"></div>
         <div class="mt-8 flex flex-col items-center">
-            <h3 id="lightbox-title" class="text-white font-bold mb-4 mono text-sm bg-slate-900 border border-slate-800 px-4 py-1.5 rounded-full"></h3>
-            <a id="lightbox-download" href="#" download class="flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all text-sm uppercase tracking-wider">
-                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                Save to Local Storage
+            <a id="lightbox-download" href="#" download class="flex items-center gap-2 px-8 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-[0_0_20px_rgba(59,130,246,0.4)] text-sm uppercase tracking-wider">
+                Save to Device
             </a>
         </div>
     </div>
@@ -174,46 +162,27 @@
             channel: null,
             typingTimer: null,
             isTyping: false,
+            isConnected: false,
             
-            // TRUE BINARY ARRAYBUFFER VARIABLES
             CHUNK_SIZE: 64 * 1024, 
             activeSendFile: null,
             activeReceiveFile: null,
-            
             config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] },
 
-            // --- CUSTOM UI NOTIFICATIONS (REPLACES ALERTS) ---
             showToast: function(message, type = 'error') {
                 const container = document.getElementById('toast-container');
                 if (!container) return;
-                
                 const toast = document.createElement('div');
                 const colors = type === 'error' ? 'bg-red-950/90 border-red-800 text-red-400' : 'bg-yellow-950/90 border-yellow-800 text-yellow-400';
-                const icon = type === 'error' 
-                    ? '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>'
-                    : '<svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>';
-
                 toast.className = `flex items-center gap-3 px-5 py-3 border rounded-xl shadow-2xl backdrop-blur-xl ${colors} transition-all duration-300 transform translate-y-[-20px] opacity-0 pointer-events-auto`;
-                toast.innerHTML = `${icon} <span class="text-sm font-mono font-bold">${message}</span>`;
-                
+                toast.innerHTML = `<span class="text-xs md:text-sm font-mono font-bold">${message}</span>`;
                 container.appendChild(toast);
-                
-                requestAnimationFrame(() => {
-                    toast.style.transform = 'translateY(0)';
-                    toast.style.opacity = '1';
-                });
-
-                setTimeout(() => {
-                    toast.style.transform = 'translateY(-20px)';
-                    toast.style.opacity = '0';
-                    setTimeout(() => toast.remove(), 300);
-                }, 4000);
+                requestAnimationFrame(() => { toast.style.transform = 'translateY(0)'; toast.style.opacity = '1'; });
+                setTimeout(() => { toast.style.transform = 'translateY(-20px)'; toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 4000);
             },
 
             escapeHTML: function(str) {
-                return str.replace(/[&<>'"]/g, 
-                    tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-                );
+                return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
             },
 
             init: function() {
@@ -227,10 +196,7 @@
                 });
                 
                 chatInput.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        this.sendText();
-                    }
+                    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.sendText(); }
                 });
 
                 document.getElementById('btn-send').addEventListener('click', () => this.sendText());
@@ -238,18 +204,19 @@
                 const fileInput = document.getElementById('file-input');
                 document.getElementById('btn-attach').addEventListener('click', () => fileInput.click());
                 fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+
+                // Instantly notify peer if user closes tab
+                window.addEventListener('beforeunload', () => {
+                    if (this.channel && this.channel.readyState === 'open') {
+                        this.channel.close();
+                    }
+                });
             },
 
             setMode: function(selectedMode) {
                 this.mode = selectedMode;
                 const hostBtn = document.getElementById('btn-host');
                 const guestBtn = document.getElementById('btn-guest');
-                
-                const avatar = document.getElementById('local-avatar');
-                avatar.innerText = selectedMode === 'host' ? 'H' : 'G';
-                avatar.className = selectedMode === 'host' 
-                    ? 'w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 mono text-sm font-bold shadow-inner shrink-0' 
-                    : 'w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 mono text-sm font-bold shadow-inner shrink-0';
 
                 if(selectedMode === 'host') {
                     hostBtn.className = "flex-1 py-2 text-xs font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded transition-all";
@@ -266,22 +233,20 @@
                 document.getElementById('handshake-ui').innerHTML = `
                     <div class="bg-slate-900/50 border border-slate-700/50 rounded-xl p-4 shadow-inner">
                         <h3 class="text-[10px] font-bold text-slate-400 mono uppercase mb-3 flex justify-between items-center">
-                            <span>1. Generate Host Key</span>
-                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                            <span>1. Generate Key</span><span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
                         </h3>
                         <button id="btn-gen-host" onclick="P2PEngine.generateHostOffer()" class="w-full bg-slate-800 hover:bg-slate-700 text-blue-400 border border-blue-500/30 font-bold py-3 rounded-lg transition-all text-xs mb-2">Create Link Key</button>
                         <div id="host-output-container" class="hidden relative">
                             <textarea id="host-offer-out" readonly class="w-full h-20 bg-[#020617] border border-slate-700 rounded-lg p-3 text-[10px] mono text-blue-400 resize-none focus:outline-none custom-scrollbar break-all" onclick="this.select()"></textarea>
-                            <button id="btn-copy-host" onclick="P2PEngine.copyToClipboard('host-offer-out', this)" class="absolute bottom-2 right-2 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold px-3 py-1.5 rounded shadow-md transition-colors">Copy Key</button>
+                            <button id="btn-copy-host" onclick="P2PEngine.copyToClipboard('host-offer-out', this)" class="absolute bottom-2 right-2 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-bold px-3 py-1.5 rounded shadow-md transition-colors">Copy</button>
                         </div>
                     </div>
                     <div class="bg-slate-900/50 border border-slate-700/50 rounded-xl p-4 shadow-inner mt-4">
                         <h3 class="text-[10px] font-bold text-slate-400 mono uppercase mb-3 flex justify-between items-center">
-                            <span>2. Connect Guest Key</span>
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            <span>2. Connect Return Key</span><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                         </h3>
-                        <textarea id="guest-answer-in" placeholder="Paste the Guest's Return Key here..." class="w-full h-20 bg-[#020617] border border-slate-700 rounded-lg p-3 text-[10px] mono text-emerald-400 resize-none outline-none focus:border-emerald-500 transition-all mb-3 custom-scrollbar break-all"></textarea>
-                        <button onclick="P2PEngine.connectGuestAnswer()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-all text-xs">Establish Encrypted Link</button>
+                        <textarea id="guest-answer-in" placeholder="Paste Return Key here..." class="w-full h-20 bg-[#020617] border border-slate-700 rounded-lg p-3 text-[10px] mono text-emerald-400 resize-none outline-none focus:border-emerald-500 transition-all mb-3 custom-scrollbar break-all"></textarea>
+                        <button onclick="P2PEngine.connectGuestAnswer()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.2)] transition-all text-xs">Establish Link</button>
                     </div>
                 `;
             },
@@ -290,20 +255,18 @@
                 document.getElementById('handshake-ui').innerHTML = `
                     <div class="bg-slate-900/50 border border-slate-700/50 rounded-xl p-4 shadow-inner">
                         <h3 class="text-[10px] font-bold text-slate-400 mono uppercase mb-3 flex justify-between items-center">
-                            <span>1. Inject Host Key</span>
-                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            <span>1. Inject Setup Key</span><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                         </h3>
-                        <textarea id="host-offer-in" placeholder="Paste the Host's Link Key here..." class="w-full h-20 bg-[#020617] border border-slate-700 rounded-lg p-3 text-[10px] mono text-blue-400 resize-none outline-none focus:border-blue-500 transition-all mb-3 custom-scrollbar break-all"></textarea>
+                        <textarea id="host-offer-in" placeholder="Paste Setup Key here..." class="w-full h-20 bg-[#020617] border border-slate-700 rounded-lg p-3 text-[10px] mono text-blue-400 resize-none outline-none focus:border-blue-500 transition-all mb-3 custom-scrollbar break-all"></textarea>
                         <button id="btn-gen-guest" onclick="P2PEngine.generateGuestAnswer()" class="w-full bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 font-bold py-3 rounded-lg transition-all text-xs">Generate Return Key</button>
                     </div>
                     <div class="bg-slate-900/50 border border-slate-700/50 rounded-xl p-4 shadow-inner mt-4">
                         <h3 class="text-[10px] font-bold text-slate-400 mono uppercase mb-3 flex justify-between items-center">
-                            <span>2. Send Return Key</span>
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span>2. Send Return Key</span><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         </h3>
                         <div id="guest-output-container" class="hidden relative">
                             <textarea id="guest-answer-out" readonly class="w-full h-20 bg-[#020617] border border-slate-700 rounded-lg p-3 text-[10px] mono text-emerald-400 resize-none focus:outline-none custom-scrollbar break-all" onclick="this.select()"></textarea>
-                            <button id="btn-copy-guest" onclick="P2PEngine.copyToClipboard('guest-answer-out', this)" class="absolute bottom-2 right-2 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold px-3 py-1.5 rounded shadow-md transition-colors">Copy Key</button>
+                            <button id="btn-copy-guest" onclick="P2PEngine.copyToClipboard('guest-answer-out', this)" class="absolute bottom-2 right-2 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold px-3 py-1.5 rounded shadow-md transition-colors">Copy</button>
                         </div>
                     </div>
                 `;
@@ -312,12 +275,12 @@
             // --- SIGNALING CORE ---
             generateHostOffer: async function() {
                 const btn = document.getElementById('btn-gen-host');
-                btn.innerText = "Gathering Network Topology...";
-                btn.classList.add('animate-pulse');
+                btn.innerText = "Gathering Topology..."; btn.classList.add('animate-pulse');
                 
                 this.connection = new RTCPeerConnection(this.config);
                 this.channel = this.connection.createDataChannel('silen_p2p');
                 this.setupChannelListeners();
+                this.setupConnectionListeners();
 
                 this.connection.onicegatheringstatechange = () => {
                     if (this.connection.iceGatheringState === 'complete') {
@@ -333,13 +296,14 @@
 
             generateGuestAnswer: async function() {
                 const hostToken = document.getElementById('host-offer-in').value.trim();
-                if(!hostToken) return this.showToast("System Error: Host Key is missing.", "error");
+                if(!hostToken) return this.showToast("Setup Key is missing.");
                 
                 const btn = document.getElementById('btn-gen-guest');
-                btn.innerText = "Processing Cryptography...";
-                btn.classList.add('animate-pulse');
+                btn.innerText = "Processing Cryptography..."; btn.classList.add('animate-pulse');
                 
                 this.connection = new RTCPeerConnection(this.config);
+                this.setupConnectionListeners();
+                
                 this.connection.ondatachannel = (event) => {
                     this.channel = event.channel;
                     this.setupChannelListeners();
@@ -359,21 +323,53 @@
                     const answer = await this.connection.createAnswer();
                     await this.connection.setLocalDescription(answer);
                 } catch(e) { 
-                    this.showToast("Fatal Error: Invalid or corrupted Host Key.", "error");
-                    btn.innerText = "Generate Return Key";
-                    btn.classList.remove('animate-pulse');
+                    this.showToast("Invalid or corrupted Setup Key."); 
+                    btn.innerText = "Generate Return Key"; btn.classList.remove('animate-pulse');
                 }
             },
 
             connectGuestAnswer: async function() {
                 const guestToken = document.getElementById('guest-answer-in').value.trim();
-                if(!guestToken) return this.showToast("System Error: Guest Key is missing.", "error");
+                if(!guestToken) return this.showToast("Return Key is missing.");
                 try {
                     await this.connection.setRemoteDescription(JSON.parse(decodeURIComponent(atob(guestToken))));
-                    document.getElementById('status-text').innerText = "Authenticating Node...";
-                } catch(e) { 
-                    this.showToast("Fatal Error: Invalid or corrupted Guest Key.", "error");
-                }
+                    document.getElementById('status-text').innerText = "Authenticating...";
+                } catch(e) { this.showToast("Invalid or corrupted Return Key."); }
+            },
+
+            // --- CONNECTION STATE MONITORING ---
+            setupConnectionListeners: function() {
+                this.connection.oniceconnectionstatechange = () => {
+                    if (this.connection.iceConnectionState === 'disconnected' || 
+                        this.connection.iceConnectionState === 'failed' || 
+                        this.connection.iceConnectionState === 'closed') {
+                        this.handleDisconnect();
+                    }
+                };
+            },
+
+            handleDisconnect: function() {
+                if(!this.isConnected) return; // Prevent duplicate triggers
+                this.isConnected = false;
+                
+                // Update UI Status
+                document.getElementById('status-text').innerText = "Disconnected";
+                document.getElementById('status-indicator').classList.replace('bg-emerald-500', 'bg-red-500');
+                document.getElementById('status-indicator').classList.replace('shadow-[0_0_8px_#10b981]', 'shadow-[0_0_8px_#ef4444]');
+                document.getElementById('remote-identity').innerText = "Peer offline.";
+                document.getElementById('remote-identity').classList.replace('text-emerald-400', 'text-red-400');
+                
+                // Inject System Message
+                const log = document.getElementById('chat-log');
+                const html = `<div class="flex justify-center my-4 opacity-80 shrink-0 w-full animate-[fade-in_0.3s_ease-out]"><span class="text-[10px] text-red-400 mono uppercase tracking-widest bg-red-950/30 px-4 py-2 rounded-xl border border-red-900/50 shadow-inner">Peer Disconnected. Link Severed.</span></div>`;
+                log.insertAdjacentHTML('beforeend', html);
+                this.scrollToBottom();
+
+                // Re-show handshake on mobile
+                document.getElementById('handshake-panel').classList.remove('hidden', 'lg:flex');
+                document.getElementById('mobile-disconnect-btn').classList.add('hidden');
+                
+                this.showToast("Secure connection lost. Peer dropped.", "warning");
             },
 
             // --- DATA CHANNEL ROUTER ---
@@ -382,21 +378,31 @@
                 this.channel.bufferedAmountLowThreshold = 512 * 1024; 
 
                 this.channel.onopen = () => {
+                    this.isConnected = true;
                     document.getElementById('room-overlay').style.opacity = '0';
                     setTimeout(() => document.getElementById('room-overlay').style.display = 'none', 500);
+                    
+                    // MOBILE UX: Hide left panel entirely when connected to give chat full height
+                    document.getElementById('handshake-panel').classList.add('hidden', 'lg:flex');
+                    document.getElementById('mobile-disconnect-btn').classList.remove('hidden');
                     
                     document.getElementById('status-text').innerText = "Uplink Established";
                     document.getElementById('status-indicator').classList.replace('bg-red-500', 'bg-emerald-500');
                     document.getElementById('status-indicator').classList.replace('shadow-[0_0_8px_#ef4444]', 'shadow-[0_0_8px_#10b981]');
-                    document.getElementById('remote-identity').innerText = "PEER VERIFIED";
+                    document.getElementById('remote-identity').innerText = "SECURE LINK ACTIVE";
+                    document.getElementById('remote-identity').classList.replace('text-red-400', 'text-emerald-400');
+
+                    const log = document.getElementById('chat-log');
+                    log.innerHTML = `<div class="flex justify-center my-2 opacity-50 shrink-0 w-full"><span class="text-[10px] text-slate-400 mono uppercase tracking-widest bg-slate-900 px-4 py-1.5 rounded-full border border-slate-800 shadow-inner">Secure Link Established</span></div>`;
                 };
+
+                this.channel.onclose = () => { this.handleDisconnect(); };
 
                 this.channel.onmessage = (event) => {
                     if (event.data instanceof ArrayBuffer) {
                         if (this.activeReceiveFile) {
                             this.activeReceiveFile.chunks.push(event.data);
                             this.activeReceiveFile.received += event.data.byteLength;
-                            
                             const percent = Math.min(100, Math.round((this.activeReceiveFile.received / this.activeReceiveFile.meta.size) * 100));
                             this.updateFileProgressUI(this.activeReceiveFile.meta.id, percent);
                         }
@@ -439,7 +445,6 @@
 
             renderRemoteTyping: function(isTyping) {
                 const indicator = document.getElementById('typing-indicator');
-                document.getElementById('typist-name').innerText = this.mode === 'host' ? 'GUEST' : 'HOST';
                 isTyping ? indicator.classList.remove('hidden') : indicator.classList.add('hidden');
                 if(isTyping) this.scrollToBottom();
             },
@@ -465,17 +470,13 @@
                 if (!file || !this.channel || this.channel.readyState !== 'open') return;
 
                 if (file.size > 500 * 1024 * 1024) {
-                    return this.showToast("Network Warning: Max local limit is 500MB per file.", "warning");
+                    return this.showToast("Max local limit is 500MB per file.", "error");
                 }
 
                 const fileId = Math.random().toString(36).substr(2, 9);
                 this.renderFileProgressUI(fileId, file.name, 'local');
                 
-                this.channel.send(JSON.stringify({ 
-                    type: 'file-meta', id: fileId, name: file.name, 
-                    mime: file.type || 'application/octet-stream', size: file.size 
-                }));
-
+                this.channel.send(JSON.stringify({ type: 'file-meta', id: fileId, name: file.name, mime: file.type || 'application/octet-stream', size: file.size }));
                 this.activeSendFile = { file: file, offset: 0, id: fileId };
                 this.readNextChunk();
                 event.target.value = ''; 
@@ -499,7 +500,6 @@
                 reader.onload = (e) => {
                     this.channel.send(e.target.result); 
                     this.activeSendFile.offset += this.CHUNK_SIZE;
-
                     const percent = Math.min(100, Math.round((this.activeSendFile.offset / file.size) * 100));
                     this.updateFileProgressUI(id, percent);
 
@@ -515,10 +515,8 @@
                 reader.readAsArrayBuffer(slice);
             },
 
-            // --- UI RENDERERS ---
             getTime: function() {
-                const now = new Date();
-                return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             },
 
             scrollToBottom: function() {
@@ -526,24 +524,22 @@
                 requestAnimationFrame(() => { log.scrollTop = log.scrollHeight; });
             },
 
+            // --- ANONYMOUS UI RENDERERS ---
             appendMessage: function(text, sender) {
                 const log = document.getElementById('chat-log');
                 const isLocal = sender === 'local';
                 const align = isLocal ? 'items-end' : 'items-start';
-                
                 const color = isLocal 
                     ? 'bg-blue-600 text-white rounded-l-2xl rounded-tr-2xl shadow-[0_4px_15px_rgba(37,99,235,0.2)]' 
                     : 'bg-slate-800 text-slate-200 rounded-r-2xl rounded-tl-2xl border border-slate-700 shadow-md';
-                const label = isLocal ? 'You' : (this.mode === 'host' ? 'Guest' : 'Host');
                 
                 if(!isLocal) document.getElementById('typing-indicator').classList.add('hidden');
 
                 const msgHTML = `
                     <div class="flex flex-col gap-1 ${align} w-full animate-[fade-in_0.2s_ease-out]">
-                        <span class="text-[9px] text-slate-500 font-bold mx-2 uppercase tracking-widest">${label}</span>
                         <div class="chat-bubble-wrapper ${color} px-4 py-2.5">
                             <div class="chat-text text-sm">${text}</div>
-                            <div class="chat-time flex justify-end items-center gap-1 border-t border-white/10 pt-1 mt-2">
+                            <div class="chat-time flex justify-end items-center gap-1 border-t border-white/10 pt-1 mt-1">
                                 ${this.getTime()} ${isLocal ? '<svg class="w-3 h-3 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' : ''}
                             </div>
                         </div>
@@ -586,76 +582,37 @@
 
                 const isLocal = sender === 'local';
                 const color = isLocal ? 'bg-blue-600/10 border border-blue-500/30 rounded-l-2xl rounded-tr-2xl' : 'bg-slate-800 border border-slate-700 rounded-r-2xl rounded-tl-2xl';
-                const label = isLocal ? 'You' : (this.mode === 'host' ? 'Guest' : 'Host');
 
                 let fileContent = '';
-                
                 if (mime.startsWith('image/')) {
-                    fileContent = `
-                        <img src="${dataUrl}" class="media-thumbnail mb-2" onclick="P2PEngine.openLightbox('${dataUrl}', '${name}', 'image')" title="Click to Expand">
-                        <div class="flex justify-between items-center w-full mt-1 border-t border-slate-700/50 pt-2">
-                            <span class="text-[9px] mono text-slate-400 truncate w-32" title="${name}">${name}</span>
-                            <span class="chat-time m-0">${this.getTime()}</span>
-                        </div>
-                    `;
+                    fileContent = `<img src="${dataUrl}" class="media-thumbnail mb-2" onclick="P2PEngine.openLightbox('${dataUrl}', '${name}', 'image')">`;
                 } else if (mime.startsWith('video/')) {
-                    fileContent = `
-                        <div class="relative cursor-zoom-in" onclick="P2PEngine.openLightbox('${dataUrl}', '${name}', 'video')">
-                            <video src="${dataUrl}" class="media-thumbnail mb-2 opacity-80"></video>
-                            <div class="absolute inset-0 flex items-center justify-center pointer-events-none mb-2">
-                                <div class="bg-black/60 rounded-full p-2 backdrop-blur-sm shadow-[0_0_15px_rgba(0,0,0,0.5)]"><svg class="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-                            </div>
-                        </div>
-                        <div class="flex justify-between items-center w-full mt-1 border-t border-slate-700/50 pt-2">
-                            <span class="text-[9px] mono text-slate-400 truncate w-32" title="${name}">${name}</span>
-                            <span class="chat-time m-0">${this.getTime()}</span>
-                        </div>
-                    `;
+                    fileContent = `<div class="relative cursor-zoom-in" onclick="P2PEngine.openLightbox('${dataUrl}', '${name}', 'video')"><video src="${dataUrl}" class="media-thumbnail mb-2 opacity-80"></video><div class="absolute inset-0 flex items-center justify-center pointer-events-none mb-2"><div class="bg-black/60 rounded-full p-2 backdrop-blur-sm shadow-[0_0_15px_rgba(0,0,0,0.5)]"><svg class="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div></div>`;
                 } else {
-                    fileContent = `
-                        <div class="flex items-center gap-3">
-                            <div class="bg-blue-500/20 p-2 rounded-lg border border-blue-500/50 shrink-0">
-                                <svg class="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <p class="font-bold text-sm truncate text-white mb-0.5" title="${name}">${name}</p>
-                                <a href="${dataUrl}" download="${name}" class="text-[9px] text-blue-400 hover:text-blue-300 font-bold uppercase tracking-widest transition-colors flex items-center gap-1">⬇ Save File</a>
-                            </div>
-                        </div>
-                        <div class="chat-time block w-full text-right mt-1 border-t border-slate-700/50 pt-2">${this.getTime()}</div>
-                    `;
+                    fileContent = `<div class="flex items-center gap-3"><div class="bg-blue-500/20 p-2 rounded-lg border border-blue-500/50 shrink-0"><svg class="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div><div class="min-w-0 flex-1"><p class="font-bold text-sm truncate text-white mb-0.5">${name}</p><a href="${dataUrl}" download="${name}" class="text-[9px] text-blue-400 hover:text-blue-300 font-bold uppercase tracking-widest transition-colors flex items-center gap-1">⬇ Save File</a></div></div>`;
                 }
 
-                wrapper.innerHTML = `<span class="text-[9px] text-slate-500 font-bold mx-2 uppercase tracking-widest">${label}</span><div class="${color} p-3 w-fit min-w-[200px] max-w-[280px] shadow-md backdrop-blur-md inline-block">${fileContent}</div>`;
+                wrapper.innerHTML = `<div class="${color} p-3 w-fit min-w-[200px] max-w-[280px] shadow-md backdrop-blur-md inline-block">${fileContent}<div class="flex justify-between items-center w-full mt-1 border-t border-slate-700/50 pt-2"><span class="text-[9px] mono text-slate-400 truncate w-32">${name}</span><span class="chat-time m-0">${this.getTime()}</span></div></div>`;
                 this.scrollToBottom();
             },
 
             openLightbox: function(src, name, type) {
                 const lb = document.getElementById('media-lightbox');
                 const content = document.getElementById('lightbox-content');
-                document.getElementById('lightbox-title').innerText = name;
                 document.getElementById('lightbox-download').href = src;
                 document.getElementById('lightbox-download').download = name;
 
-                if(type === 'image') {
-                    content.innerHTML = `<img src="${src}" class="max-w-full max-h-[75vh] object-contain">`;
-                } else if (type === 'video') {
-                    content.innerHTML = `<video src="${src}" controls autoplay class="max-w-full max-h-[75vh] outline-none"></video>`;
-                }
+                if(type === 'image') content.innerHTML = `<img src="${src}" class="max-w-full max-h-[75vh] object-contain">`;
+                else if (type === 'video') content.innerHTML = `<video src="${src}" controls autoplay class="max-w-full max-h-[75vh] outline-none"></video>`;
 
-                lb.classList.remove('hidden');
-                lb.classList.add('flex');
+                lb.classList.remove('hidden'); lb.classList.add('flex');
                 requestAnimationFrame(() => lb.style.opacity = '1');
             },
 
             closeLightbox: function() {
                 const lb = document.getElementById('media-lightbox');
                 lb.style.opacity = '0';
-                setTimeout(() => {
-                    lb.classList.add('hidden');
-                    lb.classList.remove('flex');
-                    document.getElementById('lightbox-content').innerHTML = ''; 
-                }, 300);
+                setTimeout(() => { lb.classList.add('hidden'); lb.classList.remove('flex'); document.getElementById('lightbox-content').innerHTML = ''; }, 300);
             },
 
             copyToClipboard: async function(id, btnElement) {
@@ -665,15 +622,8 @@
                     const originalText = btnElement.innerText;
                     btnElement.innerText = "Copied ✓";
                     btnElement.classList.replace('bg-blue-600', 'bg-emerald-600');
-                    btnElement.classList.replace('hover:bg-blue-500', 'hover:bg-emerald-500');
-                    setTimeout(() => {
-                        btnElement.innerText = originalText;
-                        btnElement.classList.replace('bg-emerald-600', 'bg-blue-600');
-                        btnElement.classList.replace('hover:bg-emerald-500', 'hover:bg-blue-500');
-                    }, 2000);
-                } catch(e) {
-                    el.select(); document.execCommand('copy');
-                }
+                    setTimeout(() => { btnElement.innerText = originalText; btnElement.classList.replace('bg-emerald-600', 'bg-blue-600'); }, 2000);
+                } catch(e) { el.select(); document.execCommand('copy'); }
             }
         };
 
