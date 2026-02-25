@@ -69,11 +69,6 @@ class SVHeader extends HTMLElement {
 
         CoreManager.initializeAdNetwork();
 
-        // Check if we are currently on the index or about page to highlight the active link
-        const currentPath = window.location.pathname;
-        const isDirectory = currentPath.includes('index.html') || currentPath === '/' || currentPath === '';
-        const isDocs = currentPath.includes('about.html');
-
         this.innerHTML = `
             <nav class="border-b border-slate-800/80 bg-[#020617]/80 backdrop-blur-xl sticky top-0 z-50 transition-all duration-500">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-20 lg:h-24 flex items-center justify-between transition-all duration-500">
@@ -90,23 +85,21 @@ class SVHeader extends HTMLElement {
                                 <svg id="sv-nav-chevron" class="w-4 h-4 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </button>
 
-                            <div id="sv-nav-dropdown" class="absolute left-0 right-0 mt-3 md:left-auto md:right-0 w-full md:w-72 bg-[#0a0f1d]/95 backdrop-blur-2xl border border-slate-700/80 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] opacity-0 scale-95 pointer-events-none origin-top transition-all duration-300 ease-out z-[100] overflow-hidden">
+                            <div id="sv-nav-dropdown" class="absolute left-0 right-0 mt-3 md:left-auto md:right-0 w-full md:w-56 bg-[#0a0f1d]/95 backdrop-blur-2xl border border-slate-700/80 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] opacity-0 scale-95 pointer-events-none origin-top transition-all duration-300 ease-out z-[100] overflow-hidden">
                                 
-                                <div class="p-5 border-b border-slate-800/80">
-                                    <h4 class="text-[10px] uppercase tracking-[0.2em] text-blue-500 font-bold mb-3 flex items-center gap-2">
-                                        <span class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span> Core Platform
-                                    </h4>
+                                <div class="p-4 border-b border-slate-800/80">
                                     <ul class="space-y-3 text-sm font-medium">
-                                        <li><a href="${basePath}/index.html#directory" class="flex items-center gap-2 transition-all ${isDirectory ? 'text-blue-400 translate-x-1' : 'text-slate-300 hover:text-white hover:translate-x-1'}"><svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg> Utility Directory</a></li>
-                                        <li><a href="${basePath}/about.html" class="flex items-center gap-2 transition-all ${isDocs ? 'text-blue-400 translate-x-1' : 'text-slate-300 hover:text-white hover:translate-x-1'}"><svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Documentation</a></li>
+                                        <li><a href="${basePath}/index.html" class="block text-slate-300 hover:text-white transition-colors">Directory</a></li>
+                                        <li><a href="${basePath}/about.html" class="block text-slate-300 hover:text-white transition-colors">About</a></li>
+                                        <li class="lg:hidden"><a href="${sponsorLink}" class="block text-blue-400 hover:text-blue-300 transition-colors">Donate</a></li>
                                     </ul>
                                 </div>
                                 
-                                <div class="p-5 bg-slate-900/30">
-                                    <h4 class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold mb-3">Compliance</h4>
+                                <div class="p-4 bg-slate-900/30">
                                     <ul class="space-y-3 text-xs font-medium">
-                                        <li><a href="${basePath}/policies/privacy.html" class="block text-slate-400 hover:text-purple-400 transition-colors">Privacy Policy</a></li>
-                                        <li><a href="${basePath}/policies/terms.html" class="block text-slate-400 hover:text-purple-400 transition-colors">Terms of Service</a></li>
+                                        <li><a href="${basePath}/policies/privacy.html" class="block text-slate-400 hover:text-white transition-colors">Privacy Policy</a></li>
+                                        <li><a href="${basePath}/policies/terms.html" class="block text-slate-400 hover:text-white transition-colors">Terms of Service</a></li>
+                                        <li><a href="${basePath}/policies/disclaimer.html" class="block text-slate-400 hover:text-white transition-colors">Disclaimer</a></li>
                                     </ul>
                                 </div>
 
@@ -116,8 +109,7 @@ class SVHeader extends HTMLElement {
                         <div class="h-6 md:h-8 w-px bg-slate-800 hidden sm:block mx-1"></div>
                         
                         <a href="${sponsorLink}" class="hidden lg:flex items-center gap-2 text-sm font-bold text-blue-400 border border-blue-500/30 bg-blue-500/10 px-5 py-2.5 rounded-xl hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-[0_0_15px_rgba(59,130,246,0.15)]">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                            Sponsor Platform
+                            Donate
                         </a>
 
                         <button onclick="bookmarkSite()" class="bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white p-2 md:p-3 rounded-xl border border-slate-700 transition-all shadow-inner focus:outline-none focus:ring-2 focus:ring-blue-500/50" title="Bookmark Application">
@@ -157,14 +149,12 @@ class SVHeader extends HTMLElement {
             toggleMenu();
         });
 
-        // Close when clicking outside
         document.addEventListener('click', (e) => {
             if (isOpen && !this.querySelector('#sv-global-nav').contains(e.target)) {
                 toggleMenu();
             }
         });
 
-        // Close on escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && isOpen) {
                 toggleMenu();
@@ -189,7 +179,7 @@ class SVFooter extends HTMLElement {
                                 SilenVault
                             </span>
                             <p class="text-slate-500 text-sm mt-4 max-w-sm leading-relaxed">
-                                Professional local-first digital utilities. Execute data processing, format conversion, and cryptographic generation strictly within client-side memory.
+                                Local-first digital utilities. Execute data processing, format conversion, and cryptographic generation strictly within client-side memory.
                             </p>
                             
                             <div class="mt-6 flex gap-4">
@@ -203,20 +193,20 @@ class SVFooter extends HTMLElement {
                         </div>
                         
                         <div>
-                            <h4 class="text-white font-bold mb-5 text-sm uppercase tracking-wider">Infrastructure</h4>
+                            <h4 class="text-white font-bold mb-5 text-sm uppercase tracking-wider">Links</h4>
                             <ul class="space-y-3 text-sm text-slate-500 font-medium">
-                                <li><a href="${basePath}/about.html" class="hover:text-blue-400 transition-colors">Documentation</a></li>
-                                <li><a href="${basePath}/index.html#directory" class="hover:text-blue-400 transition-colors">Utility Directory</a></li>
-                                <li><a href="${sponsorLink}" class="hover:text-blue-400 transition-colors">Server Maintenance Fund</a></li>
+                                <li><a href="${basePath}/index.html" class="hover:text-white transition-colors">Directory</a></li>
+                                <li><a href="${basePath}/about.html" class="hover:text-white transition-colors">About</a></li>
+                                <li><a href="${sponsorLink}" class="hover:text-white transition-colors">Donate</a></li>
                             </ul>
                         </div>
                         
                         <div>
-                            <h4 class="text-white font-bold mb-5 text-sm uppercase tracking-wider">Compliance</h4>
+                            <h4 class="text-white font-bold mb-5 text-sm uppercase tracking-wider">Legal</h4>
                             <ul class="space-y-3 text-sm text-slate-500 font-medium">
-                                <li><a href="${basePath}/policies/terms.html" class="hover:text-blue-400 transition-colors">Terms of Service</a></li>
-                                <li><a href="${basePath}/policies/privacy.html" class="hover:text-blue-400 transition-colors">Privacy Policy</a></li>
-                                <li><a href="${basePath}/policies/disclaimer.html" class="hover:text-blue-400 transition-colors">Legal Disclaimer</a></li>
+                                <li><a href="${basePath}/policies/privacy.html" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                                <li><a href="${basePath}/policies/terms.html" class="hover:text-white transition-colors">Terms of Service</a></li>
+                                <li><a href="${basePath}/policies/disclaimer.html" class="hover:text-white transition-colors">Disclaimer</a></li>
                             </ul>
                         </div>
                     </div>
@@ -242,7 +232,6 @@ customElements.define('sv-footer', SVFooter);
    GLOBAL UTILITIES
    ========================================================================== */
 
-// Smart Bookmark Interface (Hardware Accelerated Glass Toast)
 window.bookmarkSite = function() {
     const isMac = /Mac/i.test(navigator.userAgent);
     const hotkey = isMac ? 'Cmd + D' : 'Ctrl + D';
@@ -283,7 +272,6 @@ window.bookmarkSite = function() {
     setTimeout(removeToast, 6000);
 };
 
-// Ad Network Visibility Controller
 document.addEventListener("DOMContentLoaded", () => {
     const adObserver = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
