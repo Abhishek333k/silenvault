@@ -81,28 +81,13 @@ class SVHeader extends HTMLElement {
                         
                         <div class="relative" id="sv-global-nav">
                             <button id="sv-nav-trigger" class="flex items-center gap-2 text-slate-300 hover:text-white text-sm md:text-base font-bold font-mono tracking-tight transition-all px-3 py-2 md:px-4 md:py-2.5 rounded-xl border border-transparent hover:border-slate-700 hover:bg-slate-800/50">
-                                <span>Menu</span>
+                                <span>Directory</span>
                                 <svg id="sv-nav-chevron" class="w-4 h-4 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </button>
 
-                            <div id="sv-nav-dropdown" class="absolute left-0 right-0 mt-3 md:left-auto md:right-0 w-full md:w-56 bg-[#0a0f1d]/95 backdrop-blur-2xl border border-slate-700/80 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] opacity-0 scale-95 pointer-events-none origin-top transition-all duration-300 ease-out z-[100] overflow-hidden">
-                                
-                                <div class="p-4 border-b border-slate-800/80">
-                                    <ul class="space-y-3 text-sm font-medium">
-                                        <li><a href="${basePath}/index.html" class="block text-slate-300 hover:text-white transition-colors">Directory</a></li>
-                                        <li><a href="${basePath}/about.html" class="block text-slate-300 hover:text-white transition-colors">About</a></li>
-                                        <li class="lg:hidden"><a href="${sponsorLink}" class="block text-blue-400 hover:text-blue-300 transition-colors">Donate</a></li>
-                                    </ul>
-                                </div>
-                                
-                                <div class="p-4 bg-slate-900/30">
-                                    <ul class="space-y-3 text-xs font-medium">
-                                        <li><a href="${basePath}/policies/privacy.html" class="block text-slate-400 hover:text-white transition-colors">Privacy Policy</a></li>
-                                        <li><a href="${basePath}/policies/terms.html" class="block text-slate-400 hover:text-white transition-colors">Terms of Service</a></li>
-                                        <li><a href="${basePath}/policies/disclaimer.html" class="block text-slate-400 hover:text-white transition-colors">Disclaimer</a></li>
-                                    </ul>
-                                </div>
-
+                            <div id="sv-nav-dropdown" class="absolute left-0 right-0 mt-3 lg:right-0 lg:left-auto w-full lg:w-[800px] max-h-[85vh] overflow-y-auto bg-[#0a0f1d]/95 backdrop-blur-2xl border border-slate-700/80 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] opacity-0 scale-95 pointer-events-none origin-top lg:origin-top-right transition-all duration-300 ease-out z-[100] custom-scrollbar">
+                                <div id="sv-mega-menu-content">
+                                    </div>
                             </div>
                         </div>
                         
@@ -123,13 +108,86 @@ class SVHeader extends HTMLElement {
         this.initializeDropdown();
     }
 
+    // Constructs the Mega Menu based on directory.js data
+    buildMegaMenu(basePath) {
+        if (typeof silenVaultTools === 'undefined') {
+            return `<div class="p-8 text-center text-slate-400 font-mono text-sm">Initializing Directory Architecture...</div>`;
+        }
+
+        const categories = {
+            business: { title: "Administrative", color: "text-emerald-400", bg: "bg-emerald-500", tools: [] },
+            hardware: { title: "Hardware", color: "text-purple-400", bg: "bg-purple-500", tools: [] },
+            creator: { title: "Media Ops", color: "text-red-400", bg: "bg-red-500", tools: [] },
+            dev: { title: "Dev Utilities", color: "text-blue-400", bg: "bg-blue-500", tools: [] }
+        };
+
+        silenVaultTools.forEach(tool => {
+            if (categories[tool.category] && tool.status !== 'blocked' && !tool.locked) {
+                categories[tool.category].tools.push(tool);
+            }
+        });
+
+        let html = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-6">`;
+        
+        Object.values(categories).forEach(cat => {
+            if(cat.tools.length === 0) return;
+            html += `<div>`;
+            html += `<h4 class="text-[10px] font-bold ${cat.color} uppercase tracking-[0.15em] mb-4 flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full ${cat.bg}"></span> ${cat.title}</h4>`;
+            html += `<ul class="space-y-3">`;
+            
+            // Limit to top 6 tools per category to keep the menu clean
+            const visibleTools = cat.tools.slice(0, 6);
+            
+            visibleTools.forEach(tool => {
+                let linkPath = tool.link.startsWith('./') ? tool.link.substring(2) : tool.link;
+                html += `<li>
+                    <a href="${basePath}/${linkPath}" class="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors group">
+                        <span class="w-1 h-1 rounded-full bg-slate-700 group-hover:bg-current transition-colors"></span>
+                        <span class="truncate">${tool.title}</span>
+                    </a>
+                </li>`;
+            });
+            
+            if (cat.tools.length > 6) {
+                html += `<li><a href="${basePath}/index.html#sec-${Object.keys(categories).find(key => categories[key] === cat)}" class="text-xs font-mono italic text-slate-500 hover:text-slate-300 transition-colors">+ View ${cat.tools.length - 6} more</a></li>`;
+            }
+            
+            html += `</ul></div>`;
+        });
+        
+        html += `</div>`;
+        
+        // Bottom Action Bar
+        html += `
+        <div class="bg-slate-900/50 p-4 border-t border-slate-800/80 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <a href="${basePath}/index.html#directory" class="text-xs font-mono text-slate-400 hover:text-white transition-colors border border-slate-700 px-3 py-1.5 rounded bg-slate-800">Browse Full Directory -></a>
+            <div class="flex gap-4">
+                <a href="${basePath}/about.html" class="text-xs font-bold text-slate-500 hover:text-slate-300 transition-colors uppercase tracking-widest">About</a>
+                <a href="${basePath}/donate.html" class="text-xs font-bold text-blue-500 hover:text-blue-400 transition-colors uppercase tracking-widest lg:hidden">Donate</a>
+            </div>
+        </div>
+        `;
+
+        return html;
+    }
+
     initializeDropdown() {
         const trigger = this.querySelector('#sv-nav-trigger');
         const dropdown = this.querySelector('#sv-nav-dropdown');
         const chevron = this.querySelector('#sv-nav-chevron');
+        const contentArea = this.querySelector('#sv-mega-menu-content');
+        const basePath = this.getAttribute('base-path') || '.';
+        
         let isOpen = false;
+        let isLoaded = false;
 
         const toggleMenu = () => {
+            // Lazy load the menu content on first click to ensure directory.js is fully loaded
+            if (!isLoaded) {
+                contentArea.innerHTML = this.buildMegaMenu(basePath);
+                isLoaded = true;
+            }
+
             isOpen = !isOpen;
             if (isOpen) {
                 dropdown.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
@@ -232,6 +290,8 @@ customElements.define('sv-footer', SVFooter);
    GLOBAL UTILITIES
    ========================================================================== */
 
+// Browser Security Note: Browsers explicitly block JS from silently modifying user bookmarks. 
+// The industry standard is to prompt the user with their OS-specific shortcut.
 window.bookmarkSite = function() {
     const isMac = /Mac/i.test(navigator.userAgent);
     const hotkey = isMac ? 'Cmd + D' : 'Ctrl + D';
@@ -240,7 +300,7 @@ window.bookmarkSite = function() {
 
     const toast = document.createElement('div');
     toast.id = 'sv-toast';
-    toast.className = "fixed bottom-6 right-6 bg-slate-900/90 backdrop-blur-md border border-slate-700 text-white px-5 py-4 rounded-xl shadow-2xl z-[100] flex items-center gap-4 cursor-pointer";
+    toast.className = "fixed bottom-6 right-6 bg-slate-900/95 backdrop-blur-xl border border-slate-700 text-white px-5 py-4 rounded-xl shadow-2xl z-[100] flex items-center gap-4 cursor-pointer";
     toast.style.transform = "translateY(100px)";
     toast.style.opacity = "0";
     toast.style.transition = "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
@@ -250,8 +310,8 @@ window.bookmarkSite = function() {
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
         </div>
         <div>
-            <p class="text-sm font-bold text-white mb-0.5">Save Application State</p>
-            <p class="text-xs text-slate-400">Press <code class="bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800 text-slate-300 font-mono shadow-inner">${hotkey}</code> to bookmark.</p>
+            <p class="text-sm font-bold text-white mb-0.5">Press <code class="bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800 text-blue-400 font-mono text-xs shadow-inner mx-1">${hotkey}</code></p>
+            <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">To add to bookmarks</p>
         </div>
     `;
     
@@ -269,8 +329,18 @@ window.bookmarkSite = function() {
     };
 
     toast.onclick = removeToast;
-    setTimeout(removeToast, 6000);
+    setTimeout(removeToast, 5000);
 };
+
+// CSS injection for the custom scrollbar in the mega-menu
+const scrollStyle = document.createElement('style');
+scrollStyle.innerHTML = `
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(51, 65, 85, 0.5); border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(71, 85, 105, 0.8); }
+`;
+document.head.appendChild(scrollStyle);
 
 document.addEventListener("DOMContentLoaded", () => {
     const adObserver = new MutationObserver((mutations) => {
