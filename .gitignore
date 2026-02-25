@@ -1,2 +1,3 @@
 # Ignore local D2 development files
 _D2_Workspace/
+assets/js/forge/
