@@ -34,7 +34,7 @@ const CoreManager = {
             document.head.appendChild(icon);
         }
         icon.type = 'image/webp';
-        icon.href = `${imgPath}/SILENVAULT_CREST.webp`;
+        icon.href = `${imgPath}/SILENVAULT_CREST.png`;
     },
 
     initializeAnalytics() {
