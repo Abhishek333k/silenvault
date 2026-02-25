@@ -12,7 +12,6 @@
     <meta property="og:description" content="Local-first data tools. Absolute privacy through client-side processing.">
     <meta property="og:image" content="https://silenvault.com/assets/img/SILENVAULT_LOGO.webp">
     
-    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Fira+Code:wght@400;500;700&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
     
@@ -97,7 +96,8 @@
         </section>
 
         <section class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-20 relative z-10 flex-1" id="directory">
-            <div id="empty-state" class="hidden absolute inset-0 flex flex-col items-center mt-20 reveal">
+            
+            <div id="empty-state" class="hidden absolute inset-0 flex-col items-center mt-20 opacity-0 transition-opacity duration-300">
                 <div class="w-16 h-16 bg-slate-900 border border-slate-700 rounded-2xl flex items-center justify-center mb-4 text-slate-500 shadow-inner">
                     <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 </div>
@@ -112,27 +112,27 @@
                 <div class="tool-card w-full"><div class="w-12 h-12 skeleton mb-4 rounded-xl"></div><div class="h-6 skeleton w-3/4 mb-3"></div><div class="h-4 skeleton w-full mb-1"></div></div>
             </div>
 
-            <div id="grid-container" class="hidden w-full">
+            <div id="grid-container" class="hidden w-full transition-opacity duration-500">
                 <div class="mb-20 tool-section reveal" id="sec-business">
-                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-3 uppercase tracking-widest mb-6 font-mono glitch-target"><span class="w-2 h-2 bg-emerald-500 rounded-sm shadow-[0_0_8px_#10b981]"></span> Administrative</h3>
+                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-3 uppercase tracking-widest mb-6 font-mono transition-opacity duration-300 glitch-target"><span class="w-2 h-2 bg-emerald-500 rounded-sm shadow-[0_0_8px_#10b981]"></span> Administrative</h3>
                     <div class="bento-grid" id="grid-business"></div>
                 </div>
                 <div class="mb-20 tool-section reveal" id="sec-hardware">
-                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-3 uppercase tracking-widest mb-6 font-mono glitch-target"><span class="w-2 h-2 bg-purple-500 rounded-sm shadow-[0_0_8px_#a855f7]"></span> Hardware Diagnostics</h3>
+                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-3 uppercase tracking-widest mb-6 font-mono transition-opacity duration-300 glitch-target"><span class="w-2 h-2 bg-purple-500 rounded-sm shadow-[0_0_8px_#a855f7]"></span> Hardware Diagnostics</h3>
                     <div class="bento-grid" id="grid-hardware"></div>
                 </div>
                 <div class="mb-20 tool-section reveal" id="sec-creator">
-                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-3 uppercase tracking-widest mb-6 font-mono glitch-target"><span class="w-2 h-2 bg-red-500 rounded-sm shadow-[0_0_8px_#ef4444]"></span> Media Operations</h3>
+                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-3 uppercase tracking-widest mb-6 font-mono transition-opacity duration-300 glitch-target"><span class="w-2 h-2 bg-red-500 rounded-sm shadow-[0_0_8px_#ef4444]"></span> Media Operations</h3>
                     <div class="bento-grid" id="grid-creator"></div>
                 </div>
                 <div class="mb-20 tool-section reveal" id="sec-dev">
-                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-3 uppercase tracking-widest mb-6 font-mono glitch-target"><span class="w-2 h-2 bg-blue-500 rounded-sm shadow-[0_0_8px_#3b82f6]"></span> Developer Utilities</h3>
+                    <h3 class="text-sm font-bold text-slate-300 flex items-center gap-3 uppercase tracking-widest mb-6 font-mono transition-opacity duration-300 glitch-target"><span class="w-2 h-2 bg-blue-500 rounded-sm shadow-[0_0_8px_#3b82f6]"></span> Developer Utilities</h3>
                     <div class="bento-grid" id="grid-dev"></div>
                 </div>
             </div>
         </section>
 
-      <section class="w-full bg-[#020617] border-t border-slate-800/50 py-16 reveal mt-auto glitch-target" id="seo-article">
+        <section class="w-full bg-[#020617] border-t border-slate-800/50 py-16 reveal mt-auto glitch-target" id="seo-article">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <article class="bg-slate-900/30 border border-slate-800 p-8 md:p-12 rounded-3xl seo-content">
                     <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-4 glitch-target" id="seo-title">The Standard in Client-Side Digital Operations</h2>
@@ -157,10 +157,16 @@
             </p>
         </div>
     </div>  
+
     <script>
+        // 1. Keyboard Shortcut Hijack Fix
         document.addEventListener('keydown', (e) => {
-            if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') || (e.key === '/' && document.activeElement.tagName !== 'INPUT')) {
-                if(document.body.classList.contains('terminal-active')) return;
+            const activeTag = document.activeElement.tagName;
+            const isInputMode = activeTag === 'INPUT' || activeTag === 'TEXTAREA';
+            
+            if (document.body.classList.contains('terminal-active') || isInputMode) return;
+            
+            if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') || e.key === '/') {
                 e.preventDefault();
                 const search = document.getElementById('toolSearch');
                 if(search) { search.focus(); search.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
@@ -179,6 +185,24 @@
             return !(tool.status === 'blocked' || tool.locked);
         }
 
+        // 2. The Native Alert Trap Fix (Glassmorphic Toast)
+        window.showAccessToast = function() {
+            if (document.getElementById('sv-access-toast')) return;
+            const toast = document.createElement('div');
+            toast.id = 'sv-access-toast';
+            toast.className = "fixed bottom-6 left-1/2 -translate-x-1/2 bg-red-950/90 backdrop-blur-xl border border-red-800 text-white px-5 py-3 rounded-xl shadow-[0_10px_40px_rgba(220,38,38,0.2)] z-[100] flex items-center gap-3 transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none";
+            toast.innerHTML = `
+                <svg class="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                <span class="font-bold text-sm font-mono tracking-tight">Access to this module is restricted.</span>
+            `;
+            document.body.appendChild(toast);
+            requestAnimationFrame(() => { toast.style.transform = "translate(-50%, 0)"; toast.style.opacity = "1"; });
+            setTimeout(() => {
+                toast.style.transform = "translate(-50%, 10px)"; toast.style.opacity = "0";
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        };
+
         function initMarquee() {
             const track = document.getElementById('marquee-track');
             const section = document.getElementById('marquee-section');
@@ -192,67 +216,125 @@
             if (validToolsCount > 0) { track.innerHTML = marqueeHtml + marqueeHtml; } else { section.style.display = 'none'; }
         }
 
-        function renderEngine() {
-            const searchInput = document.getElementById('toolSearch');
-            if (!searchInput) return;
-            const queryRaw = searchInput.value;
-            const query = queryRaw.toLowerCase().trim();
-            
-            let totalFound = 0; const filteredTools = { business: [], hardware: [], creator: [], dev: [] };
-            silenVaultTools.forEach(tool => {
-                if (!query || tool.title.toLowerCase().includes(query) || tool.desc.toLowerCase().includes(query) || (tool.tag && tool.tag.toLowerCase().includes(query))) {
-                    if (filteredTools[tool.category]) { filteredTools[tool.category].push(tool); totalFound++; }
-                }
-            });
-
-            const emptyState = document.getElementById('empty-state');
-            emptyState.classList.toggle('hidden', totalFound !== 0);
-            if (totalFound === 0) document.getElementById('query-term').innerText = queryRaw;
-
-            Object.keys(filteredTools).forEach(category => {
+        // 3. Prevent DOM Destruction on Boot (Build Once)
+        function buildInitialGrid() {
+            const categories = ['business', 'hardware', 'creator', 'dev'];
+            categories.forEach(category => {
                 const grid = document.getElementById(`grid-${category}`);
                 const sec = document.getElementById(`sec-${category}`);
                 if (!grid || !sec) return; 
 
-                if (filteredTools[category].length === 0) {
-                    sec.style.display = 'none'; grid.innerHTML = ''; 
+                const tools = silenVaultTools.filter(t => t.category === category);
+                if (tools.length === 0) {
+                    sec.style.display = 'none'; 
                 } else {
                     sec.style.display = 'block'; let htmlBuffer = '';
-                    filteredTools[category].forEach((tool) => {
+                    tools.forEach((tool) => {
                         const permitted = isToolPermitted(tool);
                         const lockIcon = !permitted ? `<div class="absolute top-4 right-4 opacity-50 text-slate-500"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg></div>` : '';
                         const tagHTML = (tool.tag && permitted) ? `<div class="absolute top-4 right-4"><span class="text-[9px] font-black px-2 py-1 rounded shadow-sm bg-[#020617] text-slate-400 border border-slate-700/50">${tool.tag}</span></div>` : '';
                         const interactionClass = permitted ? 'group cursor-pointer' : 'opacity-50 cursor-not-allowed';
-                        const linkAttr = permitted ? `href="${tool.link}"` : `onclick="alert('Access to this module is restricted.')"`;
-
-                        htmlBuffer += `<a ${linkAttr} class="tool-card relative transition-all ${interactionClass} glitch-target"><div class="w-12 h-12 ${tool.iconColors} rounded-xl flex items-center justify-center mb-5 transition-all duration-300 border"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="${tool.iconPath.includes('stroke') ? 'none' : 'currentColor'}" viewBox="0 0 24 24" stroke="currentColor">${tool.iconPath}</svg></div>${lockIcon} ${tagHTML}<h3 class="text-lg font-bold mb-2 font-mono tracking-tight transition-colors text-slate-100 card-title">${tool.title}</h3><p class="text-sm leading-relaxed text-slate-400">${tool.desc}</p></a>`;
+                        const linkAttr = permitted ? `href="${tool.link}"` : `onclick="showAccessToast()"`;
+                        
+                        // Data attributes embedded for CSS-based filtering
+                        htmlBuffer += `<a ${linkAttr} data-title="${tool.title.toLowerCase()}" data-desc="${tool.desc.toLowerCase()}" data-tag="${tool.tag ? tool.tag.toLowerCase() : ''}" class="tool-card relative transition-all duration-400 ${interactionClass} glitch-target"><div class="w-12 h-12 ${tool.iconColors} rounded-xl flex items-center justify-center mb-5 transition-all duration-300 border"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="${tool.iconPath.includes('stroke') ? 'none' : 'currentColor'}" viewBox="0 0 24 24" stroke="currentColor">${tool.iconPath}</svg></div>${lockIcon} ${tagHTML}<h3 class="text-lg font-bold mb-2 font-mono tracking-tight transition-colors text-slate-100 card-title">${tool.title}</h3><p class="text-sm leading-relaxed text-slate-400">${tool.desc}</p></a>`;
                     });
                     grid.innerHTML = htmlBuffer; 
                 }
             });
         }
 
-        let searchDebounce;
-        function triggerSearch() { clearTimeout(searchDebounce); searchDebounce = setTimeout(renderEngine, 150); }
+        // 4. Smooth CSS Filter Engine (No innerHTML Wiping)
+        function filterGrid() {
+            const queryRaw = document.getElementById('toolSearch').value;
+            const query = queryRaw.toLowerCase().trim();
+            let totalFound = 0;
+            
+            const categories = ['business', 'hardware', 'creator', 'dev'];
+            categories.forEach(category => {
+                const sec = document.getElementById(`sec-${category}`);
+                const grid = document.getElementById(`grid-${category}`);
+                if (!sec || !grid) return;
+                
+                let visibleInCategory = 0;
+                const cards = grid.querySelectorAll('.tool-card');
+                
+                cards.forEach(card => {
+                    const title = card.dataset.title || '';
+                    const desc = card.dataset.desc || '';
+                    const tag = card.dataset.tag || '';
+                    
+                    if (!query || title.includes(query) || desc.includes(query) || tag.includes(query)) {
+                        card.style.display = 'flex';
+                        // Force reflow for smooth animation
+                        requestAnimationFrame(() => {
+                            card.style.opacity = '1';
+                            card.style.transform = 'translateY(0) scale(1)';
+                        });
+                        visibleInCategory++;
+                        totalFound++;
+                    } else {
+                        card.style.opacity = '0';
+                        card.style.transform = 'translateY(10px) scale(0.95)';
+                        setTimeout(() => { if(card.style.opacity === '0') card.style.display = 'none'; }, 300);
+                    }
+                });
+                
+                if (visibleInCategory === 0) {
+                    sec.style.opacity = '0';
+                    setTimeout(() => { if(sec.style.opacity === '0') sec.style.display = 'none'; }, 300);
+                } else {
+                    sec.style.display = 'block';
+                    requestAnimationFrame(() => sec.style.opacity = '1');
+                }
+            });
+            
+            const emptyState = document.getElementById('empty-state');
+            if (totalFound === 0) {
+                document.getElementById('query-term').innerText = queryRaw;
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+                requestAnimationFrame(() => emptyState.style.opacity = '1');
+            } else {
+                emptyState.style.opacity = '0';
+                setTimeout(() => { if(emptyState.style.opacity === '0') { emptyState.classList.add('hidden'); emptyState.classList.remove('flex'); } }, 300);
+            }
+        }
 
+        let searchDebounce;
+        function triggerSearch() { clearTimeout(searchDebounce); searchDebounce = setTimeout(filterGrid, 150); }
+
+        // 5. Network Race Condition Fix (Polling Bootloader)
         window.addEventListener('DOMContentLoaded', () => {
-            if (typeof silenVaultTools !== 'undefined') {
-                setTimeout(() => {
+            let bootAttempts = 0;
+            const bootloader = setInterval(() => {
+                if (typeof silenVaultTools !== 'undefined') {
+                    clearInterval(bootloader);
                     const skel = document.getElementById('skeleton-loader');
                     const grid = document.getElementById('grid-container');
                     if(skel) skel.style.display = 'none';
                     if(grid) grid.classList.remove('hidden');
-                    renderEngine();
+                    
+                    buildInitialGrid(); 
                     initMarquee();
                     document.querySelectorAll('.reveal').forEach((el) => { observer.observe(el); });
-                }, 600);
-            }
+                }
+                bootAttempts++;
+                if (bootAttempts > 50) { // 5 Seconds Max Timeout
+                    clearInterval(bootloader);
+                    console.error("SilenVault Boot Failure: Unable to fetch directory payload.");
+                }
+            }, 100);
         });
 
         // ----------------------------------------------------
         // THE GHOST TRIGGER (Dynamically Injects Forge Core)
         // ----------------------------------------------------
         let scrollTicking = false;
+        // 6. Mobile Scroll Jitter Fix (Cache Viewport Height)
+        let cachedWinHeight = window.innerHeight;
+        window.addEventListener('resize', () => { cachedWinHeight = window.innerHeight; });
+
         window.addEventListener('scroll', () => {
             if (!scrollTicking && !document.body.classList.contains('terminal-active')) {
                 window.requestAnimationFrame(() => {
@@ -260,9 +342,9 @@
                     const abyssContent = document.getElementById('abyss-content');
                     if (!abyssSection || !document.contains(abyssSection)) return;
                     const docHeight = document.documentElement.scrollHeight;
-                    const winHeight = window.innerHeight;
                     const scrollY = window.scrollY;
-                    if (scrollY > (docHeight - abyssSection.offsetHeight - winHeight + 50)) {
+                    
+                    if (scrollY > (docHeight - abyssSection.offsetHeight - cachedWinHeight + 80)) {
                         abyssContent.style.opacity = '1';
                     } else {
                         abyssContent.style.opacity = '0';
@@ -286,13 +368,32 @@
             if (sClicked && !document.body.classList.contains('terminal-active')) {
                 clearTimeout(vaultTimer);
                 sClicked = false;
-                document.getElementById('tomb-v').style.color = '#ec4899'; 
+                
+                const vBtn = document.getElementById('tomb-v');
+                vBtn.style.color = '#ec4899'; 
+                
+                // 7. Puzzle UX Freeze Fix (Visual Loading State)
+                document.body.style.cursor = 'wait';
+                document.getElementById('the-abyss').style.pointerEvents = 'none'; // Prevent spam clicks
+                vBtn.classList.add('animate-pulse');
                 
                 // Ghost-load the external Core Engine
                 if(!document.getElementById('forge-core-script')) {
                     const script = document.createElement('script');
                     script.id = 'forge-core-script';
                     script.src = 'assets/js/forge_core.js';
+                    
+                    // Reset UX on load success/failure
+                    script.onload = () => { 
+                        document.body.style.cursor = 'default'; 
+                        vBtn.classList.remove('animate-pulse');
+                    };
+                    script.onerror = () => { 
+                        document.body.style.cursor = 'default'; 
+                        vBtn.classList.remove('animate-pulse');
+                        vBtn.style.color = 'red'; // Indicate failure
+                    };
+                    
                     document.head.appendChild(script);
                 }
             }
