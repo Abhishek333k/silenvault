@@ -1,6 +1,6 @@
 /**
  * SilenVault | Core Layout & Dependency Manager
- * Handles DOM injection of global navigation, footers, security modules, and telemetry.
+ * Handles DOM injection of global navigation, footers, security modules, favicons, and telemetry.
  */
 
 const CoreManager = {
@@ -21,6 +21,20 @@ const CoreManager = {
         script.src = `${this.getAssetPath()}/${filename}`;
         script.defer = true;
         target.appendChild(script);
+    },
+
+    // Dynamically injects/updates the Favicon across all pages
+    initializeFavicon() {
+        const imgPath = this.getAssetPath().replace('/js', '/img');
+        let icon = document.querySelector("link[rel*='icon']");
+        
+        if (!icon) {
+            icon = document.createElement('link');
+            icon.rel = 'icon';
+            document.head.appendChild(icon);
+        }
+        icon.type = 'image/webp';
+        icon.href = `${imgPath}/SILENVAULT_CREST.webp`;
     },
 
     initializeAnalytics() {
@@ -54,6 +68,7 @@ const CoreManager = {
 };
 
 // Execute Boot Sequence
+CoreManager.initializeFavicon();
 CoreManager.initializeAnalytics();
 CoreManager.injectDependency('vault_gatekeeper.js', 'sv-security-module');
 
@@ -179,8 +194,8 @@ window.bookmarkSite = function() {
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
         </div>
         <div>
-            <p class="text-sm font-bold text-white mb-0.5">Press <code class="bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800 text-blue-400 font-mono text-xs shadow-inner mx-1">${hotkey}</code></p>
-            <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">To add to bookmarks</p>
+            <p class="text-sm font-bold text-white mb-0.5">Save Application State</p>
+            <p class="text-xs text-slate-400">Press <code class="bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800 text-blue-400 font-mono text-xs shadow-inner mx-1">${hotkey}</code></p>
         </div>
     `;
     
