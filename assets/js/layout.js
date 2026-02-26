@@ -80,7 +80,7 @@ CoreManager.injectDependency('vault_gatekeeper.js', 'sv-security-module');
 class SVHeader extends HTMLElement {
     connectedCallback() {
         const basePath = this.getAttribute('base-path') || '.';
-        const sponsorLink = `${basePath}/donate.html`; 
+        const sponsorLink = `${basePath}/donate`; 
 
         CoreManager.initializeAdNetwork();
 
@@ -88,7 +88,7 @@ class SVHeader extends HTMLElement {
             <nav class="border-b border-slate-800/80 bg-[#020617]/80 backdrop-blur-xl sticky top-0 z-50 transition-all duration-500">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-20 lg:h-24 flex items-center justify-between transition-all duration-500">
                     
-                    <a href="${basePath}/index.html" class="flex items-center gap-3 transition-transform hover:scale-105 shrink-0 z-50" title="Return to Directory">
+                    <a href="${basePath}/index" class="flex items-center gap-3 transition-transform hover:scale-105 shrink-0 z-50" title="Return to Directory">
                         <img src="${basePath}/assets/img/Banner_with_CREST.webp" alt="SilenVault" class="h-8 md:h-10 lg:h-12 w-auto object-contain transition-all duration-500">
                     </a>
                     
@@ -110,7 +110,7 @@ class SVHeader extends HTMLElement {
 class SVFooter extends HTMLElement {
     connectedCallback() {
         const basePath = this.getAttribute('base-path') || '.';
-        const sponsorLink = `${basePath}/donate.html`;
+        const sponsorLink = `${basePath}/donate`;
         
         this.innerHTML = `
             <footer class="bg-[#020617] border-t border-slate-800/80 pt-16 pb-8 mt-auto w-full z-10 relative">
@@ -139,8 +139,8 @@ class SVFooter extends HTMLElement {
                         <div>
                             <h4 class="text-white font-bold mb-5 text-sm uppercase tracking-wider">Links</h4>
                             <ul class="space-y-3 text-sm text-slate-500 font-medium">
-                                <li><a href="${basePath}/index.html" class="hover:text-white transition-colors">Directory</a></li>
-                                <li><a href="${basePath}/about.html" class="hover:text-white transition-colors">About</a></li>
+                                <li><a href="${basePath}/index" class="hover:text-white transition-colors">Directory</a></li>
+                                <li><a href="${basePath}/about" class="hover:text-white transition-colors">About</a></li>
                                 <li><a href="${sponsorLink}" class="hover:text-white transition-colors">Donate</a></li>
                             </ul>
                         </div>
@@ -148,9 +148,9 @@ class SVFooter extends HTMLElement {
                         <div>
                             <h4 class="text-white font-bold mb-5 text-sm uppercase tracking-wider">Legal</h4>
                             <ul class="space-y-3 text-sm text-slate-500 font-medium">
-                                <li><a href="${basePath}/policies/privacy.html" class="hover:text-white transition-colors">Privacy Policy</a></li>
-                                <li><a href="${basePath}/policies/terms.html" class="hover:text-white transition-colors">Terms of Service</a></li>
-                                <li><a href="${basePath}/policies/disclaimer.html" class="hover:text-white transition-colors">Disclaimer</a></li>
+                                <li><a href="${basePath}/policies/privacy" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                                <li><a href="${basePath}/policies/terms" class="hover:text-white transition-colors">Terms of Service</a></li>
+                                <li><a href="${basePath}/policies/disclaimer" class="hover:text-white transition-colors">Disclaimer</a></li>
                             </ul>
                         </div>
                     </div>
