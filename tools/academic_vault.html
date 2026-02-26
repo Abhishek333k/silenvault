@@ -41,7 +41,7 @@
         
         #image-display { transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); transform-origin: center center; }
 
-        /* Native Fullscreen API Styling */
+        /* BUG FIX 1: Native Fullscreen API Styling */
         :fullscreen #editor-panel, :-webkit-full-screen #editor-panel {
             border-radius: 0 !important;
             border: none !important;
@@ -51,7 +51,7 @@
             max-width: none !important;
         }
 
-        /* CSS Fallback for browsers that block native fullscreen */
+        /* BUG FIX 2: CSS Fallback for browsers that block native fullscreen */
         .zen-fallback {
             position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
             z-index: 999999 !important; border-radius: 0 !important; 
@@ -186,75 +186,20 @@
                 </button>
             </div>
 
-            <div class="mb-10">
-                <h3 class="text-lg font-bold text-white mb-6">Available Academic Archives</h3>
-                <div class="grid md:grid-cols-3 gap-6">
-                    
-                    <div class="bg-slate-900/40 p-6 rounded-xl border border-slate-800 shadow-inner hover:border-blue-500/50 transition-colors">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="p-2 bg-blue-500/10 rounded-lg"><svg class="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg></div>
-                            <h4 class="font-bold text-slate-200">SCILAB (Signals)</h4>
-                        </div>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">Focuses on digital signal processing and image manipulation. Contains executable <code class="bg-slate-800 px-1 rounded">.sce</code> and <code class="bg-slate-800 px-1 rounded">.sci</code> scripts.</p>
-                        <ul class="text-[11px] text-slate-500 space-y-1.5">
-                            <li class="flex items-center gap-2"><span class="w-1 h-1 bg-blue-400 rounded-full"></span> Amplitude & Frequency Modulation</li>
-                            <li class="flex items-center gap-2"><span class="w-1 h-1 bg-blue-400 rounded-full"></span> Histogram Equalization</li>
-                            <li class="flex items-center gap-2"><span class="w-1 h-1 bg-blue-400 rounded-full"></span> Image Watermarking Algorithms</li>
-                        </ul>
-                    </div>
-
-                    <div class="bg-slate-900/40 p-6 rounded-xl border border-slate-800 shadow-inner hover:border-purple-500/50 transition-colors">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="p-2 bg-purple-500/10 rounded-lg"><svg class="w-5 h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.906 14.142 0M1.394 9.393c5.857-5.857 15.355-5.858 21.213 0" /></svg></div>
-                            <h4 class="font-bold text-slate-200">WMC-LAB (Wireless)</h4>
-                        </div>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">Comprehensive resources for Wireless Mobile Communication, including advanced fading channel matrices and full DOCX lab manuals.</p>
-                        <ul class="text-[11px] text-slate-500 space-y-1.5">
-                            <li class="flex items-center gap-2"><span class="w-1 h-1 bg-purple-400 rounded-full"></span> Rayleigh & AWGN Fading Models</li>
-                            <li class="flex items-center gap-2"><span class="w-1 h-1 bg-purple-400 rounded-full"></span> DSSS & BPSK Simulations</li>
-                            <li class="flex items-center gap-2"><span class="w-1 h-1 bg-purple-400 rounded-full"></span> Friss Transmission Equations</li>
-                        </ul>
-                    </div>
-
-                    <div class="bg-slate-900/40 p-6 rounded-xl border border-slate-800 shadow-inner hover:border-emerald-500/50 transition-colors">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="p-2 bg-emerald-500/10 rounded-lg"><svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" /></svg></div>
-                            <h4 class="font-bold text-slate-200">IoT-LAB (Embedded)</h4>
-                        </div>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">Hardware interfacing and embedded systems programming. Features raw C, C++, and Arduino <code class="bg-slate-800 px-1 rounded">.ino</code> code files.</p>
-                        <ul class="text-[11px] text-slate-500 space-y-1.5">
-                            <li class="flex items-center gap-2"><span class="w-1 h-1 bg-emerald-400 rounded-full"></span> IR & Ultrasonic Sensor Interfacing</li>
-                            <li class="flex items-center gap-2"><span class="w-1 h-1 bg-emerald-400 rounded-full"></span> NodeMCU Cloud Integration</li>
-                            <li class="flex items-center gap-2"><span class="w-1 h-1 bg-emerald-400 rounded-full"></span> Raspberry Pi GPIO Operations</li>
-                        </ul>
-                    </div>
-
-                </div>
-            </div>
-
             <div class="grid md:grid-cols-2 gap-8">
-                <div class="bg-slate-900/40 p-6 rounded-xl border border-slate-800 shadow-inner">
-                    <h3 class="text-slate-200 font-bold mb-4 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        How to Access the Vault
-                    </h3>
-                    <div class="space-y-4 text-sm text-slate-400 leading-relaxed">
-                        <p><strong class="text-slate-300">1. Select an Archive:</strong> Use the dropdown menu located at the top of the interface to select the specific laboratory curriculum you wish to explore.</p>
-                        <p><strong class="text-slate-300">2. Navigate the File Tree:</strong> The left-hand sidebar acts as a local file explorer. Click on folders to navigate deeper into the directory. You can utilize the Instant Search bar to filter specific file names, and use the breadcrumb trail to easily return to root directories.</p>
-                        <p><strong class="text-slate-300">3. Smart Document Viewing:</strong> Clicking on any document will instantly render it in the center console. The intelligent system dynamically detects the file type (Code, PDF, Image) and applies the correct parsing engine natively in your browser.</p>
-                        <p><strong class="text-slate-300">4. Export & Distraction-Free Reading:</strong> Use the <strong class="text-slate-300">Zen Mode</strong> button to expand the editor to native Full Screen. You can securely copy code blocks directly to your clipboard or download the raw file to your local drive for academic submissions.</p>
-                    </div>
+                <div class="bg-slate-900/40 p-6 rounded-xl border border-slate-800">
+                    <h3 class="text-blue-400 font-black mb-3 uppercase tracking-widest text-xs">Supported Architectures</h3>
+                    <ul class="space-y-3 text-sm text-slate-400 list-disc list-inside">
+                        <li><strong>SCILAB Simulation:</strong> Native `.sce` and `.sci` syntax highlighting for signal processing files.</li>
+                        <li><strong>Embedded Systems:</strong> Real-time C, C++, and `.ino` code parsing.</li>
+                        <li><strong>Academic Documentation:</strong> Embedded viewing algorithms for PDF and Word Documents.</li>
+                        <li><strong>Raw Media Analysis:</strong> Dedicated vector-zoom viewing for PNG, JPG, and WEBP formats.</li>
+                    </ul>
                 </div>
-                
-                <div class="flex flex-col gap-6">
-                    <div class="bg-slate-900/40 p-6 rounded-xl border border-slate-800 shadow-inner">
-                        <h3 class="text-emerald-400 font-black mb-2 uppercase tracking-widest text-xs">System Performance</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">To ensure rapid load times and reduce network latency, this interface utilizes <strong>SessionStorage Memory Caching</strong>. Navigating back through previously loaded directories is completely instantaneous and costs zero external data requests.</p>
-                    </div>
-                    <div class="bg-slate-900/40 p-6 rounded-xl border border-slate-800 shadow-inner flex-1">
-                        <h3 class="text-red-400 font-black mb-2 uppercase tracking-widest text-xs">Curriculum Updates</h3>
-                        <p class="text-sm text-slate-400 leading-relaxed">If you notice a mathematical discrepancy in an experiment, or wish to contribute an updated version of a laboratory file, please utilize the <em>Contact Maintainer</em> button above to submit your revisions via secure email.</p>
-                    </div>
+                <div class="bg-slate-900/40 p-6 rounded-xl border border-slate-800">
+                    <h3 class="text-emerald-400 font-black mb-3 uppercase tracking-widest text-xs">System Performance & Contributions</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed mb-4">To ensure rapid load times and reduce network latency, this interface utilizes <strong>SessionStorage Memory Caching</strong>. Navigating back through previously loaded directories is completely instantaneous and costs zero external data requests.</p>
+                    <p class="text-sm text-slate-400 leading-relaxed"><strong>Curriculum Updates:</strong> If you notice a mathematical discrepancy in an experiment, or wish to contribute an updated version of a laboratory file, please utilize the <em>Contact Maintainer</em> button above to submit your revisions.</p>
                 </div>
             </div>
         </section>
@@ -489,8 +434,11 @@
                             document.querySelectorAll('.file-item').forEach(el => el.classList.remove('bg-blue-500/20', 'border-l-2', 'border-blue-500', 'pl-2'));
                             li.classList.add('bg-blue-500/20', 'border-l-2', 'border-blue-500', 'pl-2');
                             
-                            // State machine trigger for mobile
-                            document.getElementById('ide-workspace').setAttribute('data-mobile-state', 'editor');
+                            if (window.innerWidth < 1024) {
+                                document.getElementById('sidebar-panel').classList.add('hidden');
+                                document.getElementById('editor-panel').classList.remove('hidden');
+                                document.getElementById('editor-panel').classList.add('flex');
+                            }
                             this.fetchFile(item);
                         };
                     }
@@ -522,7 +470,9 @@
             },
 
             showMobileSidebar: function() {
-                document.getElementById('ide-workspace').setAttribute('data-mobile-state', 'sidebar');
+                document.getElementById('editor-panel').classList.add('hidden');
+                document.getElementById('editor-panel').classList.remove('flex');
+                document.getElementById('sidebar-panel').classList.remove('hidden');
             },
 
             fetchFile: async function(fileItem) {
@@ -670,7 +620,7 @@
                 this.showToast(`Downloading ${this.activeFileName}...`);
             },
 
-            // Native HTML5 Fullscreen API with Escape Key Tracking
+            // BUG FIX: The HTML5 Fullscreen API Logic
             toggleZenMode: function() {
                 const editorPanel = document.getElementById('editor-panel');
                 const workspace = document.getElementById('ide-workspace');
@@ -680,6 +630,7 @@
                 this.isZenMode = !this.isZenMode;
                 
                 if (this.isZenMode) {
+                    // Enter Fullscreen
                     if (editorPanel.requestFullscreen) {
                         editorPanel.requestFullscreen().catch(() => this.applyCSSFallback(editorPanel, workspace, mainContent));
                     } else if (editorPanel.webkitRequestFullscreen) {
@@ -689,6 +640,7 @@
                     }
                     icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 14h6m0 0v6m0-6l-7 7m17-11h-6m0 0V4m0 6l7-7" />`;
                 } else {
+                    // Exit Fullscreen
                     if (document.fullscreenElement || document.webkitFullscreenElement) {
                         if (document.exitFullscreen) document.exitFullscreen();
                         else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
@@ -711,7 +663,7 @@
             }
         };
 
-        // Listen for OS-level escape key fullscreen exits
+        // Listen for the user hitting the native "ESC" key to exit fullscreen
         document.addEventListener('fullscreenchange', () => {
             if (!document.fullscreenElement) {
                 RepoEngine.isZenMode = false;
