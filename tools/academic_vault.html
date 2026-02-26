@@ -70,7 +70,7 @@
                     <div class="flex flex-col w-full">
                         <button onclick="RepoEngine.selectRepo('Abhishek333k/SCILAB', 'SCILAB (Signals & Systems)')" class="text-left px-5 py-3.5 text-sm text-slate-300 hover:bg-blue-500/20 hover:text-blue-400 border-b border-slate-800/50 mono transition-colors w-full truncate">SCILAB (Signals & Systems)</button>
                         <button onclick="RepoEngine.selectRepo('Abhishek333k/WMC-LAB', 'WMC-LAB (Wireless Comm)')" class="text-left px-5 py-3.5 text-sm text-slate-300 hover:bg-blue-500/20 hover:text-blue-400 border-b border-slate-800/50 mono transition-colors w-full truncate">WMC-LAB (Wireless Comm)</button>
-                        <button onclick="RepoEngine.selectRepo('Abhishek333k/IoT-LAB', 'IoT-LAB (Internet of Things)')" class="text-left px-5 py-3.5 text-sm text-slate-300 hover:bg-blue-500/20 hover:text-blue-400 mono transition-colors w-full truncate">IoT-LAB (Internet of Things)</button>
+                        <button onclick="RepoEngine.selectRepo('Abhishek333k/IoT-LAB', 'IoT-LAB (Internet of Things)')" class="text-left px-5 py-3.5 text-sm text-slate-300 hover:bg-blue-500/20 hover:text-blue-400 border-b border-slate-800/50 mono transition-colors w-full truncate">IoT-LAB (Internet of Things)</button>
                     </div>
                 </div>
             </div>
@@ -160,10 +160,10 @@
                     <p class="text-sm text-slate-400 max-w-2xl leading-relaxed">This centralized index allows engineering and computer science students to access, inspect, and download laboratory experiment files. The Smart Viewer securely compiles code, documentation, and media formats dynamically via client-side rendering—eliminating the need to install specific software suites just to view materials.</p>
                 </div>
                 
-               <a href="mailto:silenvault@gmail.com?subject=Laboratory%20Curriculum%20Update%20Request&body=Please%20describe%20the%20error%20or%20attach%20the%20updated%20files%20below:%0A%0A" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shrink-0 shadow-lg group">
+                <button onclick="RepoEngine.contactMaintainer()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shrink-0 shadow-lg group">
                     <svg class="w-5 h-5 text-blue-400 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                     Contact Maintainer
-                </a>
+                </button>
             </div>
 
             <div class="grid md:grid-cols-2 gap-8">
@@ -224,6 +224,22 @@
                 setTimeout(() => { toast.style.transform = 'translateY(-20px)'; toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
             },
 
+            // SMART CONTACT ENGINE
+            contactMaintainer: function() {
+                const email = "silenvault@gmail.com";
+                const subject = "Laboratory Curriculum Update Request";
+                const body = "Please describe the error or attach the updated files below:\n\n";
+                const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                
+                // Copy to clipboard as a fallback for desktop users without mail apps
+                navigator.clipboard.writeText(email).then(() => {
+                    this.showToast(`Email copied: ${email}. Opening client...`, "success");
+                    setTimeout(() => { window.location.href = mailtoLink; }, 500);
+                }).catch(() => {
+                    window.location.href = mailtoLink;
+                });
+            },
+
             formatBytes: function(bytes) {
                 if (bytes === 0) return '0 B';
                 const k = 1024, sizes = ['B', 'KB', 'MB', 'GB'];
@@ -231,7 +247,6 @@
                 return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
             },
 
-            // Custom Dropdown Logic
             toggleDropdown: function() {
                 const menu = document.getElementById('dropdown-menu');
                 menu.classList.toggle('hidden');
@@ -248,7 +263,6 @@
             },
 
             parseHash: function() {
-                // Default Boot setup
                 const defaultRepo = 'Abhishek333k/SCILAB';
                 const defaultName = 'SCILAB (Signals & Systems)';
 
@@ -259,7 +273,6 @@
                     
                     if (repo) {
                         this.currentRepo = repo;
-                        // Attempt to update the dropdown name visually if possible
                         if(repo.includes('WMC')) document.getElementById('dropdown-selected').innerText = 'WMC-LAB (Wireless Comm)';
                         else if(repo.includes('IoT')) document.getElementById('dropdown-selected').innerText = 'IoT-LAB (Internet of Things)';
                         else document.getElementById('dropdown-selected').innerText = 'SCILAB (Signals & Systems)';
@@ -300,11 +313,7 @@
                 const wrapper = document.getElementById('ad-wrapper');
                 if(!wrapper) return;
                 
-                // Clear existing ad completely
                 wrapper.innerHTML = '';
-                
-                // Inject new ad container utilizing layout.js classes
-                // smart-ad-unit keeps it hidden until filled
                 const adHtml = `
                     <div class="smart-ad-unit hidden opacity-0 transition-opacity duration-1000 w-full flex justify-center">
                         <ins class="adsbygoogle"
@@ -317,8 +326,6 @@
 
                 try {
                     (adsbygoogle = window.adsbygoogle || []).push({});
-                    
-                    // Local Observer since DOMContentLoaded already fired in layout.js
                     const ins = wrapper.querySelector('ins');
                     const unit = wrapper.querySelector('.smart-ad-unit');
                     const observer = new MutationObserver((mutations) => {
@@ -331,7 +338,7 @@
                         });
                     });
                     observer.observe(ins, { attributes: true, childList: true });
-                } catch(e) { /* Ad Blocker safety */ }
+                } catch(e) {}
             },
 
             fetchDirectory: async function(path) {
@@ -453,9 +460,7 @@
             },
 
             fetchFile: async function(fileItem) {
-                // Refresh Ad on new file click (Increases Impressions)
                 this.refreshAdSlot();
-
                 window.location.hash = `repo=${this.currentRepo}&file=${fileItem.path}`;
 
                 const overlay = document.getElementById('code-overlay');
@@ -584,6 +589,7 @@
                 }
             },
 
+            // Single File Download only (Retention Loop intact)
             downloadCode: function() {
                 if(!this.activeFileUrl) return this.showToast("No document selected.", "error");
                 const a = document.createElement('a');
