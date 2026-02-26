@@ -14,7 +14,6 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; margin: 0; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
         
-        /* Professional Blueprint Theme */
         .bg-blueprint {
             background-color: #020617;
             background-image: 
@@ -31,16 +30,33 @@
         .glass-panel { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(51, 65, 85, 0.6); border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
         .mono { font-family: 'Fira Code', monospace; }
         
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.4); border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.3); border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.6); }
 
-        #line-numbers { text-align: right; padding-right: 12px; border-right: 1px solid rgba(51,65,85,0.5); user-select: none; color: #475569; background: #080b12; }
-        pre code.hljs { background: transparent !important; padding: 0 0 0 16px !important; margin: 0; }
+        /* BUG FIX: Sticky Line Numbers Hack */
+        .sticky-gutter { position: sticky; left: 0; background-color: #080b12; border-right: 1px solid rgba(51,65,85,0.5); z-index: 10; user-select: none; }
+        pre code.hljs { background: transparent !important; padding: 0 !important; margin: 0; }
         
-        .zen-mode-active { position: fixed !important; inset: 0 !important; z-index: 9999 !important; border-radius: 0 !important; height: 100dvh !important; max-width: none !important; }
-        #image-display { transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); transform-origin: center center; }
+        /* BUG FIX: Holeless Zen Mode */
+        .zen-mode-active { 
+            position: fixed !important; inset: 0 !important; z-index: 9999 !important; 
+            border-radius: 0 !important; height: 100dvh !important; max-width: none !important; 
+            background-color: #020617 !important; /* Forces solid background */
+            backdrop-filter: none !important; border: none !important;
+        }
+
+        /* BUG FIX: Mobile State Machine */
+        @media (max-width: 1023px) {
+            #ide-workspace[data-mobile-state="sidebar"] #editor-panel { display: none !important; }
+            #ide-workspace[data-mobile-state="editor"] #sidebar-panel { display: none !important; }
+            #ide-workspace[data-mobile-state="editor"] #editor-panel { display: flex !important; }
+        }
+
+        /* BUG FIX: Pannable Image Zoom */
+        #view-image { align-items: flex-start; justify-content: flex-start; }
+        #image-display { transition: width 0.2s ease-out; margin: auto; }
     </style>
 
     <script src="../assets/js/layout.js" defer></script>
@@ -52,7 +68,7 @@
 
     <sv-header base-path=".."></sv-header>
 
-    <main id="main-content" class="flex-1 flex flex-col items-center p-2 md:p-6 lg:p-8 pt-24 transition-opacity duration-500">
+    <main id="main-content" class="flex-1 flex flex-col items-center p-2 md:p-6 lg:p-8 pt-24 transition-opacity duration-500 min-h-0">
         
         <header class="w-full max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 shrink-0 px-2 md:px-0 gap-4 relative z-[60]">
             <div>
@@ -67,18 +83,18 @@
                 </button>
                 
                 <div id="dropdown-menu" class="hidden absolute top-full left-0 mt-2 w-full glass-panel overflow-hidden z-[100] shadow-2xl origin-top">
-                    <div class="flex flex-col w-full">
+                    <div class="flex flex-col w-full max-h-[300px] overflow-y-auto custom-scrollbar">
                         <button onclick="RepoEngine.selectRepo('Abhishek333k/SCILAB', 'SCILAB (Signals & Systems)')" class="text-left px-5 py-3.5 text-sm text-slate-300 hover:bg-blue-500/20 hover:text-blue-400 border-b border-slate-800/50 mono transition-colors w-full truncate">SCILAB (Signals & Systems)</button>
                         <button onclick="RepoEngine.selectRepo('Abhishek333k/WMC-LAB', 'WMC-LAB (Wireless Comm)')" class="text-left px-5 py-3.5 text-sm text-slate-300 hover:bg-blue-500/20 hover:text-blue-400 border-b border-slate-800/50 mono transition-colors w-full truncate">WMC-LAB (Wireless Comm)</button>
-                        <button onclick="RepoEngine.selectRepo('Abhishek333k/IoT-LAB', 'IoT-LAB (Internet of Things)')" class="text-left px-5 py-3.5 text-sm text-slate-300 hover:bg-blue-500/20 hover:text-blue-400 border-b border-slate-800/50 mono transition-colors w-full truncate">IoT-LAB (Internet of Things)</button>
+                        <button onclick="RepoEngine.selectRepo('Abhishek333k/IoT-LAB', 'IoT-LAB (Internet of Things)')" class="text-left px-5 py-3.5 text-sm text-slate-300 hover:bg-blue-500/20 hover:text-blue-400 mono transition-colors w-full truncate">IoT-LAB (Internet of Things)</button>
                     </div>
                 </div>
             </div>
         </header>
 
-        <div id="ide-workspace" class="w-full max-w-7xl mx-auto flex lg:grid lg:grid-cols-[320px_1fr] gap-4 md:gap-6 h-[calc(100dvh-180px)] md:h-[75vh] min-h-[500px] mb-12 transition-all duration-300 relative z-10">
+        <div id="ide-workspace" data-mobile-state="sidebar" class="w-full max-w-7xl mx-auto flex lg:grid lg:grid-cols-[320px_1fr] gap-4 md:gap-6 h-[calc(100dvh-180px)] md:h-[75vh] min-h-[500px] mb-12 transition-all duration-300 relative z-10">
             
-            <div id="sidebar-panel" class="glass-panel flex flex-col overflow-hidden h-full w-full lg:w-auto transition-all duration-300">
+            <div id="sidebar-panel" class="glass-panel flex flex-col overflow-hidden h-full w-full lg:w-auto">
                 
                 <div class="p-3 bg-slate-900/80 border-b border-slate-800 flex flex-col gap-2 shrink-0">
                     <div class="relative">
@@ -90,13 +106,13 @@
                 
                 <ul id="file-list" class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1"></ul>
 
-                <div id="ad-wrapper" class="p-2 border-t border-slate-800 bg-slate-900/50 shrink-0 hidden md:block min-h-[60px] flex items-center justify-center">
+                <div id="ad-wrapper" class="p-2 border-t border-slate-800 bg-slate-900/50 shrink-0 hidden md:flex items-center justify-center min-h-[60px]">
                     </div>
             </div>
 
-            <div id="editor-panel" class="glass-panel hidden lg:flex flex-col overflow-hidden h-full w-full relative transition-all duration-300">
+            <div id="editor-panel" class="glass-panel flex-col overflow-hidden h-full w-full relative">
                 
-                <div id="code-overlay" class="absolute inset-0 bg-[#020617]/90 backdrop-blur-md z-20 flex flex-col items-center justify-center p-6 text-center transition-opacity duration-300">
+                <div id="code-overlay" class="absolute inset-0 bg-[#020617]/95 backdrop-blur-md z-20 flex flex-col items-center justify-center p-6 text-center transition-opacity duration-300">
                     <svg class="w-12 h-12 text-slate-700 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                     <h3 class="text-lg font-bold text-white mb-2">No Document Selected</h3>
                     <p class="text-xs text-slate-500 max-w-xs">Select a laboratory file from the index to initialize the smart viewer.</p>
@@ -104,7 +120,7 @@
 
                 <div class="bg-slate-900/90 p-2 md:p-3 border-b border-slate-800 flex justify-between items-center shrink-0 z-30">
                     <div class="flex items-center gap-3 overflow-hidden">
-                        <button onclick="RepoEngine.showMobileSidebar()" class="lg:hidden p-1.5 bg-slate-800 text-white rounded border border-slate-700 flex items-center">
+                        <button onclick="RepoEngine.showMobileSidebar()" class="lg:hidden p-1.5 bg-slate-800 text-white rounded border border-slate-700 flex items-center hover:bg-slate-700 transition-colors">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                         </button>
                         
@@ -134,19 +150,20 @@
                     </div>
                 </div>
 
-                <div id="viewer-container" class="flex-1 bg-[#0d1117] relative w-full h-full flex flex-col overflow-hidden">
-                    <div id="view-code" class="hidden w-full h-full relative flex-row overflow-hidden">
-                        <div id="line-numbers" class="h-full overflow-hidden mono py-4 w-12 shrink-0 hidden md:block" style="font-size: 14px;"></div>
-                        <div id="code-scroll-area" class="flex-1 h-full overflow-auto custom-scrollbar p-4" onscroll="RepoEngine.syncScroll(this)">
-                            <pre class="m-0"><code id="code-display" class="mono leading-relaxed text-slate-300" style="font-size: 14px;"></code></pre>
+                <div id="viewer-container" class="flex-1 bg-[#0d1117] relative w-full h-full flex flex-col overflow-hidden min-h-0">
+                    
+                    <div id="view-code" class="hidden w-full h-full relative overflow-auto custom-scrollbar">
+                        <div class="flex min-w-max min-h-full">
+                            <div id="line-numbers" class="sticky-gutter text-right py-4 px-3 text-[#475569] mono hidden md:block" style="font-size: 14px; line-height: 1.5;"></div>
+                            <pre class="m-0 p-4 flex-1"><code id="code-display" class="mono text-slate-300" style="font-size: 14px; line-height: 1.5;"></code></pre>
                         </div>
                     </div>
 
                     <div id="view-image" class="hidden w-full h-full p-6 flex items-center justify-center bg-[#06090e] overflow-auto custom-scrollbar relative">
-                        <img id="image-display" src="" class="max-w-full max-h-full object-contain shadow-2xl border border-slate-800">
+                        <img id="image-display" src="" style="width: 100%;" class="object-contain shadow-2xl border border-slate-800">
                     </div>
 
-                    <div id="view-doc" class="hidden w-full h-full">
+                    <div id="view-doc" class="hidden w-full h-full relative">
                         <iframe id="doc-display" src="" class="w-full h-full border-none bg-[#e2e8f0]"></iframe>
                     </div>
                 </div>
@@ -167,7 +184,7 @@
             </div>
 
             <div class="grid md:grid-cols-2 gap-8">
-                <div class="bg-slate-900/40 p-6 rounded-xl border border-slate-800">
+                <div class="bg-slate-900/40 p-6 rounded-xl border border-slate-800 shadow-inner">
                     <h3 class="text-blue-400 font-black mb-3 uppercase tracking-widest text-xs">Supported Architectures</h3>
                     <ul class="space-y-3 text-sm text-slate-400 list-disc list-inside">
                         <li><strong>SCILAB Simulation:</strong> Native `.sce` and `.sci` syntax highlighting for signal processing files.</li>
@@ -176,7 +193,7 @@
                         <li><strong>Raw Media Analysis:</strong> Dedicated vector-zoom viewing for PNG, JPG, and WEBP formats.</li>
                     </ul>
                 </div>
-                <div class="bg-slate-900/40 p-6 rounded-xl border border-slate-800">
+                <div class="bg-slate-900/40 p-6 rounded-xl border border-slate-800 shadow-inner">
                     <h3 class="text-emerald-400 font-black mb-3 uppercase tracking-widest text-xs">System Performance & Contributions</h3>
                     <p class="text-sm text-slate-400 leading-relaxed mb-4">To ensure rapid load times and reduce network latency, this interface utilizes <strong>SessionStorage Memory Caching</strong>. Navigating back through previously loaded directories is completely instantaneous and costs zero external data requests.</p>
                     <p class="text-sm text-slate-400 leading-relaxed"><strong>Curriculum Updates:</strong> If you notice a mathematical discrepancy in an experiment, or wish to contribute an updated version of a laboratory file, please utilize the <em>Contact Maintainer</em> button above to submit your revisions.</p>
@@ -189,6 +206,7 @@
     <sv-footer base-path=".."></sv-footer>
 
     <script>
+        // Global click listener to close custom dropdown
         document.addEventListener('click', (e) => {
             const dropdown = document.getElementById('custom-dropdown');
             const menu = document.getElementById('dropdown-menu');
@@ -210,7 +228,7 @@
             
             // UX States
             fontSize: 14,
-            imageZoom: 1,
+            imageWidthPct: 100,
 
             showToast: function(message, type = 'success') {
                 const container = document.getElementById('toast-container');
@@ -231,7 +249,6 @@
                 const body = "Please describe the error or attach the updated files below:\n\n";
                 const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
                 
-                // Copy to clipboard as a fallback for desktop users without mail apps
                 navigator.clipboard.writeText(email).then(() => {
                     this.showToast(`Email copied: ${email}. Opening client...`, "success");
                     setTimeout(() => { window.location.href = mailtoLink; }, 500);
@@ -241,7 +258,7 @@
             },
 
             formatBytes: function(bytes) {
-                if (bytes === 0) return '0 B';
+                if (bytes === undefined || bytes === null || bytes === 0) return '0 B';
                 const k = 1024, sizes = ['B', 'KB', 'MB', 'GB'];
                 const i = Math.floor(Math.log(bytes) / Math.log(k));
                 return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
@@ -418,11 +435,8 @@
                             document.querySelectorAll('.file-item').forEach(el => el.classList.remove('bg-blue-500/20', 'border-l-2', 'border-blue-500', 'pl-2'));
                             li.classList.add('bg-blue-500/20', 'border-l-2', 'border-blue-500', 'pl-2');
                             
-                            if (window.innerWidth < 1024) {
-                                document.getElementById('sidebar-panel').classList.add('hidden');
-                                document.getElementById('editor-panel').classList.remove('hidden');
-                                document.getElementById('editor-panel').classList.add('flex');
-                            }
+                            // State machine trigger for mobile
+                            document.getElementById('ide-workspace').setAttribute('data-mobile-state', 'editor');
                             this.fetchFile(item);
                         };
                     }
@@ -454,9 +468,7 @@
             },
 
             showMobileSidebar: function() {
-                document.getElementById('editor-panel').classList.add('hidden');
-                document.getElementById('editor-panel').classList.remove('flex');
-                document.getElementById('sidebar-panel').classList.remove('hidden');
+                document.getElementById('ide-workspace').setAttribute('data-mobile-state', 'sidebar');
             },
 
             fetchFile: async function(fileItem) {
@@ -493,12 +505,12 @@
                 try {
                     if (imageExts.includes(ext)) {
                         document.getElementById('image-display').src = fileItem.download_url;
-                        this.imageZoom = 1;
-                        document.getElementById('image-display').style.transform = `scale(1)`;
+                        this.imageWidthPct = 100;
+                        document.getElementById('image-display').style.width = `100%`;
                         
                         controlPanel.innerHTML = `
-                            <button onclick="RepoEngine.adjustZoom(0.2)" class="p-1 text-slate-400 hover:text-white transition-colors" title="Zoom In"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg></button>
-                            <button onclick="RepoEngine.adjustZoom(-0.2)" class="p-1 text-slate-400 hover:text-white transition-colors" title="Zoom Out"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"/></svg></button>
+                            <button onclick="RepoEngine.adjustZoom(25)" class="p-1 text-slate-400 hover:text-white transition-colors" title="Zoom In"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg></button>
+                            <button onclick="RepoEngine.adjustZoom(-25)" class="p-1 text-slate-400 hover:text-white transition-colors" title="Zoom Out"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"/></svg></button>
                             <button onclick="RepoEngine.adjustZoom(0, true)" class="p-1 text-slate-400 hover:text-white transition-colors text-[9px] font-bold uppercase" title="Reset Zoom">RST</button>
                         `;
 
@@ -526,7 +538,7 @@
                             <button onclick="RepoEngine.adjustFontSize(-2)" class="p-1 text-slate-400 hover:text-white font-bold text-xs font-mono transition-colors" title="Decrease Font">A-</button>
                         `;
                         
-                        codeBlock.className = 'mono leading-relaxed text-slate-300';
+                        codeBlock.className = 'mono text-slate-300';
                         if(ext === 'sce' || ext === 'sci' || ext === 'm') codeBlock.classList.add('language-matlab');
                         else if(ext === 'py') codeBlock.classList.add('language-python');
                         else if(ext === 'ino' || ext === 'c' || ext === 'cpp') codeBlock.classList.add('language-cpp');
@@ -565,18 +577,16 @@
                 const lineCount = this.rawCode.split('\n').length;
                 const lineHtml = Array.from({length: lineCount}, (_, i) => i + 1).join('<br>');
                 document.getElementById('line-numbers').innerHTML = lineHtml;
-                document.getElementById('code-scroll-area').scrollTop = 0; 
             },
 
             adjustZoom: function(delta, reset = false) {
                 const img = document.getElementById('image-display');
-                if(reset) this.imageZoom = 1;
-                else this.imageZoom = Math.max(0.5, Math.min(4, this.imageZoom + delta));
-                img.style.transform = `scale(${this.imageZoom})`;
-            },
-
-            syncScroll: function(element) {
-                document.getElementById('line-numbers').scrollTop = element.scrollTop;
+                if(reset) {
+                    this.imageWidthPct = 100;
+                } else {
+                    this.imageWidthPct = Math.max(50, Math.min(400, this.imageWidthPct + delta));
+                }
+                img.style.width = `${this.imageWidthPct}%`;
             },
 
             copyCode: async function() {
@@ -589,7 +599,6 @@
                 }
             },
 
-            // Single File Download only (Retention Loop intact)
             downloadCode: function() {
                 if(!this.activeFileUrl) return this.showToast("No document selected.", "error");
                 const a = document.createElement('a');
