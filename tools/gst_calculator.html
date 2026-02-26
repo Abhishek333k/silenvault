@@ -2,141 +2,206 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GST Tax Engine | SilenVault</title>
-    <meta name="description" content="Instant GST and VAT calculator with Reverse Charge Mechanism (RCM) support.">
-    <link rel="icon" type="image/png" href="../assets/img/SILENVAULT_LOGO.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SilenVault | Advanced GST & Tax Engine</title>
+    <meta name="description" content="Professional GST calculator with Inclusive/Exclusive modes, CGST/SGST/IGST breakdown, and number-to-words generation for business invoicing.">
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="../assets/js/layout.js" defer></script>
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; margin: 0; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+        
+        .bg-blueprint {
+            background-color: #020617;
+            background-image: 
+                linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            position: fixed; inset: 0; z-index: -1; pointer-events: none;
+        }
+        .bg-blueprint::after {
+            content: ''; position: fixed; inset: 0;
+            background: radial-gradient(circle at 50% 50%, transparent 10%, #020617 100%);
+        }
+
+        .glass-panel { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(51, 65, 85, 0.6); border-radius: 1.25rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
         .mono { font-family: 'Fira Code', monospace; }
-        .sv-input { background-color: #0f172a; border: 1px solid #334155; transition: all 0.2s; }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(16, 185, 129, 0.3); border-radius: 10px; }
+
+        .sv-input { background-color: #020617; border: 1px solid rgba(51, 65, 85, 0.8); transition: all 0.2s; }
         .sv-input:focus { border-color: #10b981; outline: none; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
-        .ad-placeholder { background: repeating-linear-gradient(45deg, #0f172a, #0f172a 10px, #1e293b 10px, #1e293b 20px); border: 1px dashed #475569; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.75rem; text-transform: uppercase; border-radius: 0.5rem; }
+
+        .toggle-checkbox:checked { right: 0; border-color: #10b981; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #10b981; }
         
         @media print {
             body { background-color: white; color: black; }
-            sv-header, sv-footer, aside, .ad-placeholder, .print-hidden, .seo-content { display: none !important; }
-            main { padding: 0; width: 100%; max-width: 100%; display: block; margin: 0; }
-            .bg-slate-900 { background-color: white; border: 1px solid #ccc; box-shadow: none; padding: 0; }
-            .bg-slate-950 { background-color: #f9f9f9; border: 1px solid #ddd; }
-            .text-slate-400 { color: #666; }
-            .text-white { color: black; }
-            .text-emerald-400 { color: #059669; }
-            input, select { border: 1px solid #ccc; color: black; }
-            .rate-btn { border: 1px solid #ccc; color: black; }
-            #res-net, #res-tax, #res-total { color: black; font-weight: bold; }
-            .result-container { border: 2px solid #000 !important; padding: 20px; border-radius: 0; }
+            .bg-blueprint, sv-header, sv-footer, .print-hidden { display: none !important; }
+            main { padding: 0 !important; width: 100% !important; max-width: none !important; }
+            .glass-panel { background: transparent; border: 2px solid #000; box-shadow: none; border-radius: 0; padding: 2rem; color: black; }
+            .text-white, .text-slate-300, .text-slate-400 { color: black !important; }
+            .text-emerald-400, .text-emerald-500 { color: #059669 !important; }
+            .border-slate-800 { border-color: #ccc !important; }
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen">
+
+    <div class="bg-blueprint"></div>
+    <div id="toast-container" class="fixed top-4 right-4 z-[10000] flex flex-col gap-3 pointer-events-none w-[calc(100%-2rem)] md:w-auto"></div>
 
     <sv-header base-path=".."></sv-header>
 
-    <div class="max-w-7xl mx-auto w-full px-4 pt-8 pb-4 flex items-center gap-3 print-hidden">
-        <h1 class="text-3xl font-bold text-white">Tax & GST Engine</h1>
-        <span class="text-xs font-mono text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded">V2.6 Stable</span>
-    </div>
+    <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-8 md:py-12 pt-24 relative z-10">
+        
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 print-hidden">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-black text-white tracking-tight drop-shadow-md">GST & Tax <span class="text-emerald-500">Engine</span></h1>
+                <p class="text-slate-400 text-sm mt-1 mono uppercase tracking-widest">Enterprise Accounting Interface</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold rounded-lg mono shadow-inner">
+                    <span class="w-1.5 h-1.5 inline-block bg-emerald-500 rounded-full animate-pulse mr-1"></span> Live
+                </span>
+            </div>
+        </header>
 
-    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-8 flex flex-col lg:flex-row gap-8">
-        <section class="flex-1 max-w-2xl">
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl result-container">
-                <h1 class="text-2xl font-bold text-white mb-6 hidden print:block">SilenVault Official Tax Report</h1>
-                <div class="space-y-6">
-                    <div class="flex justify-center bg-slate-950 p-1 rounded-xl border border-slate-800 print-hidden">
-                        <button onclick="setMode('exclusive')" id="btn-exclusive" class="flex-1 py-2 rounded-lg text-sm font-semibold transition-all bg-emerald-600 text-white shadow-lg">Add Tax (Exclusive)</button>
-                        <button onclick="setMode('inclusive')" id="btn-inclusive" class="flex-1 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white transition-all">Remove Tax (Inclusive)</button>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">Base Amount / Price</label>
-                        <div class="relative">
-                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-lg">₹</span>
-                            <input type="number" id="input-amount" placeholder="0.00" class="sv-input w-full pl-10 pr-4 py-4 rounded-xl text-2xl font-bold text-white placeholder-slate-600" oninput="calculate()">
-                        </div>
-                    </div>
-
-                    <div class="print-hidden">
-                        <div class="flex justify-between items-center mb-2">
-                            <label class="block text-xs font-medium text-slate-400 uppercase tracking-wider">Tax Rate (%)</label>
-                            <select id="country-select" onchange="applyPreset()" class="bg-slate-800 text-xs text-slate-300 border border-slate-700 rounded px-3 py-1.5 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors cursor-pointer">
-                                <option value="custom">Custom Rate</option>
-                                <option value="18" selected>India (GST 18%)</option>
-                                <option value="5">India (GST 5%)</option>
-                                <option value="12">India (GST 12%)</option>
-                                <option value="28">India (GST 28%)</option>
-                                <option value="20">UK (VAT 20%)</option>
-                                <option value="10">Australia (GST 10%)</option>
-                                <option value="5">UAE (VAT 5%)</option>
-                                <option value="15">New Zealand (GST 15%)</option>
-                                <option value="7">Singapore (GST 7%)</option>
-                            </select>
-                        </div>
-                        <div class="grid grid-cols-4 gap-2 mb-3">
-                            <button onclick="setRate(5)" data-rate="5" class="rate-btn bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 py-2 rounded-lg text-sm font-mono">5%</button>
-                            <button onclick="setRate(12)" data-rate="12" class="rate-btn bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 py-2 rounded-lg text-sm font-mono">12%</button>
-                            <button onclick="setRate(18)" data-rate="18" class="rate-btn bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 py-2 rounded-lg text-sm font-mono">18%</button>
-                            <button onclick="setRate(28)" data-rate="28" class="rate-btn bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 py-2 rounded-lg text-sm font-mono">28%</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="my-8 border-t border-slate-800 border-dashed"></div>
-
-                <div class="space-y-4">
-                    <div class="flex justify-between items-center p-4 bg-slate-950/50 rounded-xl border border-slate-800">
-                        <span class="text-slate-400 text-sm">Net Amount</span>
-                        <span class="text-xl font-mono text-white" id="res-net">0.00</span>
-                    </div>
-                    <div class="flex justify-between items-center p-4 bg-emerald-500/10 rounded-xl border border-emerald-500/30">
-                        <span class="text-emerald-400 text-sm font-medium">Total Tax</span>
-                        <span class="text-2xl font-mono text-emerald-400 font-bold" id="res-tax">0.00</span>
-                    </div>
-                    <div class="flex justify-between items-center p-6 bg-slate-800 rounded-xl border border-slate-700 shadow-inner">
-                        <span class="text-slate-300 font-semibold">Final Invoice Total</span>
-                        <span class="text-3xl font-mono text-white font-bold" id="res-total">0.00</span>
-                    </div>
-                </div>
+        <div class="grid lg:grid-cols-[1fr_380px] gap-6 md:gap-8 items-start">
+            
+            <div class="glass-panel p-5 md:p-8">
                 
-                <div class="mt-6 flex justify-between gap-4 print-hidden">
-                    <button onclick="copyResults()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium px-4 py-3 rounded-lg flex items-center justify-center gap-2 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
-                        Copy Breakdown
+                <div class="flex p-1.5 bg-slate-900/80 border border-slate-700 rounded-xl mb-8 print-hidden shadow-inner">
+                    <button id="btn-exclusive" onclick="TaxEngine.setMode('exclusive')" class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all bg-emerald-600 text-white shadow-lg">
+                        + Add Tax (Exclusive)
                     </button>
-                    <button onclick="window.print()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-3 rounded-lg flex items-center justify-center gap-2 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-                        Print PDF
+                    <button id="btn-inclusive" onclick="TaxEngine.setMode('inclusive')" class="flex-1 py-2.5 rounded-lg text-sm font-bold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
+                        - Remove Tax (Inclusive)
                     </button>
                 </div>
-            </div>
-        </section>
 
-        <aside class="w-full lg:w-80 flex flex-col gap-6 print-hidden">
-            <div class="ad-placeholder h-64 w-full rounded-2xl">Targeted Ad Slot</div>
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-                <h3 class="font-bold text-white mb-2">OpsCode Business Logic</h3>
-                <p class="text-sm text-slate-400 leading-relaxed">Use <strong>Exclusive</strong> to calculate tax on top of your service fee. Use <strong>Inclusive</strong> when you receive a flat payment and need to back out the tax.</p>
-            </div>
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex-1">
-                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Session History</h3>
-                <div id="history-list" class="space-y-3">
-                    <p class="text-xs text-slate-600 italic text-center py-4">History empty</p>
+                <div class="grid md:grid-cols-2 gap-6 mb-8 print-hidden">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 mono uppercase tracking-widest mb-2">Transaction Amount</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 text-xl font-mono">₹</span>
+                            <input type="number" id="input-amount" placeholder="0.00" oninput="TaxEngine.calculate()" class="sv-input w-full pl-10 pr-4 py-4 rounded-xl text-2xl font-bold text-white placeholder-slate-700 mono shadow-inner">
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col justify-center gap-4 bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                        <label class="flex items-center justify-between cursor-pointer group">
+                            <span class="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">Inter-State Supply (IGST)</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" id="toggle-interstate" onchange="TaxEngine.calculate()" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 border-slate-600 appearance-none cursor-pointer transition-all right-5"/>
+                                <label for="toggle-interstate" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-700 cursor-pointer transition-colors"></label>
+                            </div>
+                        </label>
+                        <label class="flex items-center justify-between cursor-pointer group opacity-50 hover:opacity-100 transition-opacity">
+                            <span class="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">Reverse Charge (RCM)</span>
+                            <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                                <input type="checkbox" id="toggle-rcm" onchange="TaxEngine.calculate()" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 border-slate-600 appearance-none cursor-pointer transition-all right-5"/>
+                                <label for="toggle-rcm" class="toggle-label block overflow-hidden h-5 rounded-full bg-slate-700 cursor-pointer transition-colors"></label>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-8 print-hidden">
+                    <label class="block text-[10px] font-bold text-slate-400 mono uppercase tracking-widest mb-3">Applicable Tax Bracket</label>
+                    <div class="grid grid-cols-4 gap-2 md:gap-3">
+                        <button onclick="TaxEngine.setRate(5)" data-rate="5" class="rate-btn bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-800 py-3 rounded-xl font-mono font-bold transition-all">5%</button>
+                        <button onclick="TaxEngine.setRate(12)" data-rate="12" class="rate-btn bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-800 py-3 rounded-xl font-mono font-bold transition-all">12%</button>
+                        <button onclick="TaxEngine.setRate(18)" data-rate="18" class="rate-btn bg-emerald-600/20 border border-emerald-500/50 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)] py-3 rounded-xl font-mono font-bold transition-all">18%</button>
+                        <button onclick="TaxEngine.setRate(28)" data-rate="28" class="rate-btn bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-800 py-3 rounded-xl font-mono font-bold transition-all">28%</button>
+                    </div>
+                </div>
+
+                <div class="h-px w-full bg-slate-800 my-6 border-dashed print-hidden"></div>
+
+                <div>
+                    <h2 class="text-sm font-bold text-slate-300 mono uppercase tracking-widest mb-4 print:text-black">Tax Ledger Breakdown</h2>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center p-3 md:p-4 bg-slate-900/50 rounded-lg border border-slate-800">
+                            <span class="text-slate-400 text-sm">Taxable Value (Base)</span>
+                            <span class="text-lg md:text-xl font-mono text-white" id="res-base">₹ 0.00</span>
+                        </div>
+
+                        <div id="tax-matrix" class="flex flex-col gap-3"></div>
+
+                        <div class="flex justify-between items-center p-5 md:p-6 bg-[#020617] rounded-xl border border-emerald-500/40 shadow-[0_0_20px_rgba(16,185,129,0.1)] relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                            <span class="text-emerald-400 font-bold tracking-wide z-10">Total Invoice Value</span>
+                            <span class="text-3xl md:text-4xl font-black font-mono text-emerald-400 z-10" id="res-total">₹ 0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-4 bg-slate-900/40 border border-slate-800 rounded-lg">
+                        <p class="text-[10px] text-slate-500 mono uppercase font-bold mb-1">Amount in Words</p>
+                        <p class="text-sm text-slate-300 italic" id="res-words">Zero Rupees Only.</p>
+                    </div>
+
+                    <div class="mt-6 flex flex-col sm:flex-row gap-3 print-hidden">
+                        <button onclick="TaxEngine.copyBreakdown()" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-sm font-bold px-4 py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg> Copy Ledger
+                        </button>
+                        <button onclick="window.print()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold px-4 py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg> Print Document
+                        </button>
+                    </div>
                 </div>
             </div>
-        </aside>
+
+            <aside class="flex flex-col gap-6 print-hidden">
+                
+                <div id="ad-wrapper" class="w-full h-0 p-0 border-0 opacity-0 overflow-hidden transition-all duration-700 flex flex-col items-center justify-center rounded-xl bg-slate-900/50">
+                    <span class="text-[9px] text-slate-500 mono uppercase tracking-widest mb-2 opacity-50">Advertisement</span>
+                    <div class="w-full">
+                        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="YOUR_SLOT_ID" data-ad-format="auto" data-full-width-responsive="true"></ins>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-5 flex-1 max-h-[400px] flex flex-col">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mono mb-4 flex items-center justify-between">
+                        Session History
+                        <button onclick="TaxEngine.clearHistory()" class="text-[9px] bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-slate-300 transition-colors">CLEAR</button>
+                    </h3>
+                    <div id="history-list" class="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3">
+                        <div class="text-xs text-slate-600 italic text-center py-6 border border-dashed border-slate-800 rounded-lg">Awaiting transactions...</div>
+                    </div>
+                </div>
+
+            </aside>
+        </div>
     </main>
 
-    <section class="bg-[#0b1120] border-t border-slate-800 py-16 px-6 seo-content print-hidden">
-        <div class="max-w-4xl mx-auto prose prose-invert prose-slate">
-            <h2 class="text-2xl font-bold text-white mb-6">Mastering GST: A Business Owner's Guide for 2026</h2>
-            <div class="space-y-8 text-slate-400 leading-relaxed">
-                 <p>Accurate GST calculation is critical for compliance in India, UK, Australia, and other VAT-based jurisdictions. Our engine supports Reverse Charge Mechanism (RCM) and Input Tax Credit (ITC) estimations.</p>
+    <section class="w-full max-w-5xl mx-auto text-slate-300 px-4 pb-16 mt-8 print-hidden">
+        <div class="mb-10 border-b border-slate-800 pb-8">
+            <h2 class="text-2xl font-bold text-white mb-2">Enterprise Tax Calculation Directives</h2>
+            <p class="text-sm text-slate-400 max-w-3xl leading-relaxed">This terminal executes exact financial computations required for standard B2B and B2C invoicing. The algorithm automatically resolves fractional roundings to strictly adhere to governmental tax compliance protocols.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="bg-slate-900/40 p-6 rounded-xl border border-slate-800">
+                <h3 class="text-emerald-400 font-black mb-3 uppercase tracking-widest text-xs">Inclusive vs. Exclusive Architecture</h3>
+                <ul class="space-y-3 text-sm text-slate-400 list-none">
+                    <li><strong class="text-slate-200">Exclusive (Adding Tax):</strong> Use this when your catalog prices do not contain tax. The engine mathematically appends the tax rate on top of your base parameter.</li>
+                    <li class="pt-2 border-t border-slate-800"><strong class="text-slate-200">Inclusive (Extracting Tax):</strong> Use this if you receive a flat payment and must determine how much of that total belongs to the government. The engine calculates the embedded base cost.</li>
+                </ul>
+            </div>
+            
+            <div class="bg-slate-900/40 p-6 rounded-xl border border-slate-800">
+                <h3 class="text-blue-400 font-black mb-3 uppercase tracking-widest text-xs">Jurisdictional Protocols</h3>
+                <ul class="space-y-3 text-sm text-slate-400 list-none">
+                    <li><strong class="text-slate-200">Intra-State (CGST / SGST):</strong> For transactions within the same local state, the algorithm dynamically splits the tax burden 50/50 between Central and State allocations.</li>
+                    <li class="pt-2 border-t border-slate-800"><strong class="text-slate-200">Inter-State (IGST):</strong> Check the "Inter-State" override if you are billing a client outside your registered state. The tax consolidates into a single Integrated ledger.</li>
+                    <li class="pt-2 border-t border-slate-800"><strong class="text-slate-200">RCM Protocol:</strong> If Reverse Charge Mechanism is invoked, the algorithm zeroes the invoice tax, shifting the remittance liability entirely to the buyer.</li>
+                </ul>
             </div>
         </div>
     </section>
@@ -144,86 +209,224 @@
     <sv-footer base-path=".."></sv-footer>
 
     <script>
-        let mode = 'exclusive';
-        let rate = 18;
-        const historyList = document.getElementById('history-list');
+        const TaxEngine = {
+            mode: 'exclusive',
+            rate: 18,
+            history: [],
 
-        function setMode(newMode) {
-            mode = newMode;
-            document.getElementById('btn-exclusive').className = mode === 'exclusive' ? "flex-1 py-2 rounded-lg text-sm font-semibold transition-all bg-emerald-600 text-white shadow-lg" : "flex-1 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white transition-all";
-            document.getElementById('btn-inclusive').className = mode === 'inclusive' ? "flex-1 py-2 rounded-lg text-sm font-semibold transition-all bg-emerald-600 text-white shadow-lg" : "flex-1 py-2 rounded-lg text-sm font-semibold text-slate-400 hover:text-white transition-all";
-            calculate();
-        }
+            init: function() {
+                // BUG FIX: Ad container initializes at 0 height to prevent UI jumps, but maintains 100% width so AdSense can measure it.
+                try { 
+                    (adsbygoogle = window.adsbygoogle || []).push({}); 
+                    const wrapper = document.getElementById('ad-wrapper');
+                    const ins = wrapper.querySelector('ins');
+                    const observer = new MutationObserver((mutations) => {
+                        mutations.forEach((mutation) => {
+                            if (ins.getAttribute("data-ad-status") === "filled" || ins.innerHTML.includes('iframe')) {
+                                wrapper.classList.remove('h-0', 'p-0', 'border-0', 'opacity-0');
+                                wrapper.classList.add('min-h-[250px]', 'p-3', 'border', 'border-slate-800', 'opacity-100');
+                                observer.disconnect();
+                            }
+                        });
+                    });
+                    observer.observe(ins, { attributes: true, childList: true });
+                } catch(e) {}
 
-        function setRate(newRate) {
-            rate = newRate;
-            document.querySelectorAll('.rate-btn').forEach(btn => {
-                if(parseInt(btn.getAttribute('data-rate')) === rate) {
-                    btn.className = "rate-btn bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 py-2 rounded-lg text-sm font-mono";
+                this.calculate();
+            },
+
+            showToast: function(message, type = 'success') {
+                const container = document.getElementById('toast-container');
+                if (!container) return;
+                const toast = document.createElement('div');
+                const colors = type === 'error' ? 'bg-red-950/90 border-red-800 text-red-400' : 'bg-emerald-950/90 border-emerald-800 text-emerald-400';
+                toast.className = `flex items-center gap-3 px-4 py-3 border rounded-xl shadow-2xl backdrop-blur-xl ${colors} transition-all duration-300 transform translate-y-[-20px] opacity-0 pointer-events-auto`;
+                toast.innerHTML = `<span class="text-xs font-mono font-bold">${message}</span>`;
+                container.appendChild(toast);
+                requestAnimationFrame(() => { toast.style.transform = 'translateY(0)'; toast.style.opacity = '1'; });
+                setTimeout(() => { toast.style.transform = 'translateY(-20px)'; toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+            },
+
+            setMode: function(newMode) {
+                this.mode = newMode;
+                document.getElementById('btn-exclusive').className = this.mode === 'exclusive' ? "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all bg-emerald-600 text-white shadow-lg" : "flex-1 py-2.5 rounded-lg text-sm font-bold text-slate-400 hover:bg-slate-800 hover:text-white transition-all";
+                document.getElementById('btn-inclusive').className = this.mode === 'inclusive' ? "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all bg-emerald-600 text-white shadow-lg" : "flex-1 py-2.5 rounded-lg text-sm font-bold text-slate-400 hover:bg-slate-800 hover:text-white transition-all";
+                this.calculate();
+            },
+
+            setRate: function(newRate) {
+                this.rate = newRate;
+                document.querySelectorAll('.rate-btn').forEach(btn => {
+                    if (parseInt(btn.getAttribute('data-rate')) === this.rate) {
+                        btn.className = "rate-btn bg-emerald-600/20 border border-emerald-500/50 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)] py-3 rounded-xl font-mono font-bold transition-all";
+                    } else {
+                        btn.className = "rate-btn bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-800 py-3 rounded-xl font-mono font-bold transition-all";
+                    }
+                });
+                this.calculate();
+            },
+
+            numberToWords: function(num) {
+                if (num === 0) return "Zero Rupees Only.";
+                const a = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
+                const b = ['', '', 'Twenty','Thirty','Forty','Fifty', 'Sixty','Seventy','Eighty','Ninety'];
+                
+                const formatDecimals = (dec) => {
+                    if(dec === 0) return '';
+                    if(dec < 20) return a[dec] + 'Paise ';
+                    return b[Math.floor(dec/10)] + (dec%10 !== 0 ? ' ' + a[dec%10] : '') + ' Paise ';
+                };
+
+                let whole = Math.floor(num);
+                let fraction = Math.round((num - whole) * 100);
+                
+                if (whole.toString().length > 9) return "Amount exceeds processing limit.";
+                
+                const numStr = ('000000000' + whole).slice(-9);
+                const n = numStr.match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+                if (!n) return '';
+                
+                let str = '';
+                str += (n[1] != 0) ? (a[Number(n[1])] || b[n[1][0]] + ' ' + a[n[1][1]]) + 'Crore ' : '';
+                str += (n[2] != 0) ? (a[Number(n[2])] || b[n[2][0]] + ' ' + a[n[2][1]]) + 'Lakh ' : '';
+                str += (n[3] != 0) ? (a[Number(n[3])] || b[n[3][0]] + ' ' + a[n[3][1]]) + 'Thousand ' : '';
+                str += (n[4] != 0) ? (a[Number(n[4])] || b[n[4][0]] + ' ' + a[n[4][1]]) + 'Hundred ' : '';
+                str += (n[5] != 0) ? ((str != '') ? 'and ' : '') + (a[Number(n[5])] || b[n[5][0]] + ' ' + a[n[5][1]]) : '';
+                
+                let finalStr = str === '' ? '' : str + 'Rupees ';
+                if(fraction > 0) finalStr += (str === '' ? '' : 'and ') + formatDecimals(fraction);
+                
+                return finalStr + 'Only.';
+            },
+
+            calculate: function() {
+                const amount = parseFloat(document.getElementById('input-amount').value) || 0;
+                const isInterstate = document.getElementById('toggle-interstate').checked;
+                const isRcm = document.getElementById('toggle-rcm').checked;
+                
+                let base, tax, total;
+
+                if (this.mode === 'exclusive') {
+                    base = amount;
+                    tax = base * (this.rate / 100);
+                    total = base + tax;
                 } else {
-                    btn.className = "rate-btn bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 py-2 rounded-lg text-sm font-mono";
+                    total = amount;
+                    base = total / (1 + (this.rate / 100));
+                    tax = total - base;
                 }
-            });
-            const dropdown = document.getElementById('country-select');
-            Array.from(dropdown.options).forEach(opt => {
-                if(opt.value == rate) dropdown.value = rate;
-            });
-            calculate();
-        }
 
-        function applyPreset() {
-            const select = document.getElementById('country-select');
-            if(select.value !== 'custom') { setRate(parseFloat(select.value)); }
-        }
+                const fmt = (val) => val.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
-        function calculate() {
-            const amount = parseFloat(document.getElementById('input-amount').value) || 0;
-            let net, tax, total;
-            if (mode === 'exclusive') {
-                net = amount; tax = amount * (rate / 100); total = net + tax;
-            } else {
-                total = amount; net = total / (1 + (rate / 100)); tax = total - net;
-            }
-            document.getElementById('res-net').innerText = net.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            document.getElementById('res-tax').innerText = tax.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            document.getElementById('res-total').innerText = total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        }
+                document.getElementById('res-base').innerText = `₹ ${fmt(base)}`;
+                document.getElementById('res-words').innerText = this.numberToWords(total);
 
-        function copyResults() {
-            const net = document.getElementById('res-net').innerText;
-            const tax = document.getElementById('res-tax').innerText;
-            const total = document.getElementById('res-total').innerText;
-            const txt = `SilenVault GST Estimate\n-----------------------\nBase: ${net}\nTax (${rate}%): ${tax}\nTotal: ${total}\n\nGenerated at silenvault.com`;
-            
-            if (navigator.clipboard && window.isSecureContext) {
+                const matrix = document.getElementById('tax-matrix');
+                matrix.innerHTML = '';
+
+                if (isRcm) {
+                    matrix.innerHTML = `
+                        <div class="flex justify-between items-center p-3 bg-red-950/20 rounded-lg border border-red-900/50">
+                            <span class="text-red-400 text-sm font-medium">RCM Invoked (Tax Nullified)</span>
+                            <span class="text-lg font-mono text-red-400">₹ 0.00</span>
+                        </div>
+                    `;
+                    document.getElementById('res-total').innerText = `₹ ${fmt(base)}`;
+                    document.getElementById('res-words').innerText = this.numberToWords(base);
+                } else if (isInterstate) {
+                    matrix.innerHTML = `
+                        <div class="flex justify-between items-center p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                            <span class="text-slate-400 text-sm">IGST (${this.rate}%)</span>
+                            <span class="text-lg font-mono text-white">₹ ${fmt(tax)}</span>
+                        </div>
+                    `;
+                    document.getElementById('res-total').innerText = `₹ ${fmt(total)}`;
+                } else {
+                    const splitTax = tax / 2;
+                    const splitRate = this.rate / 2;
+                    matrix.innerHTML = `
+                        <div class="flex justify-between items-center p-3 bg-slate-800/50 rounded-lg border border-slate-700/50 mb-1">
+                            <span class="text-slate-400 text-sm">CGST (${splitRate}%)</span>
+                            <span class="text-lg font-mono text-white">₹ ${fmt(splitTax)}</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                            <span class="text-slate-400 text-sm">SGST (${splitRate}%)</span>
+                            <span class="text-lg font-mono text-white">₹ ${fmt(splitTax)}</span>
+                        </div>
+                    `;
+                    document.getElementById('res-total').innerText = `₹ ${fmt(total)}`;
+                }
+            },
+
+            copyBreakdown: function() {
+                const amount = parseFloat(document.getElementById('input-amount').value) || 0;
+                if(amount === 0) return this.showToast("Cannot export empty ledger.", "error");
+
+                const base = document.getElementById('res-base').innerText;
+                const total = document.getElementById('res-total').innerText;
+                const isInterstate = document.getElementById('toggle-interstate').checked;
+                const isRcm = document.getElementById('toggle-rcm').checked;
+                const words = document.getElementById('res-words').innerText;
+
+                let txt = `========================\nTAX LEDGER EXPORT\n========================\n`;
+                txt += `Taxable Base : ${base}\n`;
+
+                if (isRcm) {
+                    txt += `Tax Applied  : ₹ 0.00 (RCM)\n`;
+                } else if (isInterstate) {
+                    const taxVal = document.getElementById('tax-matrix').children[0].children[1].innerText;
+                    txt += `IGST (${this.rate}%)  : ${taxVal}\n`;
+                } else {
+                    const c = document.getElementById('tax-matrix').children[0].children[1].innerText;
+                    const s = document.getElementById('tax-matrix').children[1].children[1].innerText;
+                    txt += `CGST (${this.rate/2}%)  : ${c}\n`;
+                    txt += `SGST (${this.rate/2}%)  : ${s}\n`;
+                }
+
+                txt += `------------------------\n`;
+                txt += `Final Total  : ${total}\n`;
+                txt += `In Words     : ${words}\n`;
+                txt += `========================\nGenerated securely via SilenVault Node`;
+
                 navigator.clipboard.writeText(txt).then(() => {
-                    alert('Breakdown copied to clipboard!');
-                    addToHistory(total, tax);
-                }).catch(err => { fallbackCopy(txt); });
-            } else { fallbackCopy(txt); }
-        }
+                    this.showToast("Ledger block copied to clipboard!");
+                    this.addToHistory(total, this.rate, isRcm);
+                }).catch(() => this.showToast("Clipboard write denied by browser.", "error"));
+            },
 
-        function fallbackCopy(txt) {
-            const textArea = document.createElement("textarea");
-            textArea.value = txt; textArea.style.position = "fixed"; textArea.style.left = "-9999px";
-            document.body.appendChild(textArea); textArea.select();
-            try {
-                document.execCommand('copy'); alert('Breakdown copied to clipboard!');
-                addToHistory(document.getElementById('res-total').innerText, document.getElementById('res-tax').innerText);
-            } catch (err) { alert('Copy failed. Please manually copy values.'); }
-            document.body.removeChild(textArea);
-        }
+            addToHistory: function(totalStr, taxRate, isRcm) {
+                const list = document.getElementById('history-list');
+                const emptyState = list.querySelector('.text-center');
+                if (emptyState) emptyState.remove();
 
-        function addToHistory(total, tax) {
-            const item = document.createElement('div');
-            item.className = "flex justify-between items-center text-sm border-b border-slate-800 pb-2 animate-pulse";
-            item.innerHTML = `<span class="text-slate-400">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span><div class="text-right"><div class="text-white font-mono">${total}</div><div class="text-xs text-emerald-500">+${tax} Tax</div></div>`;
-            if(historyList.children[0]?.innerText === 'History empty') historyList.innerHTML = '';
-            historyList.prepend(item);
-            if(historyList.children.length > 5) historyList.lastChild.remove();
-            setTimeout(() => item.classList.remove('animate-pulse'), 1000);
-        }
-        window.onload = calculate;
+                const item = document.createElement('div');
+                item.className = "flex justify-between items-center text-sm border-b border-slate-800 pb-3";
+                
+                const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const badge = isRcm ? `<span class="text-[9px] text-red-400 border border-red-900 px-1 rounded ml-2">RCM</span>` : `<span class="text-[9px] text-slate-500 border border-slate-700 px-1 rounded ml-2">${taxRate}%</span>`;
+
+                item.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="text-slate-500 mono text-[10px] mr-3">${time}</span>
+                        <span class="text-white font-mono font-bold">${totalStr}</span>
+                        ${badge}
+                    </div>
+                    <button onclick="this.parentElement.remove()" class="text-slate-600 hover:text-red-400 transition-colors">
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                `;
+                
+                list.prepend(item);
+                if(list.children.length > 8) list.lastChild.remove();
+            },
+
+            clearHistory: function() {
+                document.getElementById('history-list').innerHTML = `<div class="text-xs text-slate-600 italic text-center py-6 border border-dashed border-slate-800 rounded-lg">Awaiting transactions...</div>`;
+                this.showToast("Session history purged.");
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => TaxEngine.init());
     </script>
 </body>
 </html>
