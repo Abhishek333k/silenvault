@@ -46,7 +46,7 @@ const silenVaultTools = [
     },
 
     // --- DEVELOPER UTILITIES (dev) ---
-    // --- DEVELOPER UTILITIES (dev) ---
+    
     {
         category: "dev", id: "academic_vault",
         title: "Academic Vault", 
@@ -64,6 +64,15 @@ const silenVaultTools = [
         link: "tools/p2p_share",
         iconPath: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />`,
         tag: "NEW"
+    },
+    {
+        category: "dev", id: "elevation_calculator",
+        title: "Elevation & Distance Calculator", 
+        desc: "Calculate true 3D slant distance, height differences, and incline angles between map coordinates using terrain data.",
+        link: "tools/topo_node.html", 
+        tag: "Engineering",
+        iconColors: "bg-teal-500/10 text-teal-400 border border-teal-500/20 group-hover:bg-teal-400 group-hover:text-[#020617] group-hover:border-transparent transition-all",
+        iconPath: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />`
     },
     {
         category: "dev", id: "ide",
