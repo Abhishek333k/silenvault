@@ -84,19 +84,17 @@
                 </button>
             </div>
         </header>
-
-        <nav class="flex gap-2 p-1.5 bg-slate-900/80 border border-slate-800 rounded-2xl w-full md:w-max mb-8 shadow-lg overflow-x-auto custom-scrollbar print-hidden">
-            <button onclick="App.switchTab('tab-quick')" id="btn-tab-quick" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition-all whitespace-nowrap border border-transparent">
+        <nav class="grid grid-cols-1 sm:grid-cols-3 gap-2 p-1.5 bg-slate-900/80 border border-slate-800 rounded-2xl w-full md:w-max mb-8 shadow-lg print-hidden">
+            <button onclick="App.switchTab('tab-quick')" id="btn-tab-quick" class="tab-btn active w-full flex items-center justify-center px-2 md:px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold text-slate-400 hover:text-white transition-all border border-transparent">
                 ⚡ Quick Calculator
             </button>
-            <button onclick="App.switchTab('tab-portfolio')" id="btn-tab-portfolio" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition-all whitespace-nowrap border border-transparent">
+            <button onclick="App.switchTab('tab-portfolio')" id="btn-tab-portfolio" class="tab-btn w-full flex items-center justify-center px-2 md:px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold text-slate-400 hover:text-white transition-all border border-transparent">
                 📦 Portfolio Matrix
             </button>
-            <button onclick="App.switchTab('tab-analytics')" id="btn-tab-analytics" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition-all whitespace-nowrap border border-transparent">
-                📊 Break-Even & Analytics
+            <button onclick="App.switchTab('tab-analytics')" id="btn-tab-analytics" class="tab-btn w-full flex items-center justify-center px-2 md:px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold text-slate-400 hover:text-white transition-all border border-transparent">
+                📊 Analytics & ROI
             </button>
         </nav>
-
         <div class="glass-panel p-4 mb-8 flex flex-col xl:flex-row gap-4 items-center justify-between print-hidden">
             <div class="flex flex-wrap gap-2 w-full xl:w-auto">
                 <button onclick="App.setMode('margin')" id="btn-mode-margin" class="flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold bg-slate-800 text-slate-400 transition-all">Margin %</button>
@@ -193,14 +191,14 @@
         </div>
 
         <div id="tab-portfolio" class="tab-section hidden">
-            <div class="glass-panel p-6">
+            <div class="glass-panel p-6">    
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 print-hidden">
                     <div>
                         <h2 class="text-lg font-bold text-white">Product Matrix</h2>
                         <p class="text-[10px] text-slate-400 mono uppercase tracking-widest mt-1">First row syncs with Quick Calc</p>
                     </div>
                     <div class="flex flex-wrap gap-2">
-                        <button onclick="App.addProduct()" class="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/50 text-blue-400 rounded-lg text-xs font-bold transition-colors">+ Add Row</button>
+                        <button onclick="App.addProduct()" class="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/50 text-blue-400 rounded-lg text-xs font-bold transition-colors">+ Add Product</button>
                         <label class="px-4 py-2 bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/50 text-purple-400 rounded-lg text-xs font-bold transition-colors cursor-pointer">
                             Import CSV <input type="file" accept=".csv" class="hidden" onchange="App.importCSV(event)">
                         </label>
