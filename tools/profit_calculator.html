@@ -2,10 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SilenVault | Profit Margin & Markup Calculator</title>
     <meta name="description" content="Advanced margin and markup calculator for retail and wholesale. Includes MRP discount shielding, multi-product portfolio batching, break-even analysis, and GST/Tax integrations.">
     
+    <link rel="manifest" href="data:application/manifest+json,{&quot;name&quot;:&quot;SilenVault Profit Engine&quot;,&quot;short_name&quot;:&quot;SV Profit&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#020617&quot;,&quot;theme_color&quot;:&quot;#3b82f6&quot;}">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
     
@@ -32,9 +34,9 @@
         .sv-input:focus { border-color: #3b82f6; outline: none; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
         .input-error { border-color: #ef4444 !important; box-shadow: 0 0 10px rgba(239,68,68,0.3) !important; }
 
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.3); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.4); border-radius: 10px; cursor: pointer; }
 
         /* Modal Overlays */
         .sv-modal { transition: opacity 0.3s ease; }
@@ -50,6 +52,7 @@
             body { background: white !important; color: black !important; }
             .bg-blueprint, sv-header, sv-footer, .print-hidden { display: none !important; }
             main { padding: 0 !important; width: 100% !important; max-width: 100% !important; }
+            .tab-section.hidden { display: none !important; } /* CRITICAL FIX: Hide inactive tabs */
             .glass-panel { background: transparent !important; border: 2px solid #e2e8f0 !important; box-shadow: none !important; border-radius: 0 !important; padding: 2rem !important; margin-bottom: 2rem; break-inside: avoid; }
             .text-white, .text-slate-300, .text-slate-400, .text-slate-500 { color: black !important; }
             .text-blue-400, .text-emerald-400, .text-purple-400 { color: #000 !important; font-weight: bold; }
@@ -84,9 +87,10 @@
                 </button>
             </div>
         </header>
+
         <nav class="grid grid-cols-1 sm:grid-cols-3 gap-2 p-1.5 bg-slate-900/80 border border-slate-800 rounded-2xl w-full md:w-max mb-8 shadow-lg print-hidden">
             <button onclick="App.switchTab('tab-quick')" id="btn-tab-quick" class="tab-btn active w-full flex items-center justify-center px-2 md:px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold text-slate-400 hover:text-white transition-all border border-transparent">
-                ⚡ Quick Calculator
+                ⚡ Quick Calc
             </button>
             <button onclick="App.switchTab('tab-portfolio')" id="btn-tab-portfolio" class="tab-btn w-full flex items-center justify-center px-2 md:px-5 py-2.5 rounded-xl text-xs md:text-sm font-bold text-slate-400 hover:text-white transition-all border border-transparent">
                 📦 Portfolio Matrix
@@ -95,6 +99,7 @@
                 📊 Analytics & ROI
             </button>
         </nav>
+
         <div class="glass-panel p-4 mb-8 flex flex-col xl:flex-row gap-4 items-center justify-between print-hidden">
             <div class="flex flex-wrap gap-2 w-full xl:w-auto">
                 <button onclick="App.setMode('margin')" id="btn-mode-margin" class="flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold bg-slate-800 text-slate-400 transition-all">Margin %</button>
@@ -109,7 +114,7 @@
                 <div class="flex items-center gap-2 w-full sm:w-auto">
                     <label class="text-[10px] text-slate-500 mono uppercase font-bold">Planned Discount Shield:</label>
                     <div class="relative w-full sm:w-24">
-                        <input type="number" id="g-discount" value="0" min="0" max="90" oninput="App.handleInput()" class="sv-input w-full pl-3 pr-6 py-1.5 rounded bg-[#020617] text-sm font-mono text-amber-400">
+                        <input type="number" id="g-discount" value="0" min="0" max="99.99" oninput="App.handleInput()" class="sv-input w-full pl-3 pr-6 py-1.5 rounded bg-[#020617] text-sm font-mono text-amber-400">
                         <span class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 text-xs">%</span>
                     </div>
                 </div>
@@ -136,7 +141,7 @@
                     </div>
                 </div>
                 
-                <div class="text-xs text-blue-400 italic p-4 bg-blue-950/20 rounded-lg border border-blue-900/30 font-mono" id="q-insight">
+                <div class="text-xs text-blue-400 italic p-4 bg-blue-950/20 rounded-lg border border-blue-900/30 font-mono break-words" id="q-insight">
                     Awaiting input...
                 </div>
 
@@ -160,7 +165,7 @@
                             <span class="text-lg font-mono text-slate-300" id="q-res-cost">0.00</span>
                         </div>
                         <div class="flex justify-between items-center p-3 bg-emerald-950/20 rounded-lg border border-emerald-900/30">
-                            <span class="text-emerald-500 text-sm font-medium">Net Profit</span>
+                            <span class="text-emerald-500 text-sm font-medium">Net Profit (Pre-Tax)</span>
                             <span class="text-xl font-mono text-emerald-400 font-bold" id="q-res-profit">0.00</span>
                         </div>
                         <div class="flex justify-between items-center p-4 bg-slate-900/80 rounded-lg border border-slate-700">
@@ -171,7 +176,7 @@
                             <span class="text-2xl font-mono text-white font-bold" id="q-res-sale">0.00</span>
                         </div>
 
-                        <div id="q-matrix" class="flex flex-col gap-2 pl-4 py-2 border-l-2 border-slate-800 ml-2 hidden"></div>
+                        <div id="q-matrix" class="flex flex-col gap-2 py-2 hidden"></div>
                     </div>
                 </div>
 
@@ -191,44 +196,44 @@
         </div>
 
         <div id="tab-portfolio" class="tab-section hidden">
-            <div class="glass-panel p-6">    
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 print-hidden">
+            <div class="glass-panel p-4 md:p-6 overflow-hidden w-full">    
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4 print-hidden w-full">
                     <div>
                         <h2 class="text-lg font-bold text-white">Product Matrix</h2>
-                        <p class="text-[10px] text-slate-400 mono uppercase tracking-widest mt-1">First row syncs with Quick Calc</p>
+                        <p class="text-[10px] text-slate-400 mono uppercase tracking-widest mt-1">First row syncs with Quick Calc (Max 100)</p>
                     </div>
-                    <div class="flex flex-wrap gap-2">
-                        <button onclick="App.addProduct()" class="px-4 py-2 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/50 text-blue-400 rounded-lg text-xs font-bold transition-colors">+ Add Product</button>
-                        <label class="px-4 py-2 bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/50 text-purple-400 rounded-lg text-xs font-bold transition-colors cursor-pointer">
+                    <div class="flex flex-wrap gap-2 w-full md:w-auto">
+                        <button onclick="App.addProduct()" class="flex-1 md:flex-none px-3 py-2 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/50 text-blue-400 rounded-lg text-xs font-bold transition-colors">+ Row</button>
+                        <label class="flex-1 md:flex-none px-3 py-2 bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/50 text-purple-400 rounded-lg text-xs font-bold transition-colors cursor-pointer text-center">
                             Import CSV <input type="file" accept=".csv" class="hidden" onchange="App.importCSV(event)">
                         </label>
-                        <button onclick="App.exportPDF()" class="px-4 py-2 bg-rose-600/20 hover:bg-rose-600/40 border border-rose-500/50 text-rose-400 rounded-lg text-xs font-bold transition-colors">Export PDF</button>
+                        <button onclick="App.exportPDF()" class="flex-1 md:flex-none px-3 py-2 bg-rose-600/20 hover:bg-rose-600/40 border border-rose-500/50 text-rose-400 rounded-lg text-xs font-bold transition-colors">Export</button>
                     </div>
                 </div>
 
-                <div class="overflow-x-auto custom-scrollbar border border-slate-800 rounded-xl">
-                    <table class="w-full text-sm mono whitespace-nowrap">
+                <div class="overflow-x-auto custom-scrollbar border border-slate-800 rounded-xl w-full">
+                    <table class="w-full text-[10px] md:text-sm mono min-w-[700px]">
                         <thead class="bg-slate-900 border-b border-slate-700">
                             <tr>
-                                <th class="p-4 text-left text-slate-400 font-medium sticky top-0 bg-slate-900 z-10">SKU / Name</th>
-                                <th class="p-4 text-right text-slate-400 font-medium w-28 sticky top-0 bg-slate-900 z-10">Cost</th>
-                                <th class="p-4 text-right text-slate-400 font-medium w-20 sticky top-0 bg-slate-900 z-10">Qty</th>
-                                <th class="p-4 text-right text-slate-400 font-medium w-24 sticky top-0 bg-slate-900 z-10">Target %</th>
-                                <th class="p-4 text-right text-slate-400 font-medium sticky top-0 bg-slate-900 z-10">Total Profit</th>
-                                <th class="p-4 text-right text-slate-400 font-medium sticky top-0 bg-slate-900 z-10">Box MRP</th>
-                                <th class="p-4 text-center text-slate-400 font-medium w-12 sticky top-0 bg-slate-900 z-10 print-hidden"></th>
+                                <th class="p-3 md:p-4 text-left text-slate-400 font-medium">SKU</th>
+                                <th class="p-3 md:p-4 text-right text-slate-400 font-medium w-24">Cost</th>
+                                <th class="p-3 md:p-4 text-right text-slate-400 font-medium w-20">Qty</th>
+                                <th class="p-3 md:p-4 text-right text-slate-400 font-medium w-24">Tgt%</th>
+                                <th class="p-3 md:p-4 text-right text-slate-400 font-medium">Profit</th>
+                                <th class="p-3 md:p-4 text-right text-slate-400 font-medium">Box MRP</th>
+                                <th class="p-3 md:p-4 text-center text-slate-400 font-medium w-10 print-hidden"></th>
                             </tr>
                         </thead>
                         <tbody id="product-rows" class="divide-y divide-slate-800">
                             </tbody>
                         <tfoot class="bg-slate-900/80 font-bold border-t-2 border-slate-700">
                             <tr>
-                                <td class="p-4 text-slate-300">TOTAL BATCH</td>
-                                <td id="p-tot-cost" class="p-4 text-right text-slate-300">0.00</td>
-                                <td id="p-tot-qty" class="p-4 text-right text-slate-300">0</td>
-                                <td class="p-4"></td>
-                                <td id="p-tot-profit" class="p-4 text-right text-emerald-400 drop-shadow-md">0.00</td>
-                                <td id="p-tot-retail" class="p-4 text-right text-blue-400 drop-shadow-md">0.00</td>
+                                <td class="p-3 md:p-4 text-slate-300">TOTAL BATCH</td>
+                                <td id="p-tot-cost" class="p-3 md:p-4 text-right text-slate-300">0.00</td>
+                                <td id="p-tot-qty" class="p-3 md:p-4 text-right text-slate-300">0</td>
+                                <td class="p-3 md:p-4"></td>
+                                <td id="p-tot-profit" class="p-3 md:p-4 text-right text-emerald-400 drop-shadow-md">0.00</td>
+                                <td id="p-tot-retail" class="p-3 md:p-4 text-right text-blue-400 drop-shadow-md">0.00</td>
                                 <td class="print-hidden"></td>
                             </tr>
                         </tfoot>
@@ -252,7 +257,7 @@
                         <span class="text-xs text-slate-500">Units required to Break-Even:</span>
                         <span class="text-xl font-bold text-purple-400 mono" id="a-be-units">0</span>
                     </div>
-                    <p class="text-[9px] text-slate-500 mt-1 text-right italic">(Based on weighted avg. profit of portfolio)</p>
+                    <p class="text-[9px] text-slate-500 mt-1 text-right italic">(Based on weighted avg. gross profit of portfolio)</p>
                 </div>
 
                 <div class="bg-slate-900/40 p-5 rounded-xl border border-slate-800 transition-colors duration-300" id="comp-box">
@@ -275,10 +280,17 @@
                 <div class="mt-6 p-4 bg-emerald-950/20 border border-emerald-900/30 rounded-xl text-center">
                     <p class="text-[10px] text-emerald-500/70 mono uppercase tracking-widest mb-1">Projected Net Portfolio Profit</p>
                     <p class="text-3xl font-black text-emerald-400 mono mt-1" id="a-proj-profit">0.00</p>
-                    <p class="text-[9px] text-emerald-500/50 mt-1">Total Batch Profit minus Fixed Costs</p>
+                    <p class="text-[9px] text-emerald-500/50 mt-1">Total Gross Profit minus Fixed Costs</p>
                 </div>
             </div>
 
+        </div>
+
+        <div id="ad-wrapper" class="w-full h-0 p-0 border-0 opacity-0 overflow-hidden transition-all duration-700 flex flex-col items-center justify-center rounded-xl bg-slate-900/50 mt-8 print-hidden max-w-7xl mx-auto">
+            <span class="text-[9px] text-slate-500 mono uppercase tracking-widest mb-2 opacity-50">Sponsor</span>
+            <div class="w-full text-center">
+                <ins class="adsbygoogle" style="display:inline-block; width:100%; height:90px;" data-ad-client="ca-pub-5449371042798610" data-ad-slot="YOUR_SLOT_ID"></ins>
+            </div>
         </div>
 
     </main>
@@ -321,28 +333,30 @@
                 <p class="text-sm text-slate-400 leading-relaxed mb-4">Understanding your business overhead is just as critical as pricing individual goods. The <strong>Analytics & ROI</strong> tab bridges this gap.</p>
                 <ul class="list-disc pl-5 text-sm text-slate-400 space-y-2">
                     <li><strong class="text-white">Break-Even Analyzer:</strong> Enter your fixed monthly operating expenses (such as store rent, employee salaries, and Instagram Ads). The engine divides this overhead by the weighted average profit of your portfolio to tell you precisely how many units you must sell per month just to stop losing money.</li>
-                    <li><strong class="text-white">Competitor Gap Analysis:</strong> Enter a rival's selling price for a similar item. The engine dynamically calculates the exact percentage difference, letting you know immediately if your pricing strategy is competitive or significantly overpriced compared to the local market.</li>
+                    <li><strong class="text-white">Competitor Gap Analysis:</strong> Enter a rival's selling price for a similar item. The engine dynamically compares this to what the customer actually pays for your item, letting you know immediately if your pricing strategy is competitive or significantly overpriced compared to the local market.</li>
                 </ul>
             </div>
         </div>
     </section>
 
-    <div id="math-modal" class="sv-modal fixed inset-0 z-[99999] bg-[#020617]/90 backdrop-blur-sm flex items-center justify-center p-4 hidden opacity-0">
+    <sv-footer base-path=".."></sv-footer>
+
+    <div id="math-modal" class="sv-modal fixed inset-0 z-[99999] bg-[#020617]/90 backdrop-blur-sm flex items-center justify-center p-4 hidden opacity-0 print-hidden">
         <div class="sv-modal-content glass-panel w-full max-w-2xl bg-slate-950 p-6 md:p-8 rounded-2xl relative shadow-2xl border border-slate-700">
             <button onclick="App.hideMathModal()" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-white bg-slate-800 rounded-lg transition-colors">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
             <h2 class="text-xl font-bold text-white mb-6 border-b border-slate-800 pb-4 flex items-center gap-3">
                 <svg class="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                Mathematical Proof (Indian Retail Standard)
+                Mathematical Proof (Quick Calc)
             </h2>
             <div id="math-steps" class="space-y-4 font-mono text-sm text-slate-300"></div>
         </div>
     </div>
 
-    <div id="demo-modal" class="sv-modal fixed inset-0 z-[99999] bg-[#020617]/90 backdrop-blur-sm flex items-center justify-center p-4 hidden opacity-0">
-        <div class="sv-modal-content glass-panel w-full max-w-4xl bg-slate-950 p-6 md:p-8 rounded-3xl relative shadow-2xl border border-slate-700">
-            <button onclick="App.hideDemoModal()" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-white bg-slate-800 rounded-lg transition-colors">
+    <div id="demo-modal" class="sv-modal fixed inset-0 z-[99999] bg-[#020617]/90 backdrop-blur-sm flex items-center justify-center p-4 hidden opacity-0 print-hidden">
+        <div class="sv-modal-content glass-panel w-full max-w-4xl bg-slate-950 p-6 md:p-8 rounded-3xl relative shadow-2xl border border-slate-700 max-h-[90vh] overflow-y-auto">
+            <button onclick="App.hideDemoModal()" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-white bg-slate-800 rounded-lg transition-colors z-10">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
             <h2 class="text-2xl font-black text-emerald-400 mb-2">Load Sample Retail Data</h2>
@@ -368,38 +382,44 @@
         </div>
     </div>
 
-    <div class="hidden">
-        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-5449371042798610" data-ad-slot="YOUR_SLOT_ID"></ins>
-    </div>
-
     <script>
         const App = {
-            // --- CORE STATE ---
             state: {
-                mode: 'margin',
-                tax: 18,
-                discount: 0,
-                currency: '₹',
-                fixedCosts: 15000,
-                compPrice: '',
-                products: [{ id: Date.now(), name: "Product 1", cost: 850, qty: 1, target: 35 }]
+                mode: 'margin', tax: 18, discount: 0, currency: '₹', fixedCosts: 15000, compPrice: '',
+                products: []
             },
             
-            undoStack: [],
-            redoStack: [],
-            isNavigatingHistory: false,
-            saveTimeout: null,
+            undoStack: [], redoStack: [], isNavigatingHistory: false, saveTimeout: null, indTimeout: null,
+            charts: {}, mathLog: {}, adObserver: null,
             
-            charts: {},
-            mathLog: {},
-            
-            // --- INITIALIZATION ---
             init: function() {
                 this.initCharts();
                 this.loadFromStorage();
                 this.bindEvents();
                 this.switchTab('tab-quick');
-                try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch(e){}
+                
+                // CRITICAL FIX: Memory-safe AdSense loader
+                try { 
+                    (adsbygoogle = window.adsbygoogle || []).push({}); 
+                    const wrapper = document.getElementById('ad-wrapper');
+                    const ins = wrapper.querySelector('ins');
+                    this.adObserver = new MutationObserver((mutations, obs) => {
+                        mutations.forEach((mutation) => {
+                            if (ins.getAttribute("data-ad-status") === "filled" || ins.innerHTML.includes('iframe')) {
+                                wrapper.classList.remove('h-0', 'p-0', 'border-0', 'opacity-0');
+                                wrapper.classList.add('min-h-[100px]', 'p-4', 'border', 'border-slate-800', 'opacity-100');
+                                obs.disconnect();
+                            }
+                        });
+                    });
+                    this.adObserver.observe(ins, { attributes: true, childList: true });
+                    // Self-destruct observer after 5s to prevent leak if ad blocked
+                    setTimeout(() => { if(this.adObserver) this.adObserver.disconnect(); }, 5000);
+                } catch(e) {}
+            },
+
+            generateId: function() {
+                return typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'id-'+Math.random().toString(36).substr(2,9);
             },
 
             bindEvents: function() {
@@ -411,7 +431,6 @@
                 });
             },
 
-            // --- UNDO / REDO ENGINE ---
             pushState: function() {
                 if(this.isNavigatingHistory) return;
                 const snap = JSON.stringify(this.state);
@@ -422,11 +441,11 @@
                 }
                 localStorage.setItem('sv_pricing_matrix_v4', snap);
                 
-                // Visual Indicator
                 const ind = document.getElementById('save-indicator');
                 if(ind) {
+                    clearTimeout(this.indTimeout);
                     ind.style.opacity = '1';
-                    setTimeout(()=> ind.style.opacity = '0', 1000);
+                    this.indTimeout = setTimeout(()=> ind.style.opacity = '0', 1000);
                 }
             },
 
@@ -436,7 +455,7 @@
                     this.redoStack.push(this.undoStack.pop());
                     this.state = JSON.parse(this.undoStack[this.undoStack.length-1]);
                     localStorage.setItem('sv_pricing_matrix_v4', JSON.stringify(this.state));
-                    this.renderAll(true); // Force full DOM rebuild on undo
+                    this.renderAll(true); 
                     this.showToast("Action Undone.", "success");
                     this.isNavigatingHistory = false;
                 }
@@ -449,7 +468,7 @@
                     this.undoStack.push(snap);
                     this.state = JSON.parse(snap);
                     localStorage.setItem('sv_pricing_matrix_v4', snap);
-                    this.renderAll(true); // Force full DOM rebuild on redo
+                    this.renderAll(true); 
                     this.showToast("Action Redone.", "success");
                     this.isNavigatingHistory = false;
                 }
@@ -460,11 +479,13 @@
                     const saved = localStorage.getItem('sv_pricing_matrix_v4');
                     if (saved) {
                         this.state = JSON.parse(saved);
-                        if(!this.state.products || this.state.products.length === 0) {
-                            this.state.products = [{ id: Date.now(), name: "Product 1", cost: 850, qty: 1, target: 35 }];
-                        }
                     }
                 } catch(e){}
+                
+                if(!this.state.products || this.state.products.length === 0) {
+                    this.state.products = [{ id: this.generateId(), name: "Product 1", cost: 850, qty: 1, target: 35 }];
+                }
+                
                 this.pushState(); 
                 this.renderAll(true);
             },
@@ -472,14 +493,13 @@
             resetState: function() {
                 this.state = {
                     mode: 'margin', tax: 18, discount: 0, currency: '₹', fixedCosts: 15000, compPrice: '',
-                    products: [{ id: Date.now(), name: "Product 1", cost: 850, qty: 1, target: 35 }]
+                    products: [{ id: this.generateId(), name: "Product 1", cost: 850, qty: 1, target: 35 }]
                 };
                 this.pushState();
                 this.renderAll(true);
                 this.showToast("Calculator reset to default parameters.");
             },
 
-            // --- UI RENDERERS ---
             renderAll: function(forceRebuild = false) {
                 this.syncInputsToDOM(forceRebuild);
                 this.updateGlobalSettingsUI();
@@ -489,8 +509,6 @@
 
             syncInputsToDOM: function(forceRebuild) {
                 const s = this.state;
-                
-                // Helper to prevent stealing focus while user is typing
                 const updateIfNotActive = (id, val) => {
                     const el = document.getElementById(id);
                     if (el && (forceRebuild || document.activeElement !== el)) el.value = val;
@@ -524,31 +542,42 @@
                 document.getElementById('tax-container').innerHTML = html;
             },
 
-            // --- INPUT HANDLERS ---
             setMode: function(m) { this.state.mode = m; this.triggerUpdate(); },
             setTax: function(t) { this.state.tax = parseInt(t); this.triggerUpdate(); },
             
             handleInput: function() {
                 this.state.currency = document.getElementById('g-currency').value;
-                this.state.discount = parseFloat(document.getElementById('g-discount').value) || 0;
-                this.state.fixedCosts = parseFloat(document.getElementById('a-fixed').value) || 0;
-                this.state.compPrice = document.getElementById('a-comp').value; 
+                let disc = parseFloat(document.getElementById('g-discount').value);
+                if(isNaN(disc) || disc < 0) disc = 0;
+                if(disc >= 100) disc = 99.99;
+                this.state.discount = disc;
+                
+                let fixed = parseFloat(document.getElementById('a-fixed').value);
+                this.state.fixedCosts = isNaN(fixed) ? 0 : Math.max(0, fixed);
+                
+                let comp = parseFloat(document.getElementById('a-comp').value);
+                this.state.compPrice = isNaN(comp) ? '' : Math.max(0, comp); 
+                
                 this.triggerUpdate();
             },
 
             handleQuickInput: function(field, val) {
-                let v = parseFloat(val) || 0;
-                if(field === 'target' && this.state.mode === 'margin' && v >= 100) v = 99.99;
+                let v = parseFloat(val);
+                if(isNaN(v)) v = 0;
+                if(field === 'cost' && v < 0) v = Math.abs(v);
+                if(field === 'target') {
+                    if(v < 0) v = Math.abs(v);
+                    if(this.state.mode === 'margin' && v >= 100) v = 99.99;
+                }
                 
                 if(this.state.products.length > 0) {
                     this.state.products[0][field] = v;
                 } else {
-                    this.state.products.push({ id: Date.now(), name: "Product 1", cost: field==='cost'?v:0, qty: 1, target: field==='target'?v:35 });
+                    this.state.products.push({ id: this.generateId(), name: "Product 1", cost: field==='cost'?v:0, qty: 1, target: field==='target'?v:35 });
                 }
                 
                 document.getElementById('q-cost').classList.toggle('input-error', this.state.products[0].cost < 0);
                 document.getElementById('q-target').classList.toggle('input-error', this.state.products[0].target < 0);
-                
                 this.triggerUpdate();
             },
 
@@ -558,10 +587,10 @@
                 this.saveTimeout = setTimeout(() => this.pushState(), 400); 
             },
 
-            // --- PORTFOLIO SURGICAL RENDERING ---
             addProduct: function() {
-                this.state.products.push({ id: Date.now(), name: "", cost: 0, qty: 1, target: 20 });
-                this.triggerUpdate(true); // Force rebuild when array length changes
+                if(this.state.products.length >= 100) return this.showToast("Maximum 100 products allowed.", "error");
+                this.state.products.push({ id: this.generateId(), name: "", cost: 0, qty: 1, target: 20 });
+                this.triggerUpdate(true); 
             },
             
             removeProduct: function(id) {
@@ -573,17 +602,24 @@
             updateProduct: function(id, field, val) {
                 const p = this.state.products.find(p => p.id === id);
                 if(p) {
-                    let v = field === 'name' ? val : (parseFloat(val) || 0);
-                    if(field === 'target' && this.state.mode === 'margin' && v >= 100) v = 99.99;
+                    let v = field === 'name' ? val : parseFloat(val);
+                    if(field !== 'name') {
+                        if(isNaN(v)) v = 0;
+                        if(field === 'cost' && v < 0) v = Math.abs(v);
+                        if(field === 'qty' && v < 1) v = 1;
+                        if(field === 'target') {
+                            if(v < 0) v = Math.abs(v);
+                            if(this.state.mode === 'margin' && v >= 100) v = 99.99;
+                        }
+                    }
                     p[field] = v;
-                    this.triggerUpdate(false); // In-place update (does NOT steal focus)
+                    this.triggerUpdate(false); 
                 }
             },
 
             renderPortfolioRows: function(forceRebuild = false) {
                 const tbody = document.getElementById('product-rows');
                 
-                // SURGICAL FIX: Only rewrite innerHTML if lengths don't match or forced
                 if (forceRebuild || tbody.children.length !== this.state.products.length) {
                     tbody.innerHTML = '';
                     this.state.products.forEach((p, i) => {
@@ -591,21 +627,20 @@
                         const tr = document.createElement('tr');
                         tr.className = isFirst ? 'bg-blue-900/10' : '';
                         tr.innerHTML = `
-                            <td class="p-2 md:p-4 relative">
+                            <td class="p-1 sm:p-4 relative">
                                 ${isFirst ? '<span class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></span>' : ''}
-                                <input type="text" id="p-name-${p.id}" value="${p.name}" placeholder="SKU/Name" class="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 outline-none focus:border-blue-500" oninput="App.updateProduct(${p.id}, 'name', this.value)">
+                                <input type="text" id="p-name-${p.id}" value="${p.name}" placeholder="SKU/Name" class="w-full min-w-[50px] bg-slate-950 border border-slate-700 rounded px-1 sm:px-2 py-1 outline-none focus:border-blue-500" oninput="App.updateProduct('${p.id}', 'name', this.value)">
                             </td>
-                            <td class="p-2 md:p-4"><input type="number" id="p-cost-${p.id}" step="0.01" value="${p.cost}" class="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 outline-none focus:border-blue-500 text-right" oninput="App.updateProduct(${p.id}, 'cost', this.value)"></td>
-                            <td class="p-2 md:p-4"><input type="number" id="p-qty-${p.id}" step="1" value="${p.qty}" class="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 outline-none focus:border-blue-500 text-right" oninput="App.updateProduct(${p.id}, 'qty', this.value)"></td>
-                            <td class="p-2 md:p-4"><input type="number" id="p-target-${p.id}" step="0.01" value="${p.target}" class="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 outline-none focus:border-blue-500 text-right" oninput="App.updateProduct(${p.id}, 'target', this.value)"></td>
-                            <td class="p-2 md:p-4 text-right text-emerald-400 font-bold" id="p-prof-${p.id}">—</td>
-                            <td class="p-2 md:p-4 text-right text-white font-bold" id="p-ret-${p.id}">—</td>
-                            <td class="p-2 md:p-4 text-center print-hidden"><button onclick="App.removeProduct(${p.id})" class="text-red-400 hover:text-white bg-red-950/50 px-2 py-1 rounded">✕</button></td>
+                            <td class="p-1 sm:p-4"><input type="number" id="p-cost-${p.id}" step="0.01" value="${p.cost}" class="w-full min-w-[40px] bg-slate-950 border border-slate-700 rounded px-1 sm:px-2 py-1 outline-none focus:border-blue-500 text-right" oninput="App.updateProduct('${p.id}', 'cost', this.value)"></td>
+                            <td class="p-1 sm:p-4"><input type="number" id="p-qty-${p.id}" step="1" value="${p.qty}" class="w-full min-w-[30px] bg-slate-950 border border-slate-700 rounded px-1 sm:px-2 py-1 outline-none focus:border-blue-500 text-right" oninput="App.updateProduct('${p.id}', 'qty', this.value)"></td>
+                            <td class="p-1 sm:p-4"><input type="number" id="p-target-${p.id}" step="0.01" value="${p.target}" class="w-full min-w-[40px] bg-slate-950 border border-slate-700 rounded px-1 sm:px-2 py-1 outline-none focus:border-blue-500 text-right" oninput="App.updateProduct('${p.id}', 'target', this.value)"></td>
+                            <td class="p-1 sm:p-4 text-right text-emerald-400 font-bold" id="p-prof-${p.id}">—</td>
+                            <td class="p-1 sm:p-4 text-right text-white font-bold" id="p-ret-${p.id}">—</td>
+                            <td class="p-1 sm:p-4 text-center print-hidden"><button onclick="App.removeProduct('${p.id}')" class="text-red-400 hover:text-white bg-red-950/50 px-2 py-1 rounded">✕</button></td>
                         `;
                         tbody.appendChild(tr);
                     });
                 } else {
-                    // SURGICAL FIX: Update values in-place without touching active elements
                     this.state.products.forEach((p) => {
                         const nameInp = document.getElementById(`p-name-${p.id}`);
                         const costInp = document.getElementById(`p-cost-${p.id}`);
@@ -620,7 +655,6 @@
                 }
             },
 
-            // --- THE MATHEMATICAL ENGINE ---
             calculateEngine: function() {
                 const s = this.state;
                 const fmt = (v) => `${s.currency} ${v.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
@@ -628,26 +662,22 @@
                 let tCost = 0, tProfit = 0, tRetail = 0, tQty = 0;
 
                 s.products.forEach((p, i) => {
-                    // Core Pricing Algorithm
                     const c = p.cost;
                     const t = p.target / 100;
                     
                     let saleExcl = s.mode === 'margin' ? c / (1 - t) : c * (1 + t);
                     let profit = saleExcl - c;
                     
-                    // GST is calculated on the actual selling price
                     let taxAmt = saleExcl * (s.tax / 100);
                     let finalCustomerPrice = saleExcl + taxAmt; 
 
-                    // Indian GST Discount MRP Formula: (Final Customer Price) / (1 - Discount)
-                    let boxMrp = finalCustomerPrice;
+                    let boxMrpIncTax = finalCustomerPrice;
                     if(s.discount > 0 && s.discount < 100) {
-                        boxMrp = finalCustomerPrice / (1 - (s.discount / 100));
+                        boxMrpIncTax = finalCustomerPrice / (1 - (s.discount / 100));
                     }
 
-                    // Populate Quick Tab (First Product)
                     if(i === 0) {
-                        this.mathLog = { c, t: p.target, m: s.mode, s: saleExcl, p: profit, d: s.discount, mrp: boxMrp, x: s.tax, f: finalCustomerPrice, xa: taxAmt };
+                        this.mathLog = { c, t: p.target, m: s.mode, s: saleExcl, p: profit, d: s.discount, mrp: boxMrpIncTax, x: s.tax, f: finalCustomerPrice, xa: taxAmt };
                         
                         document.getElementById('q-res-cost').innerText = fmt(c);
                         document.getElementById('q-res-profit').innerText = fmt(profit);
@@ -657,45 +687,48 @@
                         let actMarkup = s.mode === 'markup' ? p.target : (c > 0 ? (profit / c) * 100 : 0);
                         document.getElementById('q-insight').innerText = s.mode === 'margin' ? `Achieving a ${actMargin.toFixed(1)}% margin required a ${actMarkup.toFixed(1)}% markup.` : `Applying a ${actMarkup.toFixed(1)}% markup yielded a true ${actMargin.toFixed(1)}% margin.`;
 
+                        let mHtml = '';
+                        if(s.tax > 0) mHtml += `<div class="flex justify-between items-center pb-2"><span class="text-xs text-slate-500">GST (${s.tax}%)</span><span class="text-sm font-mono text-slate-300">+ ${fmt(taxAmt)}</span></div>`;
+                        
+                        if(s.discount > 0) {
+                            mHtml += `<div class="flex justify-between items-center pt-2 border-t border-slate-700/50"><span class="text-xs text-slate-500">Actual Customer Pays</span><span class="text-sm font-mono text-white font-bold">${fmt(finalCustomerPrice)}</span></div>`;
+                        }
+                        
                         const qMatrix = document.getElementById('q-matrix');
-                        if(s.tax > 0 || s.discount > 0) {
+                        if(mHtml !== '') {
                             qMatrix.classList.remove('hidden');
-                            let mHtml = '';
-                            if(s.tax > 0) mHtml += `<div class="flex justify-between items-center"><span class="text-xs text-slate-500">GST (${s.tax}%)</span><span class="text-sm font-mono text-slate-300">+ ${fmt(taxAmt)}</span></div>`;
-                            if(s.discount > 0) {
-                                mHtml += `<div class="flex justify-between items-center"><span class="text-xs text-slate-500">Sale Price (Inc. Tax)</span><span class="text-sm font-mono text-slate-300">${fmt(finalCustomerPrice)}</span></div>`;
-                            }
                             qMatrix.innerHTML = mHtml;
                         } else {
                             qMatrix.classList.add('hidden');
                         }
 
-                        document.getElementById('q-res-retail').innerText = fmt(s.discount > 0 ? boxMrp : finalCustomerPrice);
+                        document.getElementById('q-res-retail').innerText = fmt(boxMrpIncTax);
                         document.getElementById('q-res-label').innerText = s.discount > 0 ? "Inflated Box MRP" : "Final Customer Price";
                         
-                        this.charts.quick.data.datasets[0].data = [c, profit, taxAmt, (s.discount > 0 ? boxMrp - finalCustomerPrice : 0)];
+                        const chartLabels = s.discount > 0 ? ['Cost', 'Profit', 'GST', 'Discount MRP Shift'] : ['Cost', 'Profit', 'GST'];
+                        const chartData = s.discount > 0 ? [c, profit, taxAmt, (boxMrpIncTax - finalCustomerPrice)] : [c, profit, taxAmt];
+                        
+                        this.charts.quick.data.labels = chartLabels;
+                        this.charts.quick.data.datasets[0].data = chartData;
                         this.charts.quick.update();
                     }
 
-                    // Populate Portfolio Tab Rows (Results only, inputs handled by renderPortfolioRows)
                     const elProf = document.getElementById(`p-prof-${p.id}`);
                     const elRet = document.getElementById(`p-ret-${p.id}`);
                     if(elProf) elProf.innerText = fmt(profit * p.qty);
-                    if(elRet) elRet.innerText = fmt(boxMrp * p.qty);
+                    if(elRet) elRet.innerText = fmt(boxMrpIncTax * p.qty);
 
                     tCost += (c * p.qty);
                     tProfit += (profit * p.qty);
-                    tRetail += (finalCustomerPrice * p.qty); // Revenue uses actual selling price
+                    tRetail += (finalCustomerPrice * p.qty); 
                     tQty += p.qty;
                 });
 
-                // Update Portfolio Totals
                 document.getElementById('p-tot-cost').innerText = fmt(tCost);
                 document.getElementById('p-tot-qty').innerText = tQty.toLocaleString();
                 document.getElementById('p-tot-profit').innerText = fmt(tProfit);
-                document.getElementById('p-tot-retail').innerText = fmt(tRetail); // Actual revenue total
+                document.getElementById('p-tot-retail').innerText = fmt(tRetail); 
 
-                // --- Analytics Tab Update ---
                 const avgProfit = tQty > 0 ? tProfit / tQty : 0;
                 const beOut = document.getElementById('a-be-units');
                 if (s.fixedCosts > 0 && avgProfit > 0) {
@@ -713,7 +746,6 @@
                 this.charts.port.data.datasets[0].data = [tCost, tProfit, taxTotal];
                 this.charts.port.update();
 
-                // Competitor Analysis (Uses Average Final Retail of Batch)
                 const cBox = document.getElementById('comp-box');
                 const cContent = document.getElementById('comp-content');
                 if (s.compPrice !== '' && tQty > 0) {
@@ -724,13 +756,13 @@
 
                     if (diff < 0) {
                         cBox.className = "bg-emerald-950/20 p-5 rounded-xl border border-emerald-900/30 transition-colors duration-300";
-                        cContent.innerHTML = `<span class="text-emerald-400 font-bold">You are ${pctDiff.toFixed(1)}% cheaper.</span><br>Avg retail ${fmt(avgRetail)} vs Rival ${fmt(compVal)}`;
+                        cContent.innerHTML = `<span class="text-emerald-400 font-bold">You are ${pctDiff.toFixed(1)}% cheaper.</span><br>Avg retail paid ${fmt(avgRetail)} vs Rival ${fmt(compVal)}`;
                     } else if (diff > 0) {
                         cBox.className = "bg-red-950/20 p-5 rounded-xl border border-red-900/30 transition-colors duration-300";
-                        cContent.innerHTML = `<span class="text-red-400 font-bold">You are ${pctDiff.toFixed(1)}% more expensive.</span><br>Avg retail ${fmt(avgRetail)} vs Rival ${fmt(compVal)}`;
+                        cContent.innerHTML = `<span class="text-red-400 font-bold">You are ${pctDiff.toFixed(1)}% more expensive.</span><br>Avg retail paid ${fmt(avgRetail)} vs Rival ${fmt(compVal)}`;
                     } else {
                         cBox.className = "bg-blue-950/20 p-5 rounded-xl border border-blue-900/30 transition-colors duration-300";
-                        cContent.innerHTML = `<span class="text-blue-400 font-bold">Exact Price Match.</span>`;
+                        cContent.innerHTML = `<span class="text-blue-400 font-bold">Exact Price Match.</span><br>Both selling at ${fmt(avgRetail)}`;
                     }
                 } else {
                     cBox.className = "bg-slate-900/40 p-5 rounded-xl border border-slate-800 transition-colors duration-300";
@@ -738,10 +770,9 @@
                 }
             },
 
-            // --- EXPORT & PROOF ---
             showMathModal: function() {
                 const l = this.mathLog;
-                let html = ``;
+                let html = `<p class="text-xs text-slate-400 mb-4 bg-slate-900/50 p-3 rounded border border-slate-800">Showing mathematical proof for <strong>Product 1</strong> (Quick Calculator).</p>`;
                 const fmt = (v) => `${this.state.currency} ${v.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
 
                 if (l.m === 'margin') {
@@ -751,13 +782,13 @@
                 }
 
                 if (l.x > 0) {
-                    html += `<div class="mb-4"><strong class="text-purple-400">3. Apply GST (${l.x}%)</strong><br>Formula: Selling Price * GST%<br>${fmt(l.s)} * ${l.x/100} = Tax ${fmt(l.xa)}<br><span class="text-white font-bold block mt-1">Final Customer Price = ${fmt(l.f)}</span></div>`;
+                    html += `<div class="mb-4"><strong class="text-purple-400">3. Apply GST (${l.x}%)</strong><br>Formula: Selling Price * GST%<br>${fmt(l.s)} * ${l.x/100} = Tax ${fmt(l.xa)}<br><span class="text-white font-bold block mt-1">Final Customer Pays = ${fmt(l.f)}</span></div>`;
                 } else {
-                    html += `<div class="mb-4"><strong class="text-purple-400">3. Apply GST (0%)</strong><br><span class="text-white font-bold">Final Customer Price = ${fmt(l.f)}</span></div>`;
+                    html += `<div class="mb-4"><strong class="text-purple-400">3. Apply GST (0%)</strong><br><span class="text-white font-bold">Final Customer Pays = ${fmt(l.f)}</span></div>`;
                 }
 
                 if (l.d > 0) {
-                    html += `<div class="mb-4 border-t border-slate-700 pt-4"><strong class="text-amber-400">4. Apply Discount Shield (${l.d}% Off MRP)</strong><br>Formula: Final Customer Price / (1 - Discount%)<br>${fmt(l.f)} / (1 - ${l.d/100}) = <span class="text-xl text-amber-400 font-bold block mt-1">Inflated Box MRP ${fmt(l.mrp)}</span></div>`;
+                    html += `<div class="mb-4 border-t border-slate-700 pt-4"><strong class="text-amber-400">4. Apply Discount Shield (${l.d}% Off MRP)</strong><br>Formula: Final Customer Pays / (1 - Discount%)<br>${fmt(l.f)} / (1 - ${l.d/100}) = <span class="text-xl text-amber-400 font-bold block mt-1">Box MRP (Inc. GST) ${fmt(l.mrp)}</span></div>`;
                 }
 
                 document.getElementById('math-steps').innerHTML = html;
@@ -835,17 +866,23 @@
                     
                     const dataRows = rows.slice(1);
                     this.state.products = [];
+                    let skipped = 0;
                     dataRows.forEach(r => {
+                        if(this.state.products.length >= 100) return; // 100 cap
                         if(r.length < 2) return;
-                        const cost = parseFloat(r[1]) || 0;
+                        const cost = parseFloat(r[1]);
                         const qty = parseFloat(r[2]) || 1;
-                        const target = parseFloat(r[3]) || 30;
-                        this.state.products.push({ id: Date.now() + Math.random(), name: r[0], cost, qty, target });
+                        const target = parseFloat(r[3]);
+                        
+                        if(isNaN(cost) || isNaN(target) || cost < 0 || target < 0) { skipped++; return; }
+                        
+                        this.state.products.push({ id: this.generateId(), name: r[0], cost, qty, target });
                     });
                     
                     if(this.state.products.length === 0) this.addProduct();
-                    this.triggerUpdate(true); // Force rebuild since we changed entire array
-                    this.showToast(`Imported ${this.state.products.length} SKUs successfully.`);
+                    this.triggerUpdate(true); 
+                    if(skipped > 0) this.showToast(`Imported ${this.state.products.length} SKUs. Skipped ${skipped} invalid rows.`, "error");
+                    else this.showToast(`Imported ${this.state.products.length} SKUs successfully.`);
                 };
                 reader.readAsText(file);
                 e.target.value = '';
@@ -865,25 +902,25 @@
                 this.hideDemoModal();
                 if(type === 'electronics') {
                     this.state.products = [
-                        {id:1, name:"Redmi Note 13 Pro 5G", cost:14999, target:22, qty:5},
-                        {id:2, name:"Boat Airdopes 141", cost:899, target:35, qty:20},
-                        {id:3, name:"Type-C Fast Charger", cost:149, target:40, qty:50}
+                        {id: this.generateId(), name:"Redmi Note 13 Pro 5G", cost:14999, target:22, qty:5},
+                        {id: this.generateId(), name:"Boat Airdopes 141", cost:899, target:35, qty:20},
+                        {id: this.generateId(), name:"Type-C Fast Charger", cost:149, target:40, qty:50}
                     ];
                     this.state.tax = 18; this.state.discount = 10;
                 } else if(type === 'dropship') {
                     this.state.products = [
-                        {id:4, name:"Cotton Anarkali Kurti", cost:249, target:45, qty:30},
-                        {id:5, name:"Wireless Gaming Mouse", cost:179, target:38, qty:25}
+                        {id: this.generateId(), name:"Cotton Anarkali Kurti", cost:249, target:45, qty:30},
+                        {id: this.generateId(), name:"Wireless Gaming Mouse", cost:179, target:38, qty:25}
                     ];
                     this.state.tax = 5; this.state.discount = 0;
                 } else {
                     this.state.products = [
-                        {id:6, name:"Samsung Galaxy M34 5G", cost:12499, target:18, qty:10},
-                        {id:7, name:"Noise ColorFit Pulse", cost:1099, target:30, qty:50}
+                        {id: this.generateId(), name:"Samsung Galaxy M34 5G", cost:12499, target:18, qty:10},
+                        {id: this.generateId(), name:"Noise ColorFit Pulse", cost:1099, target:30, qty:50}
                     ];
                     this.state.tax = 18; this.state.discount = 15;
                 }
-                this.triggerUpdate(true); // Force rebuild
+                this.triggerUpdate(true); 
                 this.switchTab('tab-portfolio');
                 this.showToast(`Retail Matrix Loaded Successfully.`);
             },
@@ -901,7 +938,22 @@
 
             initCharts: function() {
                 Chart.defaults.color = '#64748b'; Chart.defaults.font.family = "'Fira Code', monospace";
-                const commonOpts = { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'right', labels: { boxWidth: 10 } } } };
+                
+                const commonOpts = { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    cutout: '70%', 
+                    plugins: { 
+                        legend: { position: 'right', labels: { boxWidth: 10 } },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            bodyFont: { size: 13, family: "'Fira Code', monospace" },
+                            callbacks: {
+                                label: (ctx) => ` ${this.state.currency} ${ctx.parsed.toLocaleString('en-IN', {minimumFractionDigits:2})}`
+                            }
+                        }
+                    } 
+                };
                 
                 this.charts.quick = new Chart(document.getElementById('quickChart').getContext('2d'), {
                     type: 'doughnut',
@@ -921,7 +973,7 @@
                 if (!container) return;
                 const t = document.createElement('div');
                 const colors = type === 'error' ? 'bg-red-950/90 border-red-800 text-red-400' : 'bg-emerald-950/90 border-emerald-800 text-emerald-400';
-                t.className = `flex items-center gap-3 px-4 py-3 border rounded-xl shadow-2xl backdrop-blur-xl ${colors} transition-all duration-300 transform translate-y-[-20px] opacity-0`;
+                t.className = `flex items-center gap-3 px-4 py-3 border rounded-xl shadow-2xl backdrop-blur-xl ${colors} transition-all duration-300 transform translate-y-[-20px] opacity-0 pointer-events-auto`;
                 t.innerHTML = `<span class="text-xs font-mono font-bold">${msg}</span>`;
                 container.appendChild(t);
                 requestAnimationFrame(() => { t.style.transform = 'translateY(0)'; t.style.opacity = '1'; });
